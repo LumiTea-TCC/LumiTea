@@ -22,15 +22,79 @@
  const confirmarInput = document.getElementById('confirmar-senha');
  const toggleSenha = document.getElementById('toggle-senha');
  const toggleConfirmar = document.getElementById('toggle-confirmar');
- const strengthWrap = document.getElementById('strength-wrap');
+ const strengthWrap = document.getElementById('password-strength');
  const strengthLabel = document.getElementById('strength-label');
  const bars = [
  document.getElementById('bar-1'),
  document.getElementById('bar-2'),
  document.getElementById('bar-3'),
  ];
- const btnSubmit = form.querySelector('.btn-submit');
- 
+ const btnSubmit = document.getElementById('btn-submit');
+
+ /* =============================================================
+ NAVEGAÇÃO ENTRE ETAPAS (STEPPER)
+ ============================================================= */
+ const TOTAL_ETAPAS = 3;
+ let etapaAtual = 1;
+
+ function validarEtapa(etapa) {
+ let ok = true;
+ if (etapa === 1) {
+ const nome = document.getElementById('nome').value.trim();
+ const sobrenome = document.getElementById('sobrenome').value.trim();
+ const email = document.getElementById('email').value.trim();
+ if (!validarCampo('nome', 'nome-error', !nome)) ok = false;
+ if (!validarCampo('sobrenome', 'sobrenome-error', !sobrenome)) ok = false;
+ if (!validarCampo('email', 'email-error', !email || !email.includes('@'))) ok = false;
+ } else if (etapa === 2) {
+ const nascimento = document.getElementById('nascimento').value;
+ const tipo = document.getElementById('tipo').value;
+ if (!validarCampo('nascimento', 'nascimento-error', !nascimento)) ok = false;
+ if (!validarCampo('tipo', 'tipo-error', !tipo)) ok = false;
+ }
+ return ok;
+ }
+
+ function irParaEtapa(etapa) {
+ /* Painéis */
+ for (let i = 1; i <= TOTAL_ETAPAS; i++) {
+ document.getElementById('panel-' + i).classList.toggle('active', i === etapa);
+ }
+ /* Círculos e itens do stepper */
+ for (let i = 1; i <= TOTAL_ETAPAS; i++) {
+ const item = document.getElementById('step-item-' + i);
+ const circle = document.getElementById('step-circle-' + i);
+ item.classList.remove('active', 'done');
+ circle.classList.remove('active', 'done');
+ if (i < etapa) {
+ item.classList.add('done');
+ circle.classList.add('done');
+ } else if (i === etapa) {
+ item.classList.add('active');
+ circle.classList.add('active');
+ }
+ }
+ /* Linhas entre os círculos */
+ for (let i = 1; i < TOTAL_ETAPAS; i++) {
+ document.getElementById('step-line-' + i).classList.toggle('done', i < etapa);
+ }
+
+ etapaAtual = etapa;
+
+ /* Foco no primeiro campo da etapa */
+ const primeiro = document.getElementById('panel-' + etapa).querySelector('input, select');
+ if (primeiro) primeiro.focus();
+ }
+
+ document.getElementById('btn-next-1').addEventListener('click', () => {
+ if (validarEtapa(1)) irParaEtapa(2);
+ });
+ document.getElementById('btn-next-2').addEventListener('click', () => {
+ if (validarEtapa(2)) irParaEtapa(3);
+ });
+ document.getElementById('btn-back-2').addEventListener('click', () => irParaEtapa(1));
+ document.getElementById('btn-back-3').addEventListener('click', () => irParaEtapa(2));
+
  /* =============================================================
  MOSTRAR / OCULTAR SENHA
  ============================================================= */
@@ -120,7 +184,7 @@
  const sobrenome = document.getElementById('sobrenome').value.trim();
  const email = document.getElementById('email').value.trim();
  const nascimento = document.getElementById('nascimento').value;
- const tipo = document.getElementById('perfil').value;
+ const tipo = document.getElementById('tipo').value;
  const senha = senhaInput.value;
  const confirma = confirmarInput.value;
  const termos = document.getElementById('termos');
@@ -132,9 +196,9 @@
  if (!validarCampo('sobrenome', 'sobrenome-error', !sobrenome)) valido = false;
  if (!validarCampo('email', 'email-error', !email || !email.includes('@'))) valido = false;
  if (!validarCampo('nascimento', 'nascimento-error', !nascimento)) valido = false;
- if (!validarCampo('perfil', 'perfil-error', !tipo)) valido = false;
+ if (!validarCampo('tipo', 'tipo-error', !tipo)) valido = false;
  if (!validarCampo('senha', 'senha-error', senha.length < 6)) valido = false;
- if (!validarCampo('confirmar-senha','confirmar-error', senha !== confirma || !confirma)) valido = false;
+ if (!validarCampo('confirmar-senha','confirmar-senha-error', senha !== confirma || !confirma)) valido = false;
  
  if (!termos.checked) {
  termosErr.style.display = 'block';

@@ -29,8 +29,11 @@
  }
 
  .chat-page {
- min-height: 100vh;
+ height: 100vh;
  margin: 0;
+ display: flex;
+ flex-direction: column;
+ overflow: hidden;
  background: linear-gradient(180deg, #f7fbff 0%, #eef4fb 100%);
  color: #17324f;
  }
@@ -84,50 +87,54 @@
  }
 
  .chat-viewport {
- min-height: calc(100vh - 64px);
+ flex: 1;
+ min-height: 0;
  display: flex;
- justify-content: center;
- align-items: flex-start;
- padding: 16px 20px 24px;
+ padding: 0;
  }
 
  .chat-card {
- width: min(920px, 100%);
- height: min(760px, calc(100vh - 112px));
- min-height: 560px;
+ width: 100%;
+ height: 100%;
+ max-width: none;
+ min-height: 0;
  background: #ffffff;
- border: 1px solid #d8e5f2;
- border-radius: 20px;
- box-shadow: 0 10px 30px rgba(32, 78, 126, 0.1);
+ border: none;
+ border-radius: 0;
+ box-shadow: none;
  display: flex;
  flex-direction: column;
  overflow: hidden;
  }
 
  .chat-header-minimal {
- padding: 20px 24px 14px;
+ display: flex;
+ align-items: center;
+ gap: 14px;
+ padding: 12px 24px;
  border-bottom: 1px solid #e3edf7;
- text-align: center;
+ text-align: left;
  }
 
  .chat-header-bear {
- width: 120px;
- height: 120px;
+ width: 56px;
+ height: 56px;
  object-fit: contain;
- margin-bottom: 6px;
+ margin-bottom: 0;
+ flex-shrink: 0;
  }
 
  .chat-header-minimal h1 {
  margin: 0;
  font-family: 'Baloo 2', sans-serif;
- font-size: 1.6rem;
+ font-size: 1.3rem;
  font-weight: 800;
  color: #1a3d63;
  }
 
  .chat-header-minimal p {
- margin: 6px 0 0;
- font-size: 0.92rem;
+ margin: 2px 0 0;
+ font-size: 0.88rem;
  color: #4d6780;
  }
 
@@ -135,7 +142,7 @@
  display: inline-flex;
  align-items: center;
  gap: 8px;
- margin-top: 8px;
+ margin-top: 4px;
  font-size: 0.8rem;
  font-weight: 800;
  color: #2e7d5a;
@@ -152,7 +159,7 @@
  flex: 1;
  min-height: 0;
  overflow-y: auto;
- padding: 18px 20px;
+ padding: 22px 24px;
  background: #f8fbff;
  display: flex;
  flex-direction: column;
@@ -285,14 +292,14 @@
 
  .chat-textarea {
  width: 100%;
- min-height: 46px;
- max-height: 120px;
+ min-height: 80px;
+ max-height: 220px;
  resize: none;
  border: 1px solid #bfd3e7;
  border-radius: 12px;
- padding: 12px 14px 24px;
- font-size: 0.95rem;
- line-height: 1.5;
+ padding: 14px 16px 26px;
+ font-size: 1rem;
+ line-height: 1.55;
  color: #17324f;
  background: #ffffff;
  }
@@ -380,31 +387,31 @@
  }
 
  .chat-viewport {
- min-height: calc(100vh - 64px);
- padding: 10px;
+ padding: 0;
  }
 
  .chat-card {
- height: calc(100vh - 84px);
+ height: 100%;
  min-height: 0;
- border-radius: 14px;
+ border-radius: 0;
  }
 
  .chat-header-minimal {
- padding: 14px 12px 10px;
+ padding: 10px 14px;
+ gap: 10px;
  }
 
  .chat-header-minimal h1 {
- font-size: 1.2rem;
+ font-size: 1.1rem;
  }
 
  .chat-header-bear {
- width: 88px;
- height: 88px;
+ width: 44px;
+ height: 44px;
  }
 
  .chat-header-minimal p {
- font-size: 0.85rem;
+ font-size: 0.82rem;
  }
 
  .chat-messages {
@@ -470,9 +477,11 @@
  <section class="chat-card" aria-label="Conversa com a Lumi Theo">
  <div class="chat-header-minimal">
  <img class="chat-header-bear" src="img/urso-aponta-lado.png" alt="Urso Lumi apontando para o chat">
+ <div class="chat-header-text">
  <h1>Lumi Theo</h1>
  <p>Conversa segura, com linguagem clara e acolhedora.</p>
  <div class="status-line"><span class="dot" aria-hidden="true"></span>Online</div>
+ </div>
  </div>
 
  <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Histórico da conversa">
@@ -557,7 +566,7 @@
  sendBtn.disabled = input.value.trim().length === 0
 
  input.style.height = 'auto'
- input.style.height = Math.min(input.scrollHeight, 120) + 'px'
+ input.style.height = Math.min(Math.max(input.scrollHeight, 80), 220) + 'px'
  }
 
  function handleKey(e) {

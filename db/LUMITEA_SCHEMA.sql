@@ -54,9 +54,10 @@ CREATE TRIGGER profiles_updated_at
 
 -- Trigger: cria perfil automaticamente após signup
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 BEGIN
-  INSERT INTO profiles (id, nome, sobrenome, tipo)
+  INSERT INTO public.profiles (id, nome, sobrenome, tipo)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'nome', ''),
@@ -103,10 +104,11 @@ CREATE POLICY "nd_responsavel" ON neurodivergente
 
 -- Trigger: cria registro em neurodivergente ao criar perfil neurodivergente
 CREATE OR REPLACE FUNCTION criar_neurodivergente()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 BEGIN
   IF NEW.tipo = 'neurodivergente' THEN
-    INSERT INTO neurodivergente (id, codigo_vinculo)
+    INSERT INTO public.neurodivergente (id, codigo_vinculo)
     VALUES (
       NEW.id,
       upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 6))
@@ -153,10 +155,11 @@ CREATE TRIGGER prefs_updated_at
 
 -- Trigger: cria preferências padrão ao criar perfil neurodivergente
 CREATE OR REPLACE FUNCTION criar_preferencias_padrao()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 BEGIN
   IF NEW.tipo = 'neurodivergente' THEN
-    INSERT INTO preferencias_usuario (id_neurodivergente)
+    INSERT INTO public.preferencias_usuario (id_neurodivergente)
     VALUES (NEW.id)
     ON CONFLICT (id_neurodivergente) DO NOTHING;
   END IF;
