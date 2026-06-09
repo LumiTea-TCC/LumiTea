@@ -1,0 +1,253 @@
+# LumiTEA
+
+**LumiTEA** é uma aplicação web de suporte emocional, social e comunicacional para adolescentes no espectro autista (TEA) e seus cuidadores, desenvolvida no contexto de um TCC do curso técnico em Desenvolvimento de Sistemas da ETEC Humberto Ferrucio Gazzetta [file:1].
+
+O projeto propõe uma plataforma gratuita, em português e com foco no Brasil, integrando inteligência artificial, prática de habilidades sociais, diário de humor e painel para cuidadores, sempre com prioridade em acessibilidade, previsibilidade da interface e segurança da aplicação [file:1][file:2].
+
+---
+
+## Visão geral
+
+A LumiTEA foi pensada para atuar como um ambiente digital seguro, estruturado e de baixa sobrecarga sensorial, ajudando adolescentes com TEA a:
+
+- Expressar emoções com mais facilidade.
+- Praticar conversas e interações sociais.
+- Registrar humor e estados emocionais ao longo do tempo.
+- Receber apoio de uma IA especializada, chamada **Lumi Theo**.
+- Compartilhar progresso e informações relevantes com cuidadores [file:1][file:2].
+
+O projeto também considera que cuidadores precisam de uma forma simples e organizada de acompanhar o desenvolvimento e o bem-estar do adolescente, sem depender de múltiplas ferramentas desconectadas [file:1].
+
+---
+
+## Problema que o projeto resolve
+
+A documentação aponta uma lacuna importante: existem poucas soluções digitais em português, voltadas especificamente à realidade brasileira, que unifiquem em uma única plataforma:
+
+- Chat com IA.
+- Roleplay de situações sociais.
+- Diário emocional.
+- Painel do cuidador.
+- Interface acessível para pessoas neurodivergentes [file:1].
+
+A proposta da LumiTEA surge para responder a essa necessidade, oferecendo um sistema acessível, gratuito e projetado desde o início para o público com TEA [file:1][file:2].
+
+---
+
+## Público-alvo
+
+O sistema é voltado principalmente para:
+
+- Adolescentes no espectro autista.
+- Pais e responsáveis.
+- Cuidadores e terapeutas.
+- Profissionais que acompanham desenvolvimento socioemocional [file:1].
+
+A interface e a linguagem devem ser adaptadas para esse público, evitando ambiguidades, ironias, metáforas confusas e excesso de estímulos visuais [file:1][file:2].
+
+---
+
+## Funcionalidades principais
+
+### 1. Chat com IA — Lumi Theo
+A LumiTEA terá um assistente conversacional com IA chamado **Lumi Theo**, configurado para responder com linguagem clara, acolhedora e adaptada ao perfil emocional e cognitivo do usuário [file:1][file:2].
+
+Esse chat não deve ser genérico: ele precisa ser sensível às necessidades do público com TEA, com respostas previsíveis, diretas e sem interpretação ambígua [file:1].
+
+### 2. Roleplay de situações sociais
+O sistema permitirá simular interações do cotidiano, como conversar com colegas, pedir ajuda, iniciar diálogo ou lidar com situações sociais comuns [file:1][file:2].
+
+A ideia é oferecer um espaço seguro para treino de habilidades sociais com feedback positivo e sem pressão.
+
+### 3. Diário de humor e emoções
+O adolescente poderá registrar seu humor, emoções e experiências ao longo do tempo [file:1].
+
+Esses registros ajudam tanto no autocuidado quanto no acompanhamento por cuidadores, permitindo observar padrões emocionais e evolução.
+
+### 4. Painel do cuidador
+O cuidador terá acesso a um painel com informações relevantes sobre:
+
+- Humor registrado.
+- Progresso.
+- Atividades realizadas.
+- Indicadores visuais de acompanhamento [file:1][file:2].
+
+Esse painel existe para facilitar comunicação, organização e tomada de decisão.
+
+### 5. Gamificação
+A documentação menciona sistema de **XP e níveis**, como forma de incentivo e engajamento, desde que sem sobrecarga sensorial ou competitividade excessiva [file:1].
+
+---
+
+## Princípios de design
+
+A LumiTEA foi pensada com foco em **acessibilidade-first**, ou seja, acessibilidade como parte central do projeto, não como recurso adicional [file:1].
+
+Os princípios principais incluem:
+
+- Linguagem clara e direta.
+- Estrutura previsível.
+- Interface limpa e minimalista.
+- Baixa carga cognitiva.
+- Redução de estímulos desnecessários.
+- Navegação consistente [file:1][file:2].
+
+---
+
+## Acessibilidade
+
+O projeto segue diretrizes da **WCAG 2.1 nível AA** [file:1][file:2].
+
+Isso inclui:
+
+- Navegação por teclado.
+- Foco visível.
+- Alto contraste.
+- Área mínima de toque de 44x44 px.
+- Suporte a `prefers-reduced-motion`.
+- Componentes legíveis e operáveis.
+- Redução de animações e transições excessivas [file:1][file:2].
+
+A acessibilidade é tratada como requisito estrutural da aplicação, especialmente por conta das necessidades sensoriais e cognitivas do público com TEA [file:1].
+
+---
+
+## Arquitetura e tecnologias
+
+A documentação indica uma arquitetura **cliente-servidor**, com separação clara entre frontend e backend [file:1].
+
+Stack identificada até agora:
+
+- **Frontend:** HTML5, CSS3, JavaScript.
+- **Backend:** SUPABASE.
+- **Banco de dados:** SUPABASE.
+- **IA:** integração com API da Groq para processamento de linguagem natural [file:1].
+
+A solução foi desenhada para ser tecnicamente viável, de baixo custo e compatível com o escopo de um projeto acadêmico, mas com mentalidade de produto real [file:1].
+
+---
+
+## Segurança
+
+A documentação deixa claro que a arquitetura precisa evitar exposição de chaves no frontend [file:1].
+
+Medidas destacadas:
+
+- Proxy de API no backend.
+- Rate limiting.
+- Sanitização de entradas.
+- Headers de segurança HTTP.
+- Separação adequada entre cliente e servidor [file:1].
+
+Isso mostra uma preocupação real com segurança por design, não apenas com a entrega visual da aplicação.
+
+---
+
+## Fundamentação teórica
+
+O projeto está baseado em referências ligadas a:
+
+- **TEA e diagnóstico:** DSM-5 [file:2].
+- **Contexto brasileiro:** dificuldades de diagnóstico e acesso [file:2].
+- **Tecnologia e autismo:** ambientes digitais como mediadores de interação [file:2].
+- **Acessibilidade digital:** WCAG 2.1 [file:2].
+- **Engenharia de software:** processo, qualidade, segurança, manutenção [file:2].
+- **Participação social e qualidade de vida:** impacto da interação social no bem-estar [file:2].
+
+Esses fundamentos sustentam tanto as funcionalidades quanto as decisões de interface e arquitetura.
+
+---
+
+## Objetivos do projeto
+
+### Objetivo geral
+Desenvolver uma aplicação web acessível e inclusiva que ofereça suporte emocional e social a adolescentes com TEA, com apoio de IA, roleplay, diário emocional e painel para cuidadores [file:1].
+
+### Objetivos específicos
+- Implementar chat com IA especializada.
+- Criar roleplay de situações sociais.
+- Desenvolver diário de humor e emoções.
+- Construir painel do cuidador.
+- Garantir conformidade com WCAG 2.1 AA.
+- Implementar medidas de segurança.
+- Documentar o sistema de forma acadêmica e estruturada [file:1].
+
+---
+
+## Inovação do projeto
+
+A inovação da LumiTEA está em combinar, numa única plataforma:
+
+- IA especializada em neurodivergência.
+- Treino social guiado.
+- Monitoramento emocional.
+- Visão do cuidador.
+- Acessibilidade como pilar de design.
+- Segurança desde a arquitetura [file:1].
+
+Outro ponto inovador é que a IA não é genérica: ela é calibrada para comunicação com adolescentes autistas, reduzindo ruído comunicacional e priorizando previsibilidade [file:1].
+
+---
+
+## Viabilidade
+
+O projeto foi descrito como viável em termos:
+
+- Técnicos.
+- Financeiros.
+- Acadêmicos.
+- Temporais.
+- De acesso a dados e bibliografia [file:1].
+
+As tecnologias escolhidas são conhecidas, documentadas e compatíveis com o nível de um projeto de desenvolvimento de sistemas, além de permitirem implantação com custo baixo [file:1].
+
+---
+
+## Estado atual do projeto
+
+Até agora, entendi que o projeto já possui:
+
+- Um conceito bem definido.
+- Público-alvo claro.
+- Problema real identificado.
+- Fundamentação teórica sólida.
+- Requisitos de acessibilidade e segurança.
+- Estrutura funcional desejada.
+- Direção técnica consistente para evolução [file:1][file:2].
+
+Em outras palavras, a LumiTEA já não é apenas uma ideia: ela está bem encaminhada como projeto de produto, pesquisa e solução social.
+
+---
+
+## Resumo em uma frase
+
+A LumiTEA é uma plataforma web acessível, gratuita e em português, criada para apoiar adolescentes com TEA e seus cuidadores por meio de IA, treino social, registro emocional e acompanhamento estruturado [file:1].
+
+---
+
+## Contexto técnico importante para continuar o projeto
+
+Ao continuar o desenvolvimento, o projeto deve manter estes princípios:
+
+- Interface simples e previsível.
+- Conteúdo em português do Brasil.
+- Baixa sobrecarga sensorial.
+- IA com comunicação adaptada ao TEA.
+- Backend seguro com proxy de API.
+- Conformidade com WCAG 2.1 AA.
+- Estrutura escalável, organizada e pronta para evolução [file:1][file:2].
+
+---
+
+## Próximos passos sugeridos
+
+Se esse README for usado como base para outra IA, os próximos temas mais úteis para detalhar são:
+
+- Arquitetura completa da aplicação.
+- Estrutura de pastas do frontend e backend.
+- Fluxos de usuário.
+- Esquema do banco de dados.
+- Prompt de sistema da Lumi Theo.
+- Requisitos funcionais e não funcionais.
+- Wireframes ou mapa de telas.
+- Regras de acessibilidade e conteúdo.

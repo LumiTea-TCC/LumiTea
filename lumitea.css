@@ -1,0 +1,1480 @@
+/* =============================================================
+   LUMITEA — FOLHA DE ESTILOS PRINCIPAL
+   Arquivo: lumitea.css
+   Descrição: Estilos globais, componentes e responsividade
+   para a landing page do LumiTEA.
+   ============================================================= */
+
+
+/* =============================================================
+   1. VARIÁVEIS GLOBAIS (cores, sombras, bordas arredondadas)
+   ============================================================= */
+   :root {
+    /* Cores principais */
+    --bg:            #eef7ff;   /* Fundo geral da página */
+    --surface:       #ffffff;   /* Fundo de cards e seções brancas */
+    --primary:       #2196f3;   /* Azul principal — botões, destaques */
+    --primary-light: #64b5f6;   /* Azul claro — estrelas, detalhes */
+    --primary-pale:  #e3f2fd;   /* Azul muito claro — fundos de ícones */
+    --primary-dark:  #1565c0;   /* Azul escuro — hover de botões */
+    --accent:        #42a5f5;   /* Azul médio — bordas pontilhadas */
+    --accent2:       #90caf9;   /* Azul suave — blob de fundo */
+  
+    /* Cores de texto */
+    --text-main:  #1a2e4a;  /* Texto principal — títulos */
+    --text-soft:  #3d6080;  /* Texto secundário — parágrafos */
+    --text-muted: #6b9ab8;  /* Texto apagado — labels, rodapé */
+  
+    /* Bordas e sombras */
+    --border: #b3d9f8;
+    --shadow: rgba(33, 150, 243, 0.15);
+  
+    /* Bordas arredondadas */
+    --radius:    18px;  /* Cards e botões */
+    --radius-lg: 28px;  /* Hero image e elementos grandes */
+  }
+  
+  
+  /* =============================================================
+     2. RESET & ESTILOS BASE
+     Zera margens/paddings padrão do navegador e define
+     comportamento global da página.
+     ============================================================= */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  html {
+    scroll-behavior: smooth; /* Rolagem suave ao clicar em links âncora */
+  }
+  
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    overflow-x: hidden; /* Evita scroll horizontal indesejado */
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cellipse cx='20' cy='26' rx='11' ry='10' fill='%23fff' stroke='%23c9a0a0' stroke-width='1.5'/%3E%3Cellipse cx='20' cy='27' rx='8' ry='7' fill='%23f4a8a8'/%3E%3Cellipse cx='9' cy='20' rx='4' ry='5' fill='%23fff' stroke='%23c9a0a0' stroke-width='1.3'/%3E%3Cellipse cx='9' cy='20' rx='2.8' ry='3.5' fill='%23f4a8a8'/%3E%3Cellipse cx='31' cy='20' rx='4' ry='5' fill='%23fff' stroke='%23c9a0a0' stroke-width='1.3'/%3E%3Cellipse cx='31' cy='20' rx='2.8' ry='3.5' fill='%23f4a8a8'/%3E%3Cellipse cx='14' cy='13' rx='3.8' ry='4.8' fill='%23fff' stroke='%23c9a0a0' stroke-width='1.3'/%3E%3Cellipse cx='14' cy='13' rx='2.6' ry='3.4' fill='%23f4a8a8'/%3E%3Cellipse cx='20' cy='11' rx='3.8' ry='4.8' fill='%23fff' stroke='%23c9a0a0' stroke-width='1.3'/%3E%3Cellipse cx='20' cy='11' rx='2.6' ry='3.4' fill='%23f4a8a8'/%3E%3Cellipse cx='26' cy='13' rx='3.8' ry='4.8' fill='%23fff' stroke='%23c9a0a0' stroke-width='1.3'/%3E%3Cellipse cx='26' cy='13' rx='2.6' ry='3.4' fill='%23f4a8a8'/%3E%3C/svg%3E") 16 8, auto;
+  }
+  
+  
+  /* =============================================================
+     3. BACKGROUND — BLOBS DECORATIVOS
+     Círculos desfocados fixos que criam profundidade visual
+     sem distrair o conteúdo principal.
+     ============================================================= */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none; /* Não bloqueia cliques */
+    overflow: hidden;
+  }
+  
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.15; /* Bem suave para não cansar a vista */
+  }
+  
+  /* Posicionamento individual de cada blob */
+  .blob-1 { width: 600px; height: 600px; background: var(--primary); top: -160px;  left: -120px; }
+  .blob-2 { width: 420px; height: 420px; background: var(--accent);  bottom: 100px; right: -100px; }
+  .blob-3 { width: 300px; height: 300px; background: var(--accent2); top: 45%;     left: 40%; }
+  
+  
+  /* =============================================================
+     4. NAVEGAÇÃO (NAV)
+     Barra de topo fixa com efeito de vidro fosco (glassmorphism).
+     ============================================================= */
+  
+    a, button, input[type="checkbox"], select, label[for], .toggle-password {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 40 40'%3E%3Cellipse cx='20' cy='26' rx='11' ry='10' fill='%23fff' stroke='%23b07878' stroke-width='1.5'/%3E%3Cellipse cx='20' cy='27' rx='8' ry='7' fill='%23f08080'/%3E%3Cellipse cx='9' cy='20' rx='4' ry='5' fill='%23fff' stroke='%23b07878' stroke-width='1.3'/%3E%3Cellipse cx='9' cy='20' rx='2.8' ry='3.5' fill='%23f08080'/%3E%3Cellipse cx='31' cy='20' rx='4' ry='5' fill='%23fff' stroke='%23b07878' stroke-width='1.3'/%3E%3Cellipse cx='31' cy='20' rx='2.8' ry='3.5' fill='%23f08080'/%3E%3Cellipse cx='14' cy='13' rx='3.8' ry='4.8' fill='%23fff' stroke='%23b07878' stroke-width='1.3'/%3E%3Cellipse cx='14' cy='13' rx='2.6' ry='3.4' fill='%23f08080'/%3E%3Cellipse cx='20' cy='11' rx='3.8' ry='4.8' fill='%23fff' stroke='%23b07878' stroke-width='1.3'/%3E%3Cellipse cx='20' cy='11' rx='2.6' ry='3.4' fill='%23f08080'/%3E%3Cellipse cx='26' cy='13' rx='3.8' ry='4.8' fill='%23fff' stroke='%23b07878' stroke-width='1.3'/%3E%3Cellipse cx='26' cy='13' rx='2.6' ry='3.4' fill='%23f08080'/%3E%3C/svg%3E") 14 7, pointer;
+  }
+  
+  
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100; /* Sempre acima do conteúdo */
+    background: rgba(242, 246, 251, 0.9);
+    backdrop-filter: blur(12px); /* Efeito vidro fosco */
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 56px;
+    gap: 16px;
+  }
+  
+  /* --- Logo --- */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    text-decoration: none;
+    flex-shrink: 0; /* Não deixa o logo encolher em telas menores */
+  }
+  
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--primary);
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px var(--shadow);
+    overflow: hidden;
+  }
+  
+  /* Ícone SVG ou imagem dentro do logo */
+  .logo-icon svg { width: 22px; height: 22px; fill: white; }
+  .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
+  
+  /* --- Links de navegação (centro) --- */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  
+  .nav-links a {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-decoration: none;
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+  
+  .nav-links a:hover { color: var(--primary); }
+  
+  /* --- Botões de ação (direita) --- */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  
+  /* Botão fantasma (borda visível, fundo transparente) */
+  .btn-nav-ghost {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--primary);
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 20px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+  .btn-nav-ghost:hover { background: var(--primary-pale); border-color: var(--primary); }
+  
+  /* Botão sólido (preenchido) */
+  .btn-nav-solid {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: white;
+    background: var(--primary);
+    border: none;
+    border-radius: 20px;
+    padding: 7px 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px var(--shadow);
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .btn-nav-solid:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  
+  
+  /* =============================================================
+     5. SEÇÃO HERO (topo da página)
+     Texto principal + botões à esquerda, imagem à direita.
+     ============================================================= */
+  .hero {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 64px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 72px 56px 80px;
+  }
+  
+  /* Coluna de conteúdo (esquerda) */
+  .hero-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0; /* Evita overflow em flex */
+  }
+  
+  /* Badge pequena de categoria */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary-pale);
+    color: var(--primary-dark);
+    border-radius: 20px;
+    padding: 5px 16px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    width: fit-content;
+  }
+  
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+  }
+  
+  /* Título principal */
+  h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.25;
+  }
+  h1 span { color: var(--primary); }
+  
+  /* Subtítulo descritivo */
+  .hero-sub {
+    font-size: 1.02rem;
+    color: var(--text-soft);
+    line-height: 1.7;
+    max-width: 420px;
+  }
+  
+  /* Bloco de botões de ação */
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  
+  /* Botão primário — ação principal */
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 17px 32px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(33, 150, 243, 0.28);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(21, 101, 192, 0.3);
+  }
+  
+  /* Botão secundário — ação alternativa */
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 15px 32px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--primary); background: var(--primary-pale); }
+  
+  /* Estatísticas rápidas abaixo dos botões */
+  .hero-stats {
+    display: flex;
+    gap: 28px;
+    margin-top: 12px;
+    flex-wrap: wrap; /* Quebra linha em telas muito pequenas */
+  }
+  
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .stat-num {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  
+  /* Coluna de imagem (direita) — placeholder ou <img> real */
+  .hero-image-wrap {
+    flex: 0 0 460px;
+    height: 500px;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* Sobreposição sutil de gradiente no placeholder */
+  .hero-image-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  
+  /* Quando uma <img> real for inserida */
+  .hero-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+  
+  /* Ícone e texto do placeholder */
+  .ph-icon svg { width: 52px; height: 52px; opacity: 0.3; }
+  .ph-label    { opacity: 0.5; padding: 0 32px; line-height: 1.5; }
+  
+  
+  /* =============================================================
+     6. DIVISOR DECORATIVO
+     Linha horizontal com texto centralizado.
+     ============================================================= */
+  .divider {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 56px 56px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  
+  .divider-text {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  
+  
+  /* =============================================================
+     7. ESTRUTURA GERAL DE SEÇÕES
+     Estilos compartilhados por todas as seções de conteúdo.
+     ============================================================= */
+  section {
+    position: relative;
+    z-index: 5;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 72px 56px;
+  }
+  
+  /* Rótulo pequeno acima do título (ex: "FUNCIONALIDADES") */
+  .section-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  
+  /* Título de cada seção */
+  .section-title {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.3;
+    margin-bottom: 14px;
+  }
+  
+  /* Subtítulo descritivo da seção */
+  .section-sub {
+    font-size: 0.98rem;
+    color: var(--text-soft);
+    line-height: 1.7;
+    max-width: 520px;
+  }
+  
+  /* Espaçamento abaixo do cabeçalho antes do conteúdo */
+  .section-header { margin-bottom: 48px; }
+  
+  /* Fundo alternado (branco) para seções sem fundo padrão */
+  .alt-bg {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  /* Container interno das seções com fundo alternado */
+  .alt-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 72px 56px;
+    position: relative;
+    z-index: 5;
+  }
+  
+  
+  /* =============================================================
+     8. FUNCIONALIDADES — GRID DE CARDS
+     6 cards em grid de 3 colunas descrevendo os recursos do app.
+     ============================================================= */
+  /* ── Features grid ─────────────────────────────────────────── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    justify-items: center;
+  }
+
+  /* ── Stacked card ───────────────────────────────────────────── */
+  .feat-card-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 24px;
+    line-height: 1.6;
+    transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .feat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 32px;
+  border-radius: 22px;
+  color: #f4f7fb;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(58, 61, 66, 0.98), rgba(82, 88, 97, 0.995));
+  width: 100%;
+  position: relative;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.feat-content::before {
+  position: absolute;
+  content: "";
+  top: -4px;
+  left: 50%;
+  width: 90px;
+  height: 90px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.06);
+  z-index: -1;
+  transform-origin: bottom;
+  border-radius: inherit;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.feat-content::after {
+  position: absolute;
+  content: "";
+  top: -8px;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #3a3d42 0%, #525861 100%);
+  z-index: -2;
+  transform-origin: bottom;
+  border-radius: inherit;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+  .feat-content svg {
+    width: 44px;
+    height: 44px;
+    fill: white;
+    flex-shrink: 0;
+  }
+
+  .feat-content .feat-para {
+    z-index: 1;
+    opacity: 1;
+    font-size: 0.95rem;
+    color: #e3f2fd;
+    margin: 0;
+    transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .feat-content .feat-para strong {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 6px;
+    font-family: 'Baloo 2', sans-serif;
+  }
+
+  .feat-content .feat-link {
+    z-index: 1;
+    color: #64b5f6;             /* azul claro do site */
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .feat-content .feat-link:hover {
+    text-decoration: underline;
+    color: #ffffff;
+  }
+
+  .feat-card-wrap:hover {
+    transform: translate(0px, -16px);
+  }
+
+  .feat-card-wrap:hover .feat-content::before {
+    rotate: -8deg;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .feat-card-wrap:hover .feat-content::after {
+    rotate: 8deg;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  
+  /* =============================================================
+     9. COMO FUNCIONA — PASSOS NUMERADOS
+     Lista vertical de passos com número, texto e placeholder de imagem.
+     ============================================================= */
+  .steps {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Cada passo ocupa uma linha horizontal */
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 36px;
+    padding: 36px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  
+  /* Círculo com o número do passo */
+  .step-num {
+    flex: 0 0 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary-pale);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  
+  /* Texto descritivo do passo */
+  .step-content { flex: 1; min-width: 0; }
+  
+  .step-title {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--text-main);
+    margin-bottom: 6px;
+  }
+  
+  .step-desc {
+    font-size: 0.88rem;
+    color: var(--text-soft);
+    line-height: 1.65;
+    max-width: 480px;
+  }
+  
+  /* Placeholder de imagem ao lado direito do passo */
+  .step-img {
+    flex: 0 0 260px;
+    height: 170px;
+    background: var(--primary-pale);
+    border-radius: var(--radius);
+    border: 1.5px dashed var(--accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+    overflow: hidden;
+  }
+  
+  .step-img svg { width: 32px; height: 32px; opacity: 0.28; }
+  
+  /* Quando usar <img> real no lugar do placeholder */
+  .step-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+  
+  
+  /* =============================================================
+     10. APP PREVIEW — TEXTO + GRID DE IMAGENS
+     Lado esquerdo com lista de benefícios, direito com prints do app.
+     ============================================================= */
+  .preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 64px;
+  }
+  
+  /* Coluna de texto (esquerda) */
+  .preview-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+  
+  /* Lista de benefícios */
+  .preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  
+  /* Cada item da lista */
+  .preview-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  
+  /* Ícone de check arredondado */
+  .check-icon {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .check-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+  }
+  
+  .preview-item-title {
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: var(--text-main);
+    margin-bottom: 2px;
+  }
+  
+  .preview-item-desc {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    line-height: 1.55;
+  }
+  
+  /* Grid de imagens/prints do app (direita) */
+  .preview-images {
+    flex: 0 0 360px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  
+  /* Card de placeholder de print do app */
+  .prev-img {
+    background: var(--primary-pale);
+    border: 1.5px dashed var(--accent);
+    border-radius: var(--radius);
+    height: 190px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    overflow: hidden;
+  }
+  
+  .prev-img svg  { width: 28px; height: 28px; opacity: 0.28; }
+  .prev-img.tall { grid-row: span 2; height: 100%; } /* Card alto — ocupa 2 linhas */
+  
+  /* Quando usar <img> real no lugar do placeholder */
+  .prev-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  
+  /* =============================================================
+     11. CTA — CHAMADA PARA AÇÃO FINAL
+     Seção centralizada incentivando o cadastro.
+     ============================================================= */
+  .cta-bg {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  
+  .cta-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 80px 56px;
+    position: relative;
+    z-index: 5;
+    text-align: center;
+  }
+  
+  .cta-wrap h2 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.3;
+  }
+  .cta-wrap h2 span { color: var(--primary); }
+  
+  .cta-wrap p {
+    font-size: 0.98rem;
+    color: var(--text-soft);
+    line-height: 1.7;
+  }
+  
+  /* Botão grande de CTA */
+  .btn-primary-lg {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 18px 44px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(33, 150, 243, 0.28);
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 8px;
+  }
+  .btn-primary-lg:hover { background: var(--primary-dark); transform: translateY(-2px); }
+  
+  
+  /* =============================================================
+12. RODAPÉ (FOOTER) — ESTILO INSPIRADO NA IMAGEM
+============================================================= */
+footer.lumi-footer {
+  position: relative;
+  z-index: 5;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(58, 61, 66, 0.98), rgba(82, 88, 97, 0.995));
+  border-top: 1px solid rgba(179, 217, 248, 0.18);
+  box-shadow: 0 -18px 44px rgba(10, 16, 24, 0.26);
+}
+
+footer.lumi-footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(33, 150, 243, 0.12), transparent 28%),
+    radial-gradient(circle at 85% 20%, rgba(144, 202, 249, 0.08), transparent 24%),
+    radial-gradient(circle at 30% 90%, rgba(114, 129, 147, 0.10), transparent 26%);
+  pointer-events: none;
+}
+
+footer.lumi-footer .footer-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 56px 28px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 34px;
+  align-items: start;
+}
+
+footer.lumi-footer .footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 18px;
+}
+
+footer.lumi-footer .footer-brand h3 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #f4f7fb;
+  margin: 0;
+}
+
+footer.lumi-footer .footer-brand p {
+  color: #a6b3c2;
+  line-height: 1.8;
+  max-width: 320px;
+  font-size: 0.95rem;
+}
+
+footer.lumi-footer .footer-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d6dde7;
+  margin-bottom: 16px;
+}
+
+footer.lumi-footer .footer-links-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+footer.lumi-footer .footer-links-grid a {
+  color: #a6b3c2;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.92rem;
+  transition: color 0.2s ease, transform 0.2s ease, text-shadow 0.2s ease;
+}
+
+footer.lumi-footer .footer-links-grid a:hover {
+  color: var(--primary-light);
+  transform: translateX(4px);
+  text-shadow: 0 0 14px rgba(33, 150, 243, 0.25);
+}
+
+footer.lumi-footer .footer-bottom {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 18px 56px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+footer.lumi-footer .footer-policy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+footer.lumi-footer .footer-policy a {
+  color: #a6b3c2;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+footer.lumi-footer .footer-policy a:hover {
+  color: var(--primary-light);
+}
+
+footer.lumi-footer .footer-copy {
+  color: #7f8d9d;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  max-width: 560px;
+}
+
+footer.lumi-footer .footer-social {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+footer.lumi-footer .footer-social a {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #dbe5ef;
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+footer.lumi-footer .footer-social a:hover {
+  transform: translateY(-2px);
+  background: rgba(33, 150, 243, 0.12);
+  border-color: rgba(33, 150, 243, 0.35);
+  color: #ffffff;
+}
+
+footer.lumi-footer .footer-social svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+@media (max-width: 1024px) {
+  footer.lumi-footer .footer-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  footer.lumi-footer .footer-inner {
+    grid-template-columns: 1fr;
+    padding: 44px 20px 22px;
+  }
+
+  footer.lumi-footer .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 20px 24px;
+  }
+
+  footer.lumi-footer .footer-social {
+    margin-top: 6px;
+  }
+}
+  /* =============================================================
+     BURGER MENU — LANDING PAGE (index.html)
+     Classe .burger — exibido em telas ≤ 768px
+     ============================================================= */
+  .burger {
+    display: none;
+    position: relative;
+    width: 40px;
+    height: 30px;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .burger input { display: none; }
+  .burger span {
+    display: block;
+    position: absolute;
+    height: 4px;
+    width: 100%;
+    background: var(--primary-dark);
+    border-radius: 9px;
+    left: 0;
+    transition: .25s ease-in-out;
+  }
+  .burger span:nth-of-type(1) { top: 0px; transform-origin: left center; }
+  .burger span:nth-of-type(2) { top: 50%; transform: translateY(-50%); transform-origin: left center; }
+  .burger span:nth-of-type(3) { top: 100%; transform: translateY(-100%); transform-origin: left center; }
+  .burger input:checked ~ span:nth-of-type(1) { transform: rotate(45deg); top: 0px; left: 5px; }
+  .burger input:checked ~ span:nth-of-type(2) { width: 0%; opacity: 0; }
+  .burger input:checked ~ span:nth-of-type(3) { transform: rotate(-45deg); top: 28px; left: 5px; }
+
+  /* Mobile dropdown menu — landing */
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(242, 246, 251, 0.98);
+    backdrop-filter: blur(16px);
+    border-bottom: 1.5px solid var(--border);
+    z-index: 98;
+    padding: 10px 20px 16px;
+    box-shadow: 0 8px 32px var(--shadow);
+  }
+  .mobile-menu a {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-decoration: none;
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border);
+    display: block;
+    transition: color 0.18s;
+  }
+  .mobile-menu a:last-of-type { border-bottom: none; }
+  .mobile-menu a:hover { color: var(--primary); }
+  .mobile-menu-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 12px;
+  }
+  .mobile-menu-actions a,
+  .mobile-menu-actions button { flex: 1; width: 100%; text-align: center; }
+
+
+  /* =============================================================
+     13. RESPONSIVIDADE — TABLET PAISAGEM (≤ 1024px)
+     Ajustes para tablets em modo paisagem e telas médias.
+     ============================================================= */
+  @media (max-width: 1024px) {
+    nav     { padding: 14px 32px; }
+    .hero   { gap: 40px; padding: 56px 32px 64px; }
+    section { padding: 56px 32px; }
+    .alt-inner { padding: 56px 32px; }
+    .divider   { padding: 0 32px 48px; }
+  
+    h1 { font-size: 2.2rem; }
+  
+    /* Imagem do hero menor */
+    .hero-image-wrap { flex: 0 0 360px; height: 380px; }
+  
+    /* Features em 2 colunas */
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .feat-card-wrap { max-width: 100%; }
+  
+    /* Preview com gap menor */
+    .preview-wrap   { gap: 40px; }
+    .preview-images { flex: 0 0 300px; }
+  }
+  
+  
+  /* =============================================================
+     14. RESPONSIVIDADE — TABLET RETRATO / CELULAR GRANDE (≤ 768px)
+     Layout passa a ser de coluna única.
+     ============================================================= */
+  @media (max-width: 768px) {
+    /* Nav: esconde links do meio, mantém logo e botões */
+    nav { padding: 12px 20px; }
+    .nav-links { display: none; }
+    .nav-actions { display: none; }
+    .burger { display: block; }
+  
+    /* Hero em coluna: texto acima, imagem abaixo, centralizado */
+    .hero {
+      flex-direction: column;
+      gap: 36px;
+      padding: 40px 20px 48px;
+      text-align: center;
+    }
+    .hero-content  { align-items: center; }
+    .hero-sub      { max-width: 100%; text-align: center; }
+    .hero-stats    { justify-content: center; }
+  
+    /* Imagem do hero ocupa largura total */
+    .hero-image-wrap { flex: none; width: 100%; height: 300px; }
+  
+    /* Seções com padding menor */
+    section    { padding: 48px 20px; }
+    .alt-inner { padding: 48px 20px; }
+    .divider   { padding: 0 20px 40px; }
+  
+    /* Títulos menores */
+    h1             { font-size: 1.9rem; }
+    .section-title { font-size: 1.6rem; }
+  
+    /* Passos em coluna (número + texto + imagem empilhados) */
+    .step {
+      flex-direction: column;
+      gap: 20px;
+      padding: 28px 0;
+    }
+    .step-img { flex: none; width: 100%; height: 200px; }
+  
+    /* Preview em coluna */
+    .preview-wrap   { flex-direction: column; gap: 36px; }
+    .preview-images { flex: none; width: 100%; }
+  
+    /* Rodapé em coluna centralizada */
+    footer {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 24px 20px;
+    }
+  }
+  
+  
+  /* =============================================================
+     15. RESPONSIVIDADE — CELULAR PEQUENO (≤ 480px)
+     Ajustes finos para telas estreitas.
+     ============================================================= */
+  @media (max-width: 480px) {
+    /* Features em coluna única */
+    .features-grid { grid-template-columns: 1fr; }
+    .feat-card-wrap { max-width: 100%; }
+  
+    /* Títulos menores */
+    h1             { font-size: 1.65rem; }
+    .section-title { font-size: 1.35rem; }
+  
+    /* Hero image menor */
+    .hero-image-wrap { height: 260px; }
+  
+    /* Botões: texto menor para caber em telas pequenas */
+    .btn-primary,
+    .btn-secondary  { font-size: 0.82rem; padding: 14px 20px; }
+    .btn-primary-lg { font-size: 0.88rem; padding: 15px 28px; }
+  
+    /* Esconde botão fantasma do nav em telas muito pequenas */
+    .btn-nav-ghost { display: none; }
+  
+    /* Preview: 1 coluna de imagens */
+    .preview-images { grid-template-columns: 1fr; }
+    .prev-img.tall  { grid-row: auto; height: 190px; }
+  
+    /* CTA com menos padding lateral */
+    .cta-wrap    { padding: 56px 20px; }
+    .cta-wrap h2 { font-size: 1.6rem; }
+  
+    /* Estatísticas menores */
+    .stat-num { font-size: 1.25rem; }
+  
+    /* Logo menor */
+    .logo      { font-size: 1.3rem; }
+    .logo-icon { width: 32px; height: 32px; }
+  }
+  
+  
+  /* =============================================================
+     16. RESPONSIVIDADE — CELULAR MUITO PEQUENO (≤ 360px)
+     Para dispositivos com telas extremamente reduzidas.
+     ============================================================= */
+  @media (max-width: 360px) {
+    h1             { font-size: 1.45rem; }
+    .section-title { font-size: 1.2rem; }
+  
+    /* Estatísticas empilhadas verticalmente */
+    .hero-stats { flex-direction: column; gap: 10px; align-items: center; }
+  }
+
+  /* Mobile menu uses fixed position to overlay content */
+  @media (max-width: 768px) {
+    .mobile-menu {
+      position: fixed;
+      top: 57px; /* approx nav height on mobile */
+    }
+  }
+
+
+/* ── Como funciona — vídeo ─────────────────────────────────── */
+.how-video-wrap {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 0 16px;
+}
+
+.how-video-inner {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(74,126,181,0.18);
+  border: 1.5px solid rgba(74,126,181,0.14);
+  background: #0a0e1a;
+  position: relative;
+}
+
+.how-video-frame {
+  position: relative;
+  padding-top: 56.25%; /* 16:9 */
+  width: 100%;
+}
+
+.how-video-play-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: linear-gradient(135deg,#0d1b2e,#112240);
+  color: rgba(255,255,255,0.72);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.how-video-play-hint svg {
+  width: 56px; height: 56px;
+  color: rgba(255,255,255,0.9);
+  filter: drop-shadow(0 4px 16px rgba(33,150,243,0.5));
+}
+
+.how-video-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  z-index: 2;
+}
+
+/* ── Seção app — sem preview-images, texto centralizado ───── */
+.preview-wrap--solo {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.preview-wrap--solo .preview-content {
+  width: 100%;
+}
+
+.preview-wrap--solo .preview-list {
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .how-video-wrap { padding: 0 0 10px; }
+}
+
+
+
+/* ===== LumiTEA scroll reveal + footer upgrade ===== */
+.reveal-section {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1);
+  will-change: opacity, transform;
+}
+.reveal-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: .08s; }
+.reveal-delay-2 { transition-delay: .16s; }
+.reveal-delay-3 { transition-delay: .24s; }
+.reveal-scale {
+  opacity: 0;
+  transform: scale(.98) translateY(18px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1);
+}
+.reveal-scale.is-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.lumi-footer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(227,242,253,.96));
+  border-top: 1px solid rgba(179,217,248,.9);
+  box-shadow: 0 -14px 40px rgba(33,150,243,.08);
+}
+.lumi-footer::before,
+.lumi-footer::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(34px);
+  opacity: .65;
+}
+.lumi-footer::before {
+  width: 220px; height: 220px;
+  right: -60px; top: -90px;
+  background: rgba(33,150,243,.16);
+}
+.lumi-footer::after {
+  width: 180px; height: 180px;
+  left: -50px; bottom: -70px;
+  background: rgba(66,165,245,.16);
+}
+.lumi-footer .footer-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.2fr .8fr .8fr;
+  gap: 24px;
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 56px 26px;
+}
+.lumi-footer .footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lumi-footer .footer-brand h3 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.35rem;
+  color: var(--primary-dark);
+  margin: 0;
+}
+.lumi-footer .footer-brand p {
+  color: var(--text-soft);
+  line-height: 1.7;
+  max-width: 320px;
+}
+.lumi-footer .footer-title {
+  font-size: .82rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--primary-dark);
+  margin-bottom: 14px;
+}
+.lumi-footer .footer-links-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lumi-footer .footer-links-grid a {
+  color: var(--text-soft);
+  text-decoration: none;
+  font-weight: 700;
+  transition: transform .2s ease, color .2s ease, text-shadow .2s ease;
+}
+.lumi-footer .footer-links-grid a:hover {
+  color: var(--primary);
+  transform: translateX(4px);
+  text-shadow: 0 0 18px rgba(33,150,243,.24);
+}
+.lumi-footer .footer-bottom {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 56px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid rgba(179,217,248,.7);
+}
+.lumi-footer .footer-copy {
+  color: var(--text-muted);
+  font-size: .8rem;
+}
+.lumi-footer .footer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(179,217,248,.8);
+  box-shadow: 0 8px 24px rgba(33,150,243,.08);
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+.lumi-footer .footer-badge svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+@media (max-width: 768px) {
+  .lumi-footer .footer-inner {
+    grid-template-columns: 1fr;
+    padding: 32px 20px 20px;
+  }
+  .lumi-footer .footer-bottom {
+    padding: 0 20px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.how-section,
+.app-section {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1);
+}
+
+.how-section.is-visible,
+.app-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.app-section {
+  transform: scale(.98) translateY(18px);
+}
+
+.app-section.is-visible {
+  transform: scale(1) translateY(0);
+}

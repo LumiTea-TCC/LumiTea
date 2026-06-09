@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Meu Espaço</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&family=Domine:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="roleplay.html">Roleplay</a>
+      <a href="rpg-social.html">Jornada (RPG)</a>
+      <a href="games.html">Games</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+
+    <!-- Burger menu (mobile) -->
+    <label class="app-burger" for="burger-home">
+      <input type="checkbox" id="burger-home">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+  </nav>
+
+  <!-- Mobile menu dropdown -->
+  <div id="mm-home" class="app-mobile-menu">
+    <a href="home-autista.html" class="active">Início</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="roleplay.html">Roleplay</a>
+    <a href="rpg-social.html">Jornada (RPG)</a>
+    <a href="games.html">Games</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var cb = document.getElementById('burger-home');
+    var menu = document.getElementById('mm-home');
+    cb.addEventListener('change', function(){ menu.style.display = cb.checked ? 'flex' : 'none'; });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ cb.checked=false; menu.style.display='none'; });
+    });
+  })();
+  </script>
+  <script>
+  // ── Menu ativo automático ─────────────────────────────────────
+  (function() {
+    var pagina = window.location.pathname.split("/").pop() || "home-autista.html";
+    document.querySelectorAll(".app-nav-links a").forEach(function(link) {
+      link.classList.remove("active");
+      var href = link.getAttribute("href");
+      if (href === pagina || (pagina === "" && href === "home-autista.html")) {
+        link.classList.add("active");
+      }
+    });
+  })();
+
+  // ── Mobile menu ativo automático ─────────────────────────────
+  (function() {
+    var pagina = window.location.pathname.split("/").pop() || "home-autista.html";
+    document.querySelectorAll("#mm-home a").forEach(function(link) {
+      link.classList.remove("active");
+      var href = link.getAttribute("href");
+      if (href === pagina) link.classList.add("active");
+    });
+  })();
+  </script>
+
+  <div class="app-main-presentation">
+    <div style="display:flex;flex-direction:column;gap:28px;">
+
+      <!-- HERO -->
+      <section class="teen-hero">
+        <div class="teen-hero-bear">
+          <img src="img/urso-aponta-lado.png" alt="Urso mascote Lumi">
+        </div>
+        <div class="teen-hero-text">
+          <h1>Olá, <span id="greeting-name">amigo</span>! <br>Bem-vindo ao <span>LumiTEA</span></h1>
+          <p>Este é seu espaço seguro. Aqui você encontra a Lumi para conversar, jogos de roleplay e ferramentas para tornar sua rotina mais leve e divertida.</p>
+
+          <div class="xp-banner">
+            <div class="nivel-ball" id="nivel-icon">⭐</div>
+            <div class="xp-details">
+              <div class="xp-title">Nível <span id="xp-nivel">1</span> — Continue evoluindo!</div>
+              <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+              <div class="xp-nums"><span id="xp-info">0 / 100 XP</span> para o próximo nível</div>
+            </div>
+          </div>
+
+          <div class="hero-btns">
+            <a class="btn-hero-primary" href="conversa.html"> Falar com a Lumi</a>
+            <a class="btn-hero-secondary" href="roleplay.html"> Explorar Roleplay</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- HUMOR RÁPIDO -->
+      <div class="humor-card">
+        <h3>Como você está agora?</h3>
+        <div class="humor-chips">
+          <button class="humor-chip" onclick="registrarHumor(this, 5)"> Ótimo</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 4)"> Bem</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 3)"> Mais ou menos</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 2)"> Triste</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 1)"> Ansioso</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 0)"> Com raiva</button>
+        </div>
+        <div class="humor-saved" id="humor-saved">✅ Humor registrado! Obrigado por compartilhar.</div>
+      </div>
+
+      <!-- VÍNCULO -->
+      <div id="vinculo-wrapper">
+        <div class="vinculo-section" id="vinculo-card">
+          <div class="v-icon">🔗</div>
+          <div class="v-info">
+            <h4>Conecte-se com seu cuidador</h4>
+            <p>Compartilhe este código com quem cuida de você para ficarem conectados no LumiTEA.</p>
+          </div>
+          <div class="codigo-badge" id="meu-codigo" onclick="copiarCodigoVinculo()" title="Clique para copiar">------</div>
+        </div>
+        <div id="vinculo-ativo-teen">
+          <span style="font-size:1.3rem">💚</span>
+          Você está conectado com seu cuidador! Ele acompanha seu progresso com carinho.
+        </div>
+      </div>
+
+      <!-- FUNCIONALIDADES -->
+      <section>
+        <div class="section-heading">
+          <div class="tag">FUNCIONALIDADES</div>
+          <h2>Tudo que o LumiTEA oferece para você</h2>
+          <p>Cada ferramenta foi pensada com cuidado para tornar seu dia mais fácil, seguro e divertido.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card" style="--feature-color:#4a7eb5;--feature-bg:#eaf1fb;">
+            <div class="feature-icon-wrap">🐻‍❄️</div>
+            <h3>Conversar com o Lumi Theo 🐻‍❄️</h3>
+            <p>O Lumi Theo é seu assistente virtual e parceiro de conversas. Fale sobre qualquer coisa: ansiedade, escola, amigos ou como foi o seu dia. Ele nunca julga e está sempre aqui.</p>
+            <a class="feature-link" href="conversa.html" style="color:#4a7eb5;">
+              Ir para o chat<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </a>
+          </div>
+          <div class="feature-card" style="--feature-color:#7c5cbf;--feature-bg:#f3eeff;">
+            <div class="feature-icon-wrap">🎮</div>
+            <h3>Praticar Roleplay</h3>
+            <p>O Roleplay permite simular situações do cotidiano — como uma conversa difícil na escola ou pedir ajuda em uma loja — em um ambiente seguro, sem pressão e com feedbacks gentis da Lumi.</p>
+            <a class="feature-link" href="roleplay.html" style="color:#7c5cbf;">
+              Explorar cenários<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </a>
+          </div>
+          <div class="feature-card" style="--feature-color:#2e5fa3;--feature-bg:#e9f0fb;">
+            <div class="feature-icon-wrap">🛡️</div>
+            <h3>A Jornada do Theo 🗺️</h3>
+            <p>Um RPG calmo e previsível: escolha um capítulo do dia a dia e atravesse cada momento no seu ritmo, usando habilidades sociais e de regulação. Nenhuma escolha erra — só aprende.</p>
+            <a class="feature-link" href="rpg-social.html" style="color:#2e5fa3;">
+              Começar a jornada<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </a>
+          </div>
+          <div class="feature-card" style="--feature-color:#e08e30;--feature-bg:#fff8ee;">
+            <div class="feature-icon-wrap">📅</div>
+            <h3>Calendário de Rotina</h3>
+            <p>Monte sua rotina semanal de forma visual e colorida. Defina lembretes para atividades, compromissos e momentos de autocuidado. A previsibilidade traz mais tranquilidade ao seu dia.</p>
+            <a class="feature-link" href="calendario.html" style="color:#e08e30;">
+              Organizar minha rotina<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </a>
+          </div>
+          <div class="feature-card" style="--feature-color:#d95bb5;--feature-bg:#fdf0f9;">
+            <div class="feature-icon-wrap">🏆</div>
+            <h3>XP e Conquistas</h3>
+            <p>A cada conversa, roleplay completo ou rotina cumprida, você ganha pontos de experiência (XP) e sobe de nível. Desbloqueie conquistas especiais e veja seu progresso!</p>
+            <a class="feature-link" href="conta.html" style="color:#d95bb5;">
+              Ver minhas conquistas<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </a>
+          </div>
+          <div class="feature-card" style="--feature-color:#5a8fa0;--feature-bg:#eef6f8;">
+            <div class="feature-icon-wrap">👤</div>
+            <h3>Meu Perfil</h3>
+            <p>Gerencie suas preferências, informações de acesso e personalize como o LumiTEA se comporta para você. Tudo configurado no seu ritmo e do jeito que faz mais sentido.</p>
+            <a class="feature-link" href="conta.html" style="color:#5a8fa0;">
+              Acessar minha conta<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- CTA FINAL -->
+      <section class="cta-section">
+        <h2>Pronto para começar? </h2>
+        <p>Escolha por onde quer começar hoje. O Lumi Theo já está esperando por você com um grande abraço de urso!</p>
+        <div class="cta-buttons">
+          <a class="btn-cta-white" href="conversa.html"> Falar com a Lumi agora</a>
+          <a class="btn-cta-outline" href="rpg-social.html"> Começar a Jornada (RPG)</a>
+          <a class="btn-cta-outline" href="roleplay.html"> Explorar o Roleplay</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL      = 'https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    var _userId = null;
+    var _perfil = null;
+    var NIVEL_XP = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
+    var NIVEL_EMOJIS = ['⭐','⭐','🌟','🌟','💫','💫','🏅','🏅','🥇','🥇','🏆'];
+
+    async function iniciarPagina() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      _userId = session.user.id;
+
+      const { data: perfil, error } = await sb.from('profiles').select('nome, sobrenome, tipo').eq('id', _userId).single();
+      if (error || !perfil) { window.location.href = 'login.html'; return; }
+      if (perfil.tipo === 'responsavel') { window.location.href = 'home-cuidador.html'; return; }
+
+      const nome = perfil.nome || 'amigo';
+      document.getElementById('nav-user-name').textContent = nome;
+      document.getElementById('greeting-name').textContent = nome.split(' ')[0];
+
+      const { data: nd } = await sb.from('neurodivergente').select('xp, nivel, codigo_vinculo, id_responsavel').eq('id', _userId).single();
+      _perfil = { nome, xp: nd?.xp ?? 0, nivel: nd?.nivel ?? 1, codigoVinculo: nd?.codigo_vinculo ?? null, idResponsavel: nd?.id_responsavel ?? null };
+
+      _atualizarXP();
+      _atualizarVinculo();
+    }
+
+    function _atualizarXP() {
+      if (!_perfil) return;
+      var xp = _perfil.xp || 0;
+      var nivel = Math.min(_perfil.nivel || 1, NIVEL_XP.length - 1);
+      var base = NIVEL_XP[nivel - 1] || 0;
+      var next = NIVEL_XP[nivel] || NIVEL_XP[NIVEL_XP.length - 1];
+      var pct = next > base ? Math.min(Math.round((xp - base) / (next - base) * 100), 100) : 100;
+      document.getElementById('xp-nivel').textContent = _perfil.nivel || 1;
+      document.getElementById('xp-info').textContent = (xp - base) + ' / ' + (next - base) + ' XP';
+      document.getElementById('xp-bar').style.width = pct + '%';
+      var ni = document.getElementById('nivel-icon');
+      if (ni) ni.textContent = NIVEL_EMOJIS[Math.min((_perfil.nivel||1) - 1, NIVEL_EMOJIS.length - 1)];
+    }
+
+    function _atualizarVinculo() {
+      if (!_perfil) return;
+      var el = document.getElementById('meu-codigo');
+      if (el) el.textContent = _perfil.codigoVinculo || '------';
+      if (_perfil.idResponsavel) {
+        var card = document.getElementById('vinculo-card');
+        if (card) card.style.display = 'none';
+        var ativo = document.getElementById('vinculo-ativo-teen');
+        if (ativo) ativo.style.display = 'flex';
+      }
+    }
+
+    function copiarCodigoVinculo() {
+      var el = document.getElementById('meu-codigo');
+      if (!el || el.textContent === '------') return;
+      navigator.clipboard.writeText(el.textContent).then(function() {
+        var old = el.textContent; el.textContent = 'Copiado! ✓';
+        setTimeout(function() { el.textContent = old; }, 1800);
+      });
+    }
+
+    async function registrarHumor(btn, nivel) {
+      document.querySelectorAll('.humor-chip').forEach(function(c) { c.classList.remove('selected'); });
+      btn.classList.add('selected');
+      if (_userId) {
+        try { await sb.from('humores').insert({ id_neurodivergente: _userId, nivel: nivel, timestamp: new Date().toISOString() }); }
+        catch(e) { console.warn('Humor não salvo:', e); }
+      }
+      var saved = document.getElementById('humor-saved');
+      saved.classList.add('show');
+      setTimeout(function() { saved.classList.remove('show'); }, 3000);
+      if (nivel <= 2) {
+        setTimeout(function() {
+          if (confirm('Parece que você está se sentindo difícil agora. Quer conversar com a Lumi? Ela está aqui para ouvir você 🐻')) {
+            window.location.href = 'conversa.html';
+          }
+        }, 500);
+      }
+    }
+
+    async function sairDaConta() {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
+    }
+
+    iniciarPagina();
+  </script>
+  <script src="js/lumi-ia.js"></script>
+
+  <!-- Widgets globais -->
+  <script src="js/evento-checkin.js"></script>
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>

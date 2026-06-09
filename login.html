@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>LumiTEA — Entrar</title>
+ <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+ <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+ <link rel="manifest" href="img/site.webmanifest">
+
+ <!-- Estilos das páginas de conta -->
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&display=swap" rel="stylesheet">
+
+ <link rel="stylesheet" href="conta.css">
+
+
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+ <script>
+ const SUPABASE_URL = 'https://yuwdckenzpfdlyawkibn.supabase.co'
+ const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N'
+ 
+ const supabaseClient = window.supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_ANON_KEY
+ )
+ </script>
+
+</head>
+<body>
+
+ <!-- ============================================================
+ FUNDO DECORATIVO
+ Mesmos blobs do index.html para manter identidade visual.
+ ============================================================ -->
+ <div class="bg-layer">
+ <div class="blob blob-1"></div>
+ <div class="blob blob-2"></div>
+ <div class="blob blob-3"></div>
+ </div>
+
+
+ <!-- ============================================================
+ NAVEGAÇÃO
+ Logo à esquerda + link "Voltar ao início" à direita.
+ ============================================================ -->
+ <nav>
+ <a class="logo" href="index.html">
+ <div class="logo-icon">
+ <!-- Substitua pelo ícone real -->
+ <img src="img/icon-urso.png" alt="">
+ </div>
+ LumiTEA
+ </a>
+
+ <!-- Link para voltar à página inicial -->
+ <a class="nav-back" href="index.html">
+ <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+ Voltar ao início
+ </a>
+ </nav>
+
+
+ <!-- ============================================================
+ ÁREA PRINCIPAL
+ Centraliza o card de login verticalmente na tela.
+ ============================================================ -->
+ <!-- Urso mascote que acompanha o scroll -->
+ <div class="bear-mascot" id="bear-mascot">
+ <img src="img/urso-estrelhinha.png" alt="Mascote urso">
+ </div>
+
+ <main class="account-page">
+ <div class="account-card">
+
+ <!-- ----------------------------------------------------------
+ CABEÇALHO DO CARD
+ Ícone, título e subtítulo do formulário.
+ ---------------------------------------------------------- -->
+ <div class="card-header">
+ <div class="card-icon">
+ <!-- Ícone de pessoa/usuário -->
+ <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v1h20v-1c0-3.3-6.7-5-10-5z"/></svg>
+ </div>
+ <div class="card-title">Bem-vindo de volta!</div>
+ <p class="card-subtitle">
+ Entre na sua conta para continuar sua jornada de aprendizado.
+ </p>
+ </div>
+
+
+ <!-- ----------------------------------------------------------
+ FORMULÁRIO DE LOGIN
+ Campos: e-mail e senha.
+ ---------------------------------------------------------- -->
+ <form class="account-form" id="form-login" novalidate>
+
+ <!-- Campo: E-mail -->
+ <div class="field-group">
+ <label for="email">E-mail</label>
+ <div class="input-wrap">
+ <!-- Ícone de envelope -->
+ <svg class="input-icon" viewBox="0 0 24 24">
+ <rect x="2" y="4" width="20" height="16" rx="2"/>
+ <polyline points="2,4 12,13 22,4"/>
+ </svg>
+ <input
+ type="email"
+ id="email"
+ name="email"
+ placeholder="seu@email.com"
+ autocomplete="email"
+ required
+ >
+ </div>
+ <!-- Mensagem de erro (exibida via JS quando necessário) -->
+ <span class="field-error" id="email-error">Por favor, insira um e-mail válido.</span>
+ </div>
+
+ <!-- Campo: Senha -->
+ <div class="field-group">
+ <div class="field-label-row">
+ <label for="senha">Senha</label>
+ <!-- Link para recuperar senha -->
+ <a class="field-link" href="#">Esqueci minha senha</a>
+ </div>
+ <div class="input-wrap">
+ <!-- Ícone de cadeado -->
+ <svg class="input-icon" viewBox="0 0 24 24">
+ <rect x="3" y="11" width="18" height="11" rx="2"/>
+ <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+ </svg>
+ <input
+ type="password"
+ id="senha"
+ name="senha"
+ placeholder="Sua senha"
+ autocomplete="current-password"
+ required
+ >
+ <!-- Botão para mostrar/ocultar a senha -->
+ <button type="button" class="toggle-password" id="toggle-senha" aria-label="Mostrar senha">
+ <svg viewBox="0 0 24 24" id="icon-eye">
+ <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+ <circle cx="12" cy="12" r="3"/>
+ </svg>
+ </button>
+ </div>
+ <span class="field-error" id="senha-error">Por favor, insira sua senha.</span>
+ </div>
+
+ <!-- Botão de envio -->
+ <button type="submit" class="btn-submit">Entrar na minha conta</button>
+
+ </form>
+
+
+
+ <!-- ----------------------------------------------------------
+ RODAPÉ DO CARD
+ Link para ir à página de cadastro.
+ ---------------------------------------------------------- -->
+ <div class="card-footer">
+ Não tem uma conta?
+ <a href="cadastro.html">Criar conta gratuita</a>
+ </div>
+
+ </div><!-- /account-card -->
+ </main>
+
+
+ <!-- ============================================================
+ RODAPÉ DA PÁGINA
+ ============================================================ -->
+ <footer>
+ <div class="footer-links">
+ <a href="#">Privacidade</a>
+ <a href="#">Termos de uso</a>
+ <a href="#">Acessibilidade</a>
+ <a href="#">Contato</a>
+ </div>
+ <div class="footer-copy">© 2026 LumiTEA. Todos os direitos reservados.</div>
+ </footer>
+
+
+ <!-- ============================================================
+ JAVASCRIPT — INTERAÇÕES DO FORMULÁRIO
+ Mostrar/ocultar senha e validação básica dos campos.
+ ============================================================ -->
+
+ <!-- ============================================================
+ JAVASCRIPT — URSO MASCOTE COM SCROLL
+ Desktop (> 900px): posiciona ao lado do card e gira.
+ Se o card for curto (sem scroll), urso fica centralizado
+ com rotação contínua suave.
+ Mobile (≤ 900px): fica fixo no canto via CSS; só gira.
+ ============================================================ -->
+
+ <!-- JS externo — formulário, mascote e integração com backend -->
+ <script src="js/login.js"></script>
+
+</body>
+</html>

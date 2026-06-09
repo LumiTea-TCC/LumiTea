@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criar Conta — LumiTEA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="conta.css" />
+  <style>
+    /* ===== STEPPER ===== */
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 4px;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+      border: 2px solid var(--border);
+    }
+    .step-circle.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(33,150,243,0.15);
+    }
+    .step-circle.done {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+    .step-circle.done::after {
+      content: '';
+      display: block;
+      width: 10px;
+      height: 6px;
+      border-left: 2.5px solid white;
+      border-bottom: 2.5px solid white;
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+    .step-circle.done span { display: none; }
+    .step-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .step-item.active .step-label { color: var(--primary); }
+    .step-item.done .step-label { color: var(--success); }
+    .step-line {
+      width: 48px;
+      height: 2px;
+      background: var(--border);
+      margin-bottom: 22px;
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+    .step-line.done { background: var(--success); }
+
+    /* ===== STEP PANELS ===== */
+    .step-panel {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+      animation: fadeStep 0.28s ease;
+    }
+    .step-panel.active { display: flex; }
+    @keyframes fadeStep {
+      from { opacity: 0; transform: translateX(16px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .step-panel { animation: none; }
+    }
+
+    /* ===== NAVEGAÇÃO ENTRE STEPS ===== */
+    .step-nav {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .btn-back-step {
+      flex: 1;
+      background: var(--surface);
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 14px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-back-step:hover { background: var(--primary-pale); }
+    .btn-next-step {
+      flex: 2;
+    }
+
+    /* ===== URSO MASCOTE — SPIN CONTÍNUO ===== */
+    .bear-mascot {
+      animation: bearSpin 6s linear infinite;
+    }
+    @keyframes bearSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bear-mascot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fundo decorativo -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Navegação -->
+  <nav>
+    <a href="index.html" class="logo" aria-label="LumiTEA — Página inicial">
+      <span class="logo-icon">
+        <img src="img/icon-urso.png" alt="" />
+      </span>
+      LumiTEA
+    </a>
+    <a href="index.html" class="nav-back" aria-label="Voltar ao início">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      Voltar ao início
+    </a>
+  </nav>
+
+  <!-- Urso mascote -->
+  <img
+    id="bear-mascot"
+    class="bear-mascot"
+    src="img/urso-estrelhinha.png"
+    alt="Mascote urso do LumiTEA girando"
+    aria-hidden="true"
+  />
+
+  <!-- Página principal -->
+  <main class="account-page">
+    <div class="account-card">
+
+      <!-- Cabeçalho -->
+      <header class="card-header">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h1 class="card-title">Crie sua conta</h1>
+        <p class="card-subtitle">Bem‑vindo ao LumiTEA! Complete as etapas abaixo para criar seu acesso gratuito.</p>
+      </header>
+
+      <!-- Stepper visual -->
+      <div class="stepper" role="list" aria-label="Progresso do cadastro">
+
+        <div class="step-item active" id="step-item-1" role="listitem">
+          <div class="step-circle active" id="step-circle-1" aria-current="step"><span>1</span></div>
+          <span class="step-label">Identidade</span>
+        </div>
+
+        <div class="step-line" id="step-line-1"></div>
+
+        <div class="step-item" id="step-item-2" role="listitem">
+          <div class="step-circle" id="step-circle-2"><span>2</span></div>
+          <span class="step-label">Perfil</span>
+        </div>
+
+        <div class="step-line" id="step-line-2"></div>
+
+        <div class="step-item" id="step-item-3" role="listitem">
+          <div class="step-circle" id="step-circle-3"><span>3</span></div>
+          <span class="step-label">Segurança</span>
+        </div>
+
+      </div>
+
+      <!-- Formulário em etapas -->
+      <form id="form-cadastro" novalidate>
+
+        <!-- ======= ETAPA 1: Identidade ======= -->
+        <div class="step-panel active" id="panel-1" role="group" aria-labelledby="step-title-1">
+          <p id="step-title-1" class="sr-only">Etapa 1 — Identidade</p>
+
+          <div class="field-row">
+            <!-- Nome -->
+            <div class="field-group">
+              <label for="nome">Nome</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" id="nome" name="nome" placeholder="Seu nome" autocomplete="given-name" aria-required="true" aria-describedby="nome-error" />
+              </div>
+              <span class="field-error" id="nome-error" role="alert">Informe seu nome.</span>
+            </div>
+
+            <!-- Sobrenome -->
+            <div class="field-group">
+              <label for="sobrenome">Sobrenome</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" id="sobrenome" name="sobrenome" placeholder="Seu sobrenome" autocomplete="family-name" aria-required="true" aria-describedby="sobrenome-error" />
+              </div>
+              <span class="field-error" id="sobrenome-error" role="alert">Informe seu sobrenome.</span>
+            </div>
+          </div>
+
+          <!-- E-mail -->
+          <div class="field-group">
+            <label for="email">E‑mail</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <input type="email" id="email" name="email" placeholder="seu@email.com" autocomplete="email" aria-required="true" aria-describedby="email-error" />
+            </div>
+            <span class="field-error" id="email-error" role="alert">Por favor, insira um e‑mail válido.</span>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-submit btn-next-step" id="btn-next-1">
+              Continuar →
+            </button>
+          </div>
+        </div>
+
+        <!-- ======= ETAPA 2: Perfil ======= -->
+        <div class="step-panel" id="panel-2" role="group" aria-labelledby="step-title-2">
+          <p id="step-title-2" class="sr-only">Etapa 2 — Perfil</p>
+
+          <!-- Data de nascimento -->
+          <div class="field-group">
+            <label for="nascimento">Data de nascimento</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="date" id="nascimento" name="nascimento" autocomplete="bday" aria-required="true" aria-describedby="nascimento-error" />
+            </div>
+            <span class="field-error" id="nascimento-error" role="alert">Informe sua data de nascimento.</span>
+          </div>
+
+          <!-- Tipo de usuário -->
+          <div class="field-group">
+            <label for="tipo">Quem vai usar o app?</label>
+            <div class="input-wrap select-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <select id="tipo" name="tipo" aria-required="true" aria-describedby="tipo-error">
+                <option value="">Selecione uma opção</option>
+                <option value="neurodivergente">Sou a criança / adolescente</option>
+                <option value="responsavel">Sou pai, mãe ou responsável</option>
+                <option value="terapeuta">Sou terapeuta ou educador</option>
+              </select>
+            </div>
+            <span class="field-error" id="tipo-error" role="alert">Selecione uma opção.</span>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-back-step" id="btn-back-2">← Voltar</button>
+            <button type="button" class="btn-submit btn-next-step" id="btn-next-2">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- ======= ETAPA 3: Segurança ======= -->
+        <div class="step-panel" id="panel-3" role="group" aria-labelledby="step-title-3">
+          <p id="step-title-3" class="sr-only">Etapa 3 — Segurança</p>
+
+          <!-- Senha -->
+          <div class="field-group">
+            <label for="senha">Senha</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" aria-required="true" aria-describedby="senha-error senha-hint" />
+              <button type="button" class="toggle-password" id="toggle-senha" aria-label="Mostrar ou ocultar senha">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <span class="field-error" id="senha-error" role="alert">A senha deve ter pelo menos 6 caracteres.</span>
+            <!-- Barra de força -->
+            <div class="password-strength" id="password-strength" aria-live="polite">
+              <div class="strength-bars">
+                <div class="strength-bar" id="bar-1"></div>
+                <div class="strength-bar" id="bar-2"></div>
+                <div class="strength-bar" id="bar-3"></div>
+              </div>
+              <span class="strength-label" id="strength-label"></span>
+            </div>
+            <span class="field-hint" id="senha-hint">Mínimo de 6 caracteres. Use letras e números para maior segurança.</span>
+          </div>
+
+          <!-- Confirmar senha -->
+          <div class="field-group">
+            <label for="confirmar-senha">Confirmar senha</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="confirmar-senha" name="confirmar-senha" placeholder="Repita a senha" autocomplete="new-password" aria-required="true" aria-describedby="confirmar-senha-error" />
+              <button type="button" class="toggle-password" id="toggle-confirmar" aria-label="Mostrar ou ocultar confirmação de senha">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <span class="field-error" id="confirmar-senha-error" role="alert">As senhas não coincidem.</span>
+          </div>
+
+          <!-- Termos -->
+          <label class="checkbox-group">
+            <input type="checkbox" id="termos" name="termos" aria-required="true" aria-describedby="termos-error" />
+            <span class="checkbox-label">
+              Li e aceito os
+              <a href="termos.html" target="_blank" rel="noopener">Termos de Uso</a>
+              e a
+              <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>
+              do LumiTEA.
+            </span>
+          </label>
+          <span class="field-error" id="termos-error" role="alert">Você precisa aceitar os termos para continuar.</span>
+
+          <div class="step-nav">
+            <button type="button" class="btn-back-step" id="btn-back-3">← Voltar</button>
+            <button type="submit" class="btn-submit btn-next-step" id="btn-submit">
+              Criar minha conta gratuita
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Rodapé do card -->
+      <footer class="card-footer">
+        Já tem uma conta?
+        <a href="login.html">Entrar agora</a>
+      </footer>
+
+    </div>
+  </main>
+
+  <!-- Rodapé da página -->
+  <footer>
+    <div class="footer-links">
+      <a href="termos.html">Termos de Uso</a>
+      <a href="privacidade.html">Privacidade</a>
+      <a href="acessibilidade.html">Acessibilidade</a>
+    </div>
+    <span class="footer-copy">© 2026 LumiTEA. Todos os direitos reservados.</span>
+  </footer>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const SUPABASE_URL = 'https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+  <script src="js/cadastro.js"></script>
+
+</body>
+</html>

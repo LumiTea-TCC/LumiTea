@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Minha Conta</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <style>
+    .conta-page{max-width:980px;margin:0 auto;width:100%;padding:28px 32px;position:relative;z-index:5;display:flex;flex-direction:column;gap:22px}
+    /* Hero perfil */
+    .profile-hero{background:linear-gradient(135deg,#2e5fa3 0%,#4a7eb5 50%,#5b90c8 100%);border-radius:24px;padding:32px 36px;display:flex;align-items:center;gap:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(46,95,163,0.25)}
+    .profile-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,0.07)}
+    .profile-hero::after{content:'';position:absolute;bottom:-50px;left:30%;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04)}
+    .ph-avatar{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.18);border:3px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:white;flex-shrink:0;position:relative;z-index:1;box-shadow:0 4px 18px rgba(0,0,0,0.15)}
+    .ph-info{flex:1;color:white;position:relative;z-index:1}
+    .ph-name{font-family:'Baloo 2',sans-serif;font-size:1.7rem;font-weight:800;line-height:1.1;margin-bottom:4px}
+    .ph-email{font-size:.82rem;font-weight:600;opacity:.8;margin-bottom:12px}
+    .ph-badges{display:flex;gap:8px;flex-wrap:wrap}
+    .ph-badge{background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.28);border-radius:99px;padding:4px 12px;font-size:.7rem;font-weight:800}
+    .ph-actions{display:flex;flex-direction:column;gap:8px;position:relative;z-index:1}
+    .ph-btn{padding:9px 20px;border-radius:12px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .18s;white-space:nowrap;border:none}
+    .ph-btn-edit{background:rgba(255,255,255,0.20);color:white;border:1.5px solid rgba(255,255,255,0.30)}
+    .ph-btn-edit:hover{background:rgba(255,255,255,0.30)}
+    .ph-btn-logout{background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.85);border:1.5px solid rgba(255,255,255,0.18)}
+    .ph-btn-logout:hover{background:rgba(255,80,80,0.30);color:white}
+    /* Grid principal */
+    .conta-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .conta-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    @media(max-width:860px){.conta-grid{grid-template-columns:1fr}.conta-grid-3{grid-template-columns:1fr 1fr}}
+    @media(max-width:560px){.conta-grid-3{grid-template-columns:1fr}.profile-hero{flex-direction:column;text-align:center}.ph-badges{justify-content:center}.ph-actions{flex-direction:row}}
+    /* Cards */
+    .c-card{background:white;border-radius:20px;padding:22px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.07)}
+    .c-card-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--text-main);margin-bottom:16px;display:flex;align-items:center;gap:9px}
+    .cct-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    /* Stats XP */
+    .nivel-grande{text-align:center;padding:10px 0 14px}
+    .ng-emoji{font-size:3rem;margin-bottom:4px}
+    .ng-num{font-family:'Baloo 2',sans-serif;font-size:2.2rem;font-weight:800;color:var(--primary-dark);line-height:1}
+    .ng-label{font-size:.8rem;font-weight:700;color:var(--text-muted);margin-bottom:14px}
+    .xp-big-track{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin-bottom:6px}
+    .xp-big-fill{height:100%;background:linear-gradient(90deg,#4a7eb5,#2196f3,#42a5f5);border-radius:99px;transition:width .8s ease;box-shadow:0 0 8px rgba(33,150,243,0.35)}
+    .xp-big-info{display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:var(--text-muted)}
+    /* Stats grid */
+    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+    .stat-item{background:var(--bg);border-radius:12px;padding:10px 8px;text-align:center}
+    .stat-val{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:var(--primary-dark)}
+    .stat-lbl{font-size:.62rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+    /* Conquistas */
+    .conquistas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    @media(max-width:680px){.conquistas-grid{grid-template-columns:repeat(3,1fr)}}
+    .conq-item{background:var(--bg);border-radius:14px;padding:12px 8px;text-align:center;border:1.5px solid transparent;transition:all .18s;cursor:default}
+    .conq-item.desbloqueado{background:linear-gradient(135deg,#eef4fb,#f0f5ff);border-color:rgba(74,126,181,0.25)}
+    .conq-item.bloqueado{opacity:.45;filter:grayscale(.6)}
+    .conq-em{font-size:1.8rem;margin-bottom:5px}
+    .conq-name{font-size:.65rem;font-weight:800;color:var(--text-soft);line-height:1.3}
+    .conq-desc{font-size:.58rem;color:var(--text-muted);margin-top:2px}
+    /* Formulário editar */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:540px){.form-grid{grid-template-columns:1fr}}
+    .f-group{display:flex;flex-direction:column;gap:5px}
+    .f-label{font-size:.7rem;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
+    .f-input{background:var(--bg);border:1.5px solid rgba(74,126,181,0.20);border-radius:11px;padding:10px 14px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:600;color:var(--text-main);outline:none;transition:border-color .2s}
+    .f-input:focus{border-color:var(--primary);background:white}
+    .f-input:disabled{opacity:.6;cursor:not-allowed}
+    .f-select{background:var(--bg);border:1.5px solid rgba(74,126,181,0.20);border-radius:11px;padding:10px 14px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;appearance:none;transition:border-color .2s}
+    .f-select:focus{border-color:var(--primary)}
+    .f-full{grid-column:1/-1}
+    .f-hint{font-size:.67rem;color:var(--text-muted);font-weight:600;margin-top:2px}
+    .btn-salvar{background:var(--primary);color:white;border:none;border-radius:12px;padding:11px 24px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(33,150,243,0.28)}
+    .btn-salvar:hover{background:var(--primary-dark);transform:translateY(-1px)}
+    .btn-salvar:disabled{background:var(--border);box-shadow:none;cursor:not-allowed;transform:none}
+    .save-ok{display:none;color:#22c55e;font-size:.8rem;font-weight:800;align-items:center;gap:5px}
+    .save-ok.show{display:flex}
+    /* Vínculo */
+    .vinculo-card{background:linear-gradient(135deg,rgba(224,142,48,0.07),rgba(224,142,48,0.03));border:1.5px solid rgba(224,142,48,0.28);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px}
+    .vinc-icon{font-size:2rem;flex-shrink:0}
+    .vinc-info{flex:1}
+    .vinc-title{font-size:.88rem;font-weight:800;color:#7a4f1a;margin-bottom:3px}
+    .vinc-sub{font-size:.75rem;color:#9a6730;font-weight:600}
+    .codigo-badge{background:#fff8ee;border:2px dashed rgba(224,142,48,0.45);border-radius:12px;padding:8px 16px;font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:#7a4f1a;cursor:pointer;letter-spacing:.08em;transition:all .18s;text-align:center;min-width:110px}
+    .codigo-badge:hover{background:#fff3d8;border-style:solid}
+    .vinculo-ativo{background:linear-gradient(135deg,rgba(74,180,130,0.08),rgba(74,180,130,0.03));border:1.5px solid rgba(74,180,130,0.28);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;font-size:.85rem;font-weight:700;color:#1a6b4a}
+    .vinc-cod-input{background:var(--bg);border:1.5px solid rgba(74,126,181,0.22);border-radius:10px;padding:9px 13px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:var(--text-main);outline:none;width:160px;letter-spacing:.06em}
+    .vinc-cod-input:focus{border-color:var(--primary)}
+    .btn-vincular{background:var(--primary);color:white;border:none;border-radius:10px;padding:9px 16px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s}
+    .btn-vincular:hover{background:var(--primary-dark)}
+    .vinc-err{font-size:.75rem;color:#d95b5b;font-weight:700;margin-top:5px;display:none}
+    .vinc-err.on{display:block}
+    /* Toggle switch */
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(74,126,181,0.08)}
+    .toggle-row:last-child{border-bottom:none;padding-bottom:0}
+    .toggle-info .tg-title{font-size:.85rem;font-weight:800;color:var(--text-main)}
+    .toggle-info .tg-sub{font-size:.72rem;color:var(--text-muted);font-weight:600;margin-top:2px}
+    .switch{position:relative;width:42px;height:24px;flex-shrink:0}
+    .switch input{opacity:0;width:0;height:0;position:absolute}
+    .slider{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:.22s}
+    .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.22s;box-shadow:0 1px 4px rgba(0,0,0,0.18)}
+    input:checked+.slider{background:var(--primary)}
+    input:checked+.slider::before{transform:translateX(18px)}
+    /* Danger zone */
+    .danger-card{background:#fff5f5;border:1.5px solid rgba(217,91,91,0.22);border-radius:20px;padding:22px}
+    .danger-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:#d95b5b;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+    .danger-sub{font-size:.8rem;color:#9a3b3b;font-weight:600;margin-bottom:14px}
+    .btn-danger{background:none;border:2px solid rgba(217,91,91,0.40);color:#d95b5b;border-radius:12px;padding:9px 18px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s}
+    .btn-danger:hover{background:#d95b5b;color:white;border-color:#d95b5b}
+    /* Loading */
+    .loading-overlay{position:fixed;inset:0;background:rgba(238,247,255,0.80);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px}
+    .loader-bear{font-size:3rem;animation:bearBounce 1s ease-in-out infinite}
+    @keyframes bearBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+    .loader-txt{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--primary-dark)}
+    /* Tag tipo */
+    .tipo-tag{padding:3px 10px;border-radius:99px;font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+    .tipo-teen{background:rgba(74,126,181,0.12);color:var(--primary-dark)}
+  </style>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loader-bear">🐻‍❄️</div>
+    <div class="loader-txt">Carregando sua conta...</div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="roleplay.html">Roleplay</a>
+      <a href="games.html">Games</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html" class="active">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+    <label class="app-burger" for="burg-ct">
+      <input type="checkbox" id="burg-ct">
+      <span></span><span></span><span></span>
+    </label>
+  </nav>
+  <div id="mm-ct" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html">Conversar</a>
+    <a href="roleplay.html">Roleplay</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html" class="active">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+  <script>
+  (function(){var cb=document.getElementById('burg-ct'),menu=document.getElementById('mm-ct');cb.addEventListener('change',function(){menu.style.display=cb.checked?'flex':'none'});menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){cb.checked=false;menu.style.display='none'})})})();
+  </script>
+
+  <!-- CONTEÚDO -->
+  <div class="conta-page">
+
+    <!-- HERO PERFIL -->
+    <div class="profile-hero">
+      <div class="ph-avatar" id="ph-avatar">?</div>
+      <div class="ph-info">
+        <div class="ph-name" id="ph-name">Carregando...</div>
+        <div class="ph-email" id="ph-email">—</div>
+        <div class="ph-badges">
+          <span class="ph-badge" id="ph-nivel">⭐ Nível 1</span>
+          <span class="ph-badge tipo-tag tipo-teen" style="background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.28);color:white;">Adolescente</span>
+          <span class="ph-badge" id="ph-membro">📅 Membro</span>
+        </div>
+      </div>
+      <div class="ph-actions">
+        <button class="ph-btn ph-btn-edit" onclick="scrollTo(0, document.getElementById('secEditar').offsetTop - 80)">✏️ Editar perfil</button>
+        <button class="ph-btn ph-btn-logout" onclick="sairDaConta()">Sair da conta</button>
+      </div>
+    </div>
+
+    <!-- GRID: XP + CONQUISTAS -->
+    <div class="conta-grid">
+
+      <!-- XP e Nível -->
+      <div class="c-card">
+        <div class="c-card-title">
+          <div class="cct-icon" style="background:#e3f2fd;">🏆</div>
+          Meu Progresso
+        </div>
+        <div class="nivel-grande">
+          <div class="ng-emoji" id="ng-emoji">⭐</div>
+          <div class="ng-num">Nível <span id="ng-nivel">1</span></div>
+          <div class="ng-label" id="ng-nome-nivel">Explorador Iniciante</div>
+        </div>
+        <div class="xp-big-track">
+          <div class="xp-big-fill" id="xp-big-fill" style="width:0%"></div>
+        </div>
+        <div class="xp-big-info">
+          <span id="xp-atual">0 XP</span>
+          <span id="xp-prox">Próximo: 100 XP</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat-item">
+            <div class="stat-val" id="st-conversas">0</div>
+            <div class="stat-lbl">Conversas</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="st-xp-total">0</div>
+            <div class="stat-lbl">XP total</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="st-dias">0</div>
+            <div class="stat-lbl">Dias ativos</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conquistas -->
+      <div class="c-card">
+        <div class="c-card-title">
+          <div class="cct-icon" style="background:#fdf0f9;">🎖️</div>
+          Conquistas
+        </div>
+        <div class="conquistas-grid" id="conquistas-grid">
+          <!-- Gerado pelo JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- VÍNCULO COM CUIDADOR -->
+    <div class="c-card">
+      <div class="c-card-title">
+        <div class="cct-icon" style="background:#fff8ee;">🔗</div>
+        Vínculo com Cuidador
+      </div>
+
+      <!-- Estado: sem vínculo -->
+      <div id="secSemVinculo">
+        <div class="vinculo-card" style="margin-bottom:14px">
+          <div class="vinc-icon">🏷️</div>
+          <div class="vinc-info">
+            <div class="vinc-title">Seu código de vínculo</div>
+            <div class="vinc-sub">Compartilhe com seu cuidador para ficarem conectados no LumiTEA</div>
+          </div>
+          <div class="codigo-badge" id="meu-codigo" onclick="copiarCodigo()" title="Clique para copiar">------</div>
+        </div>
+
+        <p style="font-size:.8rem;color:var(--text-soft);font-weight:600;margin-bottom:10px">Ou informe o código que seu cuidador te passou:</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" class="vinc-cod-input" id="inp-cod" placeholder="EX: ABC123" maxlength="10" oninput="this.value=this.value.toUpperCase()">
+          <button class="btn-vincular" onclick="vincular()">Vincular</button>
+        </div>
+        <div class="vinc-err" id="vinc-err">Código inválido. Verifique com seu cuidador.</div>
+      </div>
+
+      <!-- Estado: com vínculo -->
+      <div class="vinculo-ativo" id="secComVinculo" style="display:none">
+        <span style="font-size:1.6rem">💚</span>
+        <div>
+          <div style="font-weight:800;margin-bottom:2px">Você está conectado com seu cuidador!</div>
+          <div style="font-size:.75rem;font-weight:600;opacity:.8">Ele acompanha seu progresso e pode adicionar eventos no seu calendário.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDITAR PERFIL -->
+    <div class="c-card" id="secEditar">
+      <div class="c-card-title">
+        <div class="cct-icon" style="background:#eef4fb;">👤</div>
+        Editar Perfil
+      </div>
+      <div class="form-grid">
+        <div class="f-group">
+          <label class="f-label">Nome</label>
+          <input type="text" class="f-input" id="f-nome" placeholder="Seu nome">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Sobrenome</label>
+          <input type="text" class="f-input" id="f-sobrenome" placeholder="Seu sobrenome">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Data de nascimento</label>
+          <input type="date" class="f-input" id="f-nascimento">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Como prefere ser chamado?</label>
+          <input type="text" class="f-input" id="f-apelido" placeholder="Apelido (opcional)">
+        </div>
+        <div class="f-group f-full">
+          <label class="f-label">E-mail (somente leitura)</label>
+          <input type="email" class="f-input" id="f-email" disabled>
+          <span class="f-hint">Para alterar o e-mail, entre em contato com o suporte.</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:16px">
+        <button class="btn-salvar" id="btn-salvar" onclick="salvarPerfil()">Salvar alterações</button>
+        <div class="save-ok" id="save-ok">✅ Salvo com sucesso!</div>
+      </div>
+    </div>
+
+    <!-- PREFERÊNCIAS -->
+    <div class="conta-grid">
+
+      <div class="c-card">
+        <div class="c-card-title">
+          <div class="cct-icon" style="background:#f3eeff;">⚙️</div>
+          Preferências
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="tg-title">Sugestões de resposta</div>
+            <div class="tg-sub">A Lumi sugere respostas rápidas após cada mensagem</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="pref-sugestoes" checked onchange="salvarPrefs()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="tg-title">Urso Professor</div>
+            <div class="tg-sub">Dicas do Lumi Theo quando você usar palavras difíceis</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="pref-urso" checked onchange="salvarPrefs()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="tg-title">Sons e animações</div>
+            <div class="tg-sub">Animações suaves na interface</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="pref-anim" checked onchange="salvarPrefs()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="tg-title">Lembrete diário</div>
+            <div class="tg-sub">Receba um lembrete para registrar seu humor</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="pref-lembrete" onchange="salvarPrefs()">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="c-card">
+        <div class="c-card-title">
+          <div class="cct-icon" style="background:#eaf7f2;">🎨</div>
+          Acessibilidade
+        </div>
+
+        <div class="f-group" style="margin-bottom:12px">
+          <label class="f-label">Tamanho do texto</label>
+          <select class="f-select" id="pref-fonte" onchange="aplicarFonte()">
+            <option value="normal">Normal</option>
+            <option value="grande">Grande</option>
+            <option value="muito-grande">Muito grande</option>
+          </select>
+        </div>
+
+        <div class="f-group" style="margin-bottom:12px">
+          <label class="f-label">Tema de cores</label>
+          <select class="f-select" id="pref-tema" onchange="aplicarTema()">
+            <option value="default">Padrão (Azul)</option>
+            <option value="calmo">Calmo (Verde)</option>
+            <option value="escuro">Escuro</option>
+            <option value="alto-contraste">Alto contraste</option>
+          </select>
+        </div>
+
+        <div class="toggle-row" style="border-bottom:none;padding-bottom:0">
+          <div class="toggle-info">
+            <div class="tg-title">Reduzir animações</div>
+            <div class="tg-sub">Para quem tem sensibilidade a movimento</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="pref-reduz-anim" onchange="salvarPrefs()">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALTERAR SENHA -->
+    <div class="c-card">
+      <div class="c-card-title">
+        <div class="cct-icon" style="background:#fef9ee;">🔑</div>
+        Alterar Senha
+      </div>
+      <div class="form-grid">
+        <div class="f-group">
+          <label class="f-label">Nova senha</label>
+          <input type="password" class="f-input" id="f-nova-senha" placeholder="Mínimo 8 caracteres">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Confirmar nova senha</label>
+          <input type="password" class="f-input" id="f-conf-senha" placeholder="Repita a senha">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn-salvar" onclick="alterarSenha()">Alterar senha</button>
+        <div class="save-ok" id="save-senha-ok">✅ Senha alterada!</div>
+        <div class="save-ok" id="save-senha-err" style="color:#d95b5b;display:none">Erro: senhas não coincidem ou muito curtas.</div>
+      </div>
+    </div>
+
+    <!-- ZONA DE PERIGO -->
+    <div class="danger-card">
+      <div class="danger-title">⚠️ Zona de perigo</div>
+      <div class="danger-sub">Essas ações são permanentes e não podem ser desfeitas. Tenha certeza antes de continuar.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-danger" onclick="confirmarExcluirDados()">🗑️ Limpar histórico de conversas</button>
+        <button class="btn-danger" onclick="confirmarExcluirConta()">❌ Excluir minha conta</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SB_URL = 'https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SB_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const { createClient } = supabase;
+    const sb = createClient(SB_URL, SB_KEY);
+
+    var _uid = null, _perfil = null, _email = null;
+
+    /* CONQUISTAS */
+    var CONQUISTAS = [
+      {id:'primeira_conversa',em:'💬',nome:'Primeira Conversa',desc:'Conversou com a Lumi',xp:0},
+      {id:'5_conversas',em:'🗣️',nome:'5 Conversas',desc:'Falou 5 vezes com a Lumi',xp:50},
+      {id:'nivel2',em:'⭐',nome:'Nível 2',desc:'Subiu de nível!',xp:100},
+      {id:'humor_semana',em:'🌈',nome:'Semana Colorida',desc:'Registrou humor 7 dias',xp:70},
+      {id:'roleplay1',em:'🎭',nome:'Ator Iniciante',desc:'Completou 1 roleplay',xp:30},
+      {id:'calendario',em:'📅',nome:'Organizado',desc:'Criou um evento',xp:20},
+      {id:'diario',em:'📓',nome:'Escritor',desc:'Escreveu no diário',xp:25},
+      {id:'nivel5',em:'🌟',nome:'Nível 5',desc:'Grande conquista!',xp:500},
+    ];
+
+    var NIVEL_XP = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
+    var NIVEL_NOMES = ['','Explorador Iniciante','Explorador','Aventureiro','Aventureiro Corajoso','Herói','Herói Dedicado','Campeão','Campeão Lendário','Mestre','Mestre Supremo'];
+    var NIVEL_EMOJIS = ['⭐','⭐','🌟','🌟','💫','💫','🏅','🏅','🥇','🥇','🏆'];
+
+    /* INIT */
+    (async function(){
+      try {
+        var {data:{session}} = await sb.auth.getSession();
+        if(!session){window.location.href='login.html';return}
+        _uid = session.user.id;
+        _email = session.user.email;
+
+        var {data:p, error: errProfile} = await sb.from('profiles').select('nome,sobrenome,tipo,criado_em').eq('id',_uid).single();
+        if(errProfile || !p){
+          console.error('[Conta] Erro ao carregar perfil:', errProfile?.message);
+          document.getElementById('loadingOverlay').style.display='none';
+          alert('Não foi possível carregar seu perfil. Faça login novamente.');
+          window.location.href='login.html';
+          return;
+        }
+        if(p.tipo==='responsavel'){window.location.href='home-cuidador.html';return}
+
+        var {data:nd} = await sb.from('neurodivergente').select('xp,nivel,codigo_vinculo,id_responsavel,nascimento,apelido').eq('id',_uid).single();
+
+        _perfil = {nome:p.nome||'',sobrenome:p.sobrenome||'',email:_email,tipo:p.tipo,criado_em:p.criado_em,xp:nd?.xp??0,nivel:nd?.nivel??1,codigo:nd?.codigo_vinculo??'------',id_resp:nd?.id_responsavel??null,nascimento:nd?.nascimento??'',apelido:nd?.apelido??''};
+
+        renderPerfil();
+        renderXP();
+        await renderConquistas();
+        preencherForm();
+        await carregarPrefs();
+      } catch(e) {
+        console.error('[Conta] Erro inesperado:', e);
+        alert('Houve um erro ao carregar a página. Tente novamente.');
+      } finally {
+        document.getElementById('loadingOverlay').style.display='none';
+      }
+    })();
+
+    function renderPerfil(){
+      var ini = (_perfil.nome||'?').charAt(0).toUpperCase();
+      document.getElementById('ph-avatar').textContent = ini;
+      document.getElementById('ph-name').textContent = (_perfil.apelido||_perfil.nome)+' '+(_perfil.sobrenome||'');
+      document.getElementById('ph-email').textContent = _perfil.email||'';
+      document.getElementById('ph-nivel').textContent = NIVEL_EMOJIS[Math.min(_perfil.nivel-1, NIVEL_EMOJIS.length-1)]+' Nível '+_perfil.nivel;
+      document.getElementById('nav-user-name').textContent = _perfil.nome;
+      if(_perfil.criado_em){
+        var dt = new Date(_perfil.criado_em);
+        document.getElementById('ph-membro').textContent = '📅 Membro desde ' + dt.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+      }
+    }
+
+    function renderXP(){
+      var x=_perfil.xp||0, n=Math.min(_perfil.nivel||1,NIVEL_XP.length-1);
+      var b=NIVEL_XP[n-1]||0, nx=NIVEL_XP[n]||NIVEL_XP[NIVEL_XP.length-1];
+      var pct=nx>b?Math.min(Math.round((x-b)/(nx-b)*100),100):100;
+      document.getElementById('ng-nivel').textContent=n;
+      document.getElementById('ng-emoji').textContent=NIVEL_EMOJIS[Math.min(n-1,NIVEL_EMOJIS.length-1)];
+      document.getElementById('ng-nome-nivel').textContent=NIVEL_NOMES[Math.min(n,NIVEL_NOMES.length-1)]||'Explorador';
+      document.getElementById('xp-big-fill').style.width=pct+'%';
+      document.getElementById('xp-atual').textContent=(x-b)+' XP';
+      document.getElementById('xp-prox').textContent='Próximo: '+(nx-b)+' XP';
+      document.getElementById('st-xp-total').textContent=x;
+      // Stats estimadas
+      document.getElementById('st-conversas').textContent=Math.floor(x/10)||0;
+      document.getElementById('st-dias').textContent=Math.floor(x/30)||0;
+    }
+
+    async function renderConquistas(){
+      // Conquistas auto-detectadas por XP/nível + salvas no banco
+      var desbloq = [];
+      try {
+        const { data: rows } = await sb.from('conquistas_usuario').select('conquista_id').eq('id_neurodivergente', _uid);
+        desbloq = (rows || []).map(function(r){ return r.conquista_id; });
+      } catch(e) {}
+      // Auto-detectar baseado em XP/nível local (sem precisar de banco)
+      if(_perfil.xp >= 10 && !desbloq.includes('primeira_conversa')) desbloq.push('primeira_conversa');
+      if(_perfil.xp >= 50 && !desbloq.includes('5_conversas')) desbloq.push('5_conversas');
+      if(_perfil.nivel >= 2 && !desbloq.includes('nivel2')) desbloq.push('nivel2');
+      if(_perfil.nivel >= 5 && !desbloq.includes('nivel5')) desbloq.push('nivel5');
+      // Salvar conquistas auto-detectadas no banco
+      for (var id of desbloq) {
+        try {
+          await sb.from('conquistas_usuario').upsert({ id_neurodivergente: _uid, conquista_id: id, desbloqueada_em: new Date().toISOString() }, { onConflict: 'id_neurodivergente,conquista_id', ignoreDuplicates: true });
+        } catch(e) {}
+      }
+      var grid=document.getElementById('conquistas-grid');
+      grid.innerHTML='';
+      CONQUISTAS.forEach(function(c){
+        var on=desbloq.indexOf(c.id)>=0;
+        var div=document.createElement('div');
+        div.className='conq-item '+(on?'desbloqueado':'bloqueado');
+        div.title=c.desc+(on?'':' (bloqueado)');
+        div.innerHTML='<div class="conq-em">'+(on?c.em:'🔒')+'</div><div class="conq-name">'+c.nome+'</div><div class="conq-desc">'+(on?c.desc:'???')+'</div>';
+        grid.appendChild(div);
+      });
+      // Vínculo
+      document.getElementById('meu-codigo').textContent=_perfil.codigo||'------';
+      if(_perfil.id_resp){
+        document.getElementById('secSemVinculo').style.display='none';
+        document.getElementById('secComVinculo').style.display='flex';
+      }
+    }
+
+    function preencherForm(){
+      document.getElementById('f-nome').value=_perfil.nome||'';
+      document.getElementById('f-sobrenome').value=_perfil.sobrenome||'';
+      document.getElementById('f-email').value=_perfil.email||'';
+      document.getElementById('f-nascimento').value=_perfil.nascimento||'';
+      document.getElementById('f-apelido').value=_perfil.apelido||'';
+    }
+
+    async function salvarPerfil(){
+      var btn=document.getElementById('btn-salvar');
+      btn.disabled=true;btn.textContent='Salvando...';
+      var nome=document.getElementById('f-nome').value.trim();
+      var sob=document.getElementById('f-sobrenome').value.trim();
+      var nasc=document.getElementById('f-nascimento').value;
+      var apel=document.getElementById('f-apelido').value.trim();
+      try{
+        await sb.from('profiles').update({nome,sobrenome:sob}).eq('id',_uid);
+        await sb.from('neurodivergente').update({nascimento:nasc||null,apelido:apel||null}).eq('id',_uid);
+        _perfil.nome=nome;_perfil.sobrenome=sob;_perfil.nascimento=nasc;_perfil.apelido=apel;
+        renderPerfil();
+        var ok=document.getElementById('save-ok');ok.classList.add('show');setTimeout(function(){ok.classList.remove('show')},3000);
+      }catch(e){alert('Erro ao salvar. Tente novamente.')}
+      btn.disabled=false;btn.textContent='Salvar alterações';
+    }
+
+    async function alterarSenha(){
+      var s1=document.getElementById('f-nova-senha').value;
+      var s2=document.getElementById('f-conf-senha').value;
+      var ok=document.getElementById('save-senha-ok');var err=document.getElementById('save-senha-err');
+      ok.style.display='none';err.style.display='none';
+      if(!s1||s1.length<8||s1!==s2){err.style.display='flex';return}
+      try{
+        var {error}=await sb.auth.updateUser({password:s1});
+        if(error)throw error;
+        ok.classList.add('show');ok.style.display='flex';
+        document.getElementById('f-nova-senha').value='';document.getElementById('f-conf-senha').value='';
+        setTimeout(function(){ok.classList.remove('show');ok.style.display='none'},3500);
+      }catch(e){err.textContent='Erro: '+e.message;err.style.display='flex'}
+    }
+
+    function copiarCodigo(){
+      var el=document.getElementById('meu-codigo');
+      if(!el||el.textContent==='------')return;
+      navigator.clipboard.writeText(el.textContent).then(function(){var old=el.textContent;el.textContent='Copiado! ✓';setTimeout(function(){el.textContent=old},1800)});
+    }
+
+    async function vincular(){
+      var cod=(document.getElementById('inp-cod').value||'').trim().toUpperCase();
+      var err=document.getElementById('vinc-err');err.classList.remove('on');
+      if(!cod||cod.length<4){err.textContent='Código muito curto.';err.classList.add('on');return}
+      try{
+        var {data,error}=await sb.rpc('aceitar_vinculo',{p_codigo:cod});
+        if(error||data!=='ok'){err.textContent=data==='codigo_invalido'?'Código inválido.':data==='ja_vinculado'?'Você já tem cuidador vinculado.':'Erro ao vincular.';err.classList.add('on');return}
+        document.getElementById('secSemVinculo').style.display='none';
+        document.getElementById('secComVinculo').style.display='flex';
+      }catch(e){err.textContent='Erro de conexão.';err.classList.add('on')}
+    }
+
+    /* PREFERÊNCIAS — Supabase */
+    async function salvarPrefs(){
+      var prefs={sugestoes:document.getElementById('pref-sugestoes').checked,urso:document.getElementById('pref-urso').checked,anim:document.getElementById('pref-anim').checked,lembrete:document.getElementById('pref-lembrete').checked,fonte:document.getElementById('pref-fonte').value,tema:document.getElementById('pref-tema').value,reduzAnim:document.getElementById('pref-reduz-anim').checked};
+      try{
+        await sb.from('preferencias_usuario').upsert({id_neurodivergente:_uid,...prefs,updated_at:new Date().toISOString()},{onConflict:'id_neurodivergente'});
+      }catch(e){console.warn('[Prefs] Erro ao salvar:',e.message);}
+    }
+    async function carregarPrefs(){
+      try{
+        var {data:p}=await sb.from('preferencias_usuario').select('*').eq('id_neurodivergente',_uid).single();
+        if(!p)return;
+        if(p.sugestoes!==undefined)document.getElementById('pref-sugestoes').checked=p.sugestoes;
+        if(p.urso!==undefined)document.getElementById('pref-urso').checked=p.urso;
+        if(p.anim!==undefined)document.getElementById('pref-anim').checked=p.anim;
+        if(p.lembrete!==undefined)document.getElementById('pref-lembrete').checked=p.lembrete;
+        if(p.fonte)document.getElementById('pref-fonte').value=p.fonte;
+        if(p.tema)document.getElementById('pref-tema').value=p.tema;
+        if(p.reduzAnim!==undefined)document.getElementById('pref-reduz-anim').checked=p.reduzAnim;
+      }catch(e){console.warn('[Prefs] Erro ao carregar:',e.message);}
+    }
+    function aplicarFonte(){var v=document.getElementById('pref-fonte').value;document.documentElement.style.fontSize=v==='grande'?'108%':v==='muito-grande'?'116%':'100%';salvarPrefs()}
+    function aplicarTema(){salvarPrefs() /* tema aplicado nas próximas sessões */}
+
+    async function confirmarExcluirDados(){
+      if(!confirm('Tem certeza que quer limpar seu histórico de conversas? Isso não pode ser desfeito.')) return;
+      try{
+        await sb.from('conversas').delete().eq('id_neurodivergente',_uid);
+        await sb.from('memoria_lumi').delete().eq('id_neurodivergente',_uid);
+        alert('Histórico e memória limpos com sucesso!');
+      }catch(e){alert('Erro ao limpar histórico: '+e.message);}
+    }
+    function confirmarExcluirConta(){if(confirm('Você tem certeza que quer excluir sua conta? ESSA AÇÃO NÃO PODE SER DESFEITA.')){if(confirm('Última confirmação: excluir conta permanentemente?')){alert('Para excluir sua conta definitivamente, entre em contato com o suporte do LumiTEA.')}}}
+
+    async function sairDaConta(){await sb.auth.signOut();window.location.href='login.html'}
+  </script>
+</body>
+</html>

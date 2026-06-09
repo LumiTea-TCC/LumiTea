@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Painel do Cuidador</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <style>
+    /* ── LAYOUT CUIDADOR ─────────────────────────────────────── */
+    body { overflow: hidden; }
+    .cui-layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      height: calc(100vh - 64px);
+      position: relative; z-index: 1;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────────── */
+    .cui-sidebar {
+      background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%);
+      border-right: 1.5px solid rgba(74,126,181,0.15);
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+      padding: 20px 12px;
+    }
+    .cui-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 4px 8px 20px; border-bottom: 1px solid rgba(74,126,181,0.15);
+      margin-bottom: 16px;
+    }
+    .cui-logo-img {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #eaf1fb; border: 2px solid rgba(74,126,181,0.28);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .cui-logo-img img { width: 100%; height: 100%; object-fit: cover; }
+    .cui-logo-text { font-family: 'Baloo 2', sans-serif; font-size: 1.2rem; font-weight: 800; color: #1565c0; }
+    .cui-logo-sub { font-size: 9px; color: #e08e30; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+
+    .cui-status-badge {
+      display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+      background: rgba(76,175,80,0.08); border: 1px solid rgba(76,175,80,0.20);
+      border-radius: 12px; margin-bottom: 16px;
+    }
+    .cui-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; animation: glowPulse 2s ease-in-out infinite; }
+    .cui-status-txt { font-size: 11px; font-weight: 800; color: #2e7d32; }
+    @keyframes glowPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(76,175,80,0.4); }
+      50%      { box-shadow: 0 0 0 6px rgba(76,175,80,0); }
+    }
+
+    .cui-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .cui-nav-section { font-size: 9px; font-weight: 900; letter-spacing: .12em; color: #6b9ab8; text-transform: uppercase; padding: 14px 14px 6px; }
+    .cui-nav-btn {
+      display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+      border-radius: 12px; border: none; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+      background: none; color: #5a7fa8; width: 100%; text-align: left; transition: all .2s;
+    }
+    .cui-nav-btn:hover { background: #eaf1fb; color: #1565c0; }
+    .cui-nav-btn.ativo { background: rgba(33,150,243,0.12); color: #1565c0; font-weight: 800; border-left: 2px solid #2196f3; padding-left: 12px; }
+    .cui-nav-icon { font-size: 1rem; flex-shrink: 0; width: 22px; text-align: center; }
+    .cui-nav-cnt { margin-left: auto; background: #f44336; color: #fff; font-size: 10px; font-weight: 900; border-radius: 99px; padding: 2px 7px; }
+
+    .cui-sidebar-footer { padding-top: 14px; border-top: 1px solid rgba(74,126,181,0.15); }
+    .cui-nome-area { padding: 0 4px 10px; font-size: 13px; color: #3d6080; }
+    .cui-sair {
+      display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px;
+      border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 13px;
+      font-weight: 700; background: none; color: #6b9ab8; width: 100%; transition: all .2s;
+    }
+    .cui-sair:hover { color: #f44336; background: rgba(244,67,54,0.08); }
+
+    /* ── MAIN ─────────────────────────────────────────────────── */
+    .cui-main { display: flex; flex-direction: column; overflow: hidden; background: #f4f8fd; min-height: 0; }
+
+    .cui-teen-bar {
+      display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+      border-bottom: 1.5px solid rgba(74,126,181,0.12); background: white; flex-shrink: 0;
+    }
+    .cui-teen-bar label { font-size: 11px; font-weight: 900; color: #6b9ab8; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+    .cui-teen-sel {
+      background: #f4f8fd; border: 1.5px solid #b3d9f8; border-radius: 10px;
+      padding: 8px 14px; color: #1a2e4a; font-family: 'Nunito', sans-serif;
+      font-size: 14px; font-weight: 700; outline: none; cursor: pointer; transition: border-color .2s;
+    }
+    .cui-teen-sel:focus { border-color: #2196f3; }
+
+    .cui-alerta-strip {
+      display: none; padding: 12px 24px;
+      background: rgba(244,67,54,0.08); border-bottom: 1.5px solid rgba(244,67,54,0.25);
+      align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .cui-alerta-strip.show { display: flex; }
+    .cui-alerta-strip-msg { flex: 1; font-size: 13px; font-weight: 700; color: #c62828; }
+    .cui-alerta-strip-btn {
+      padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(244,67,54,0.3);
+      background: rgba(244,67,54,0.10); color: #c62828; font-family: 'Nunito', sans-serif;
+      font-size: 12px; font-weight: 900; cursor: pointer; white-space: nowrap;
+    }
+
+    /* ── TELAS ─────────────────────────────────────────────────── */
+    .cui-tela { display: none; flex: 1; overflow-y: auto; padding: 24px; animation: fadeInUp .3s ease; }
+    .cui-tela.ativa { display: block; }
+    .cui-tela.chat-tela.ativa { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .cui-section-title { font-family: 'Baloo 2', sans-serif; font-size: 1.35rem; font-weight: 800; color: #1a2e4a; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+    /* ── STATS GRID ──────────────────────────────────────────── */
+    .cui-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .cui-stat {
+      background: white; border: 1.5px solid #d6eaf8; border-radius: 16px; padding: 18px;
+      display: flex; flex-direction: column; gap: 8px; transition: all .2s;
+    }
+    .cui-stat:hover { border-color: #2196f3; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74,126,181,0.12); }
+    .cui-stat-icon { font-size: 1.6rem; }
+    .cui-stat-val { font-family: 'Baloo 2', sans-serif; font-size: 1.8rem; font-weight: 800; color: #1a2e4a; line-height: 1; }
+    .cui-stat-label { font-size: 11px; font-weight: 800; color: #6b9ab8; text-transform: uppercase; letter-spacing: .06em; }
+
+    /* ── WELCOME HERO ────────────────────────────────────────── */
+    .cui-welcome-hero {
+      background: linear-gradient(135deg, #eef4fc 0%, #f5f0ff 100%);
+      border: 1.5px solid rgba(74,126,181,0.18); border-radius: 20px;
+      padding: 24px 28px; margin-bottom: 22px;
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+    .cui-welcome-av { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2.5px solid rgba(33,150,243,0.30); }
+    .cui-welcome-av img { width: 100%; height: 100%; object-fit: cover; }
+    .cui-welcome-text { flex: 1; }
+    .cui-welcome-text h2 { font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; font-weight: 800; color: #1a2e4a; margin-bottom: 4px; }
+    .cui-welcome-text h2 span { color: #2196f3; }
+    .cui-welcome-text p { font-size: 13px; color: #5a7fa8; font-weight: 600; }
+    .cui-welcome-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+    .cui-welcome-badges span {
+      padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 800;
+      background: rgba(33,150,243,0.08); border: 1px solid rgba(33,150,243,0.20); color: #1565c0;
+    }
+
+    /* ── ALERTAS CARD ────────────────────────────────────────── */
+    .cui-alertas-card {
+      background: white; border: 1.5px solid #d6eaf8; border-radius: 18px; padding: 20px; margin-bottom: 20px;
+    }
+    .cui-alertas-card h3 { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: #1a2e4a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .alerta-item {
+      display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+      background: #f4f8fd; border-radius: 12px; border: 1.5px solid #d6eaf8;
+      margin-bottom: 8px; transition: border-color .2s;
+    }
+    .alerta-item:hover { border-color: #90caf9; }
+    .alerta-item.crise { border-color: rgba(244,67,54,0.35); background: rgba(244,67,54,0.04); }
+    .alerta-item.lido { opacity: .45; }
+    .alerta-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .alerta-info { flex: 1; }
+    .alerta-info label { font-size: 11px; color: #6b9ab8; display: block; margin-bottom: 3px; font-weight: 700; }
+    .alerta-info p { font-size: 13px; font-weight: 700; color: #1a2e4a; line-height: 1.4; }
+    .alerta-badge { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 900; margin-left: auto; flex-shrink: 0; align-self: flex-start; }
+    .b-crise  { background: rgba(244,67,54,0.12); color: #c62828; }
+    .b-aviso  { background: rgba(224,142,48,0.12); color: #7a4f1a; }
+    .b-info   { background: rgba(33,150,243,0.10); color: #1565c0; }
+
+    /* ── HUMOR CHART ─────────────────────────────────────────── */
+    .cui-humor-chart { background: white; border: 1.5px solid #d6eaf8; border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+    .cui-humor-chart h3 { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: #1a2e4a; margin-bottom: 16px; }
+    .humor-bars { display: flex; align-items: flex-end; gap: 8px; height: 90px; }
+    .humor-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .humor-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height .5s ease; background: #90caf9; min-height: 4px; }
+    .humor-bar.h5 { background: #4ade80; }
+    .humor-bar.h4 { background: #86efac; }
+    .humor-bar.h3 { background: #42a5f5; }
+    .humor-bar.h2 { background: #fbbf24; }
+    .humor-bar.h1 { background: #f87171; }
+    .humor-bar.h0 { background: #e0e0e0; }
+    .humor-label { font-size: 10px; color: #6b9ab8; font-weight: 700; }
+
+    /* ── RELATÓRIO CARD ─────────────────────────────────────── */
+    .cui-rel-card { background: white; border: 1.5px solid #d6eaf8; border-radius: 18px; padding: 24px; margin-bottom: 20px; }
+    .cui-rel-card h3 { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: #1a2e4a; margin-bottom: 6px; }
+    .cui-rel-card .rel-sub { color: #6b9ab8; font-size: 13px; margin-bottom: 16px; }
+    .rel-corpo { font-size: 13px; line-height: 1.8; color: #3d6080; white-space: pre-wrap; }
+    .rel-loading { color: #e08e30; font-weight: 700; }
+
+    /* ── OBSERVAÇÕES ──────────────────────────────────────────── */
+    .obs-lista { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .obs-item { padding: 14px 16px; background: #f4f8fd; border: 1.5px solid #d6eaf8; border-radius: 14px; transition: border-color .2s; }
+    .obs-item:hover { border-color: #90caf9; }
+    .obs-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .obs-data { font-size: 11px; color: #6b9ab8; font-weight: 700; }
+    .obs-del { background: none; border: none; color: #b3d9f8; cursor: pointer; font-size: 14px; transition: color .2s; }
+    .obs-del:hover { color: #f44336; }
+    .obs-texto { font-size: 13px; line-height: 1.55; color: #3d6080; }
+    .obs-form { display: flex; gap: 10px; }
+    .obs-form textarea {
+      flex: 1; background: #f4f8fd; border: 1.5px solid #b3d9f8; border-radius: 12px;
+      padding: 10px 14px; color: #1a2e4a; font-family: 'Nunito', sans-serif; font-size: 13px;
+      resize: none; outline: none; transition: border-color .2s;
+    }
+    .obs-form textarea:focus { border-color: #2196f3; }
+
+    /* ── VÍNCULO ─────────────────────────────────────────────── */
+    .cui-vinculo-box { background: white; border: 1.5px solid #d6eaf8; border-radius: 18px; padding: 24px; }
+    .vinculo-teen-card {
+      display: flex; align-items: center; gap: 14px; padding: 16px;
+      background: #f4f8fd; border: 1.5px solid #d6eaf8; border-radius: 14px; margin-bottom: 12px;
+      transition: all .2s; cursor: pointer;
+    }
+    .vinculo-teen-card:hover { border-color: #90caf9; background: #eaf1fb; }
+    .vinculo-teen-av {
+      width: 48px; height: 48px; border-radius: 14px; background: #eaf1fb;
+      border: 2px solid rgba(33,150,243,0.20); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;
+    }
+    .vinculo-teen-info { flex: 1; }
+    .vinculo-teen-nome { font-weight: 900; font-size: 14px; color: #1a2e4a; }
+    .vinculo-teen-meta { font-size: 12px; color: #6b9ab8; margin-top: 2px; }
+    .vinculo-status { font-size: 11px; padding: 4px 10px; border-radius: 99px; font-weight: 900; background: rgba(76,175,80,0.10); color: #2e7d32; border: 1px solid rgba(76,175,80,0.20); }
+    .vinculo-input-row { display: flex; gap: 10px; margin-top: 16px; }
+    .vinculo-input-row input {
+      flex: 1; background: #f4f8fd; border: 1.5px solid #b3d9f8; border-radius: 12px;
+      padding: 11px 14px; color: #1a2e4a; font-family: 'Nunito', sans-serif;
+      font-size: 14px; outline: none; transition: border-color .2s; letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .vinculo-input-row input:focus { border-color: #2196f3; }
+    .err-msg { color: #c62828; font-size: 12px; font-weight: 700; margin-top: 8px; display: none; }
+    .err-msg.on { display: block; }
+
+    /* ── CHAT CUIDADOR ────────────────────────────────────────── */
+    .cui-chat-wrapper { flex: 1; overflow: hidden; display: flex; flex-direction: column; margin: 16px; background: white; border: 1.5px solid #d6eaf8; border-radius: 18px; }
+    .cui-chat-hd { padding: 16px 20px; border-bottom: 1.5px solid #eaf1fb; display: flex; align-items: center; gap: 12px; background: #f4f8fd; border-radius: 18px 18px 0 0; }
+    .cui-chat-av { width: 42px; height: 42px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(33,150,243,0.25); }
+    .cui-chat-av img { width: 100%; height: 100%; object-fit: cover; }
+    .cui-chat-hd-info h4 { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: #1a2e4a; }
+    .cui-chat-hd-info p { font-size: 12px; color: #4CAF50; font-weight: 700; }
+    .cui-chat-msgs { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .cui-msg-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .cui-msg-wrap.user { align-items: flex-end; }
+    .cui-msg-bbl { max-width: 82%; padding: 12px 16px; border-radius: 16px; font-size: 13.5px; line-height: 1.6; background: #f4f8fd; border: 1.5px solid #d6eaf8; color: #1a2e4a; }
+    .cui-msg-wrap.user .cui-msg-bbl { background: rgba(224,142,48,0.10); border-color: rgba(224,142,48,0.20); color: #1a2e4a; border-radius: 16px 16px 4px 16px; }
+    .cui-msg-wrap.lumi .cui-msg-bbl { border-radius: 4px 16px 16px 16px; }
+    .cui-msg-hora { font-size: 10px; color: #6b9ab8; padding: 0 4px; }
+    .cui-typing { display: flex; gap: 4px; padding: 14px 16px; background: #f4f8fd; border-radius: 4px 16px 16px 16px; border: 1.5px solid #d6eaf8; width: fit-content; }
+    .cui-typing span { width: 7px; height: 7px; border-radius: 50%; background: #90caf9; animation: typDot 1.2s ease-in-out infinite; }
+    .cui-typing span:nth-child(2) { animation-delay: .2s; }
+    .cui-typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes typDot { 0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1} }
+    .cui-chat-input-bar { padding: 14px 20px; border-top: 1.5px solid #eaf1fb; display: flex; gap: 10px; align-items: flex-end; background: #fafcff; border-radius: 0 0 18px 18px; }
+    .cui-chat-ta { flex: 1; background: white; border: 1.5px solid #b3d9f8; border-radius: 12px; padding: 10px 14px; color: #1a2e4a; font-family: 'Nunito', sans-serif; font-size: 14px; resize: none; outline: none; transition: border-color .2s; min-height: 44px; max-height: 100px; }
+    .cui-chat-ta:focus { border-color: #2196f3; }
+    .cui-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding: 0 20px; }
+    .cui-pill { background: #f4f8fd; border: 1.5px solid #b3d9f8; border-radius: 20px; padding: 6px 14px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: #3d6080; cursor: pointer; transition: all .18s; white-space: nowrap; }
+    .cui-pill:hover { background: #eaf1fb; border-color: #2196f3; color: #1565c0; }
+
+    /* ── BOTÕES REUTILIZÁVEIS ─────────────────────────────────── */
+    .btn-primary {
+      background: #2196f3; color: white; border: none; border-radius: 12px;
+      padding: 10px 20px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+      cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 3px 12px rgba(33,150,243,0.25);
+    }
+    .btn-primary:hover { background: #1565c0; transform: translateY(-1px); }
+    .btn-primary:disabled { background: #b3d9f8; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-secondary {
+      background: #f4f8fd; color: #3d6080; border: 1.5px solid #b3d9f8; border-radius: 12px;
+      padding: 10px 20px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+      cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary:hover { background: #eaf1fb; border-color: #2196f3; color: #1565c0; }
+    .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 10px; }
+    .btn-send-icon {
+      width: 44px; height: 44px; border-radius: 12px; background: #2196f3; border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all .2s; box-shadow: 0 3px 12px rgba(33,150,243,0.25);
+    }
+    .btn-send-icon:hover { background: #1565c0; transform: translateY(-1px); }
+    .btn-send-icon:disabled { background: #b3d9f8; cursor: not-allowed; transform: none; }
+    .btn-send-icon svg { width: 18px; height: 18px; fill: white; }
+
+    /* ── RELATORIO CARD ───────────────────────────────────────── */
+    .relatorio-card {
+      background: #f4f8fd; border: 1.5px solid #d6eaf8; border-radius: 16px; padding: 20px; margin-bottom: 14px;
+    }
+    .relatorio-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .relatorio-date { font-size: 13px; font-weight: 800; color: #3d6080; }
+    .humor-badge { font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 900; margin-left: auto; }
+    .humor-otimo  { background: rgba(76,175,80,0.12);  color: #2e7d32; }
+    .humor-bom    { background: rgba(100,181,246,0.15); color: #1565c0; }
+    .humor-neutro { background: rgba(158,158,158,0.12); color: #616161; }
+    .humor-dificil{ background: rgba(224,142,48,0.12);  color: #7a4f1a; }
+    .humor-crise  { background: rgba(244,67,54,0.12);   color: #c62828; }
+    .relatorio-resumo { font-size: 13.5px; line-height: 1.7; color: #3d6080; margin-bottom: 14px; }
+    .relatorio-section-title { font-family: 'Baloo 2', sans-serif; font-size: 0.85rem; font-weight: 800; color: #1a2e4a; margin: 12px 0 6px; }
+    .relatorio-list { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+    .relatorio-list li { font-size: 13px; line-height: 1.6; color: #3d6080; }
+    .btn-pdf {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+      background: #eaf1fb; border: 1.5px solid #b3d9f8; border-radius: 10px;
+      padding: 8px 16px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+      color: #1565c0; cursor: pointer; transition: all .2s;
+    }
+    .btn-pdf:hover { background: #2196f3; border-color: #2196f3; color: white; }
+    .btn-pdf svg { width: 14px; height: 14px; fill: currentColor; }
+
+    /* ── EMPTY STATE ─────────────────────────────────────────── */
+    .empty-state { text-align: center; padding: 40px 20px; color: #6b9ab8; }
+    .empty-state svg { width: 48px; height: 48px; fill: #b3d9f8; margin-bottom: 12px; }
+    .empty-state p { font-size: 13px; font-weight: 700; }
+
+    /* ── PROGRESS TELA ────────────────────────────────────────── */
+    .prog-card { background: white; border: 1.5px solid #d6eaf8; border-radius: 18px; padding: 22px; margin-bottom: 18px; }
+    .prog-card h4 { font-family: 'Baloo 2', sans-serif; font-size: 0.95rem; font-weight: 800; color: #1a2e4a; margin-bottom: 14px; }
+    .prog-xp { display: flex; flex-direction: column; gap: 8px; }
+    .prog-xp-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #3d6080; }
+    .prog-xp-row span:last-child { font-weight: 900; color: #1565c0; }
+    .prog-bar-bg { background: #eaf1fb; border-radius: 20px; height: 10px; overflow: hidden; }
+    .prog-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #2196f3, #42a5f5); transition: width .6s ease; }
+    .prog-xp-nivel { text-align: center; font-family: 'Baloo 2', sans-serif; font-size: 2.5rem; font-weight: 800; color: #1565c0; }
+    .prog-xp-label { text-align: center; font-size: 12px; color: #6b9ab8; font-weight: 700; }
+
+    /* ── ESTATÍSTICAS ─────────────────────────────────────────── */
+    .stats-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-box { background: white; border: 1.5px solid #d6eaf8; border-radius: 16px; padding: 20px; text-align: center; }
+    .stat-box-val { font-family: 'Baloo 2', sans-serif; font-size: 2rem; font-weight: 800; color: #1a2e4a; }
+    .stat-box-lbl { font-size: 12px; font-weight: 700; color: #6b9ab8; margin-top: 4px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .cui-layout { grid-template-columns: 1fr; }
+      .cui-sidebar { display: none; }
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       REFRESH VISUAL 2026 — sobrepõe as regras acima (cascata).
+       Não altera DOM, IDs ou JS: só moderniza a aparência para um
+       visual mais calmo, suave e com profundidade. Mantém a paleta.
+       ════════════════════════════════════════════════════════════ */
+
+    .cui-main { background: linear-gradient(180deg, #eef4fc 0%, #f4f8fd 100%); }
+
+    /* Sidebar com leve vidro e respiro */
+    .cui-sidebar {
+      background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
+      border-right: 1px solid rgba(74,126,181,0.12);
+      box-shadow: 1px 0 18px rgba(74,126,181,0.05);
+    }
+    .cui-nav-btn { border-radius: 14px; }
+    .cui-nav-btn.ativo {
+      background: linear-gradient(135deg, rgba(33,150,243,0.14), rgba(124,92,191,0.10));
+      box-shadow: inset 3px 0 0 #2196f3;
+    }
+
+    /* Linguagem de cartão unificada: bordas mais suaves + sombra macia */
+    .cui-stat, .cui-alertas-card, .cui-humor-chart, .cui-rel-card,
+    .cui-vinculo-box, .prog-card, .stat-box, .relatorio-card,
+    .cui-chat-wrapper {
+      border: 1px solid rgba(74,126,181,0.12);
+      box-shadow: 0 6px 22px rgba(74,126,181,0.08);
+      border-radius: 20px;
+    }
+    .cui-stat { border-radius: 18px; }
+    .cui-stat:hover {
+      border-color: rgba(33,150,243,0.35);
+      box-shadow: 0 10px 26px rgba(74,126,181,0.16);
+    }
+
+    /* Stat tiles ganham um pequeno acento de cor no topo */
+    .cui-stat { position: relative; overflow: hidden; }
+    .cui-stat::before {
+      content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+      background: linear-gradient(90deg, #4a7eb5, #7c5cbf);
+      opacity: .9;
+    }
+
+    /* Welcome hero mais acolhedor e arejado */
+    .cui-welcome-hero {
+      background: linear-gradient(135deg, #eaf1fb 0%, #f3eeff 100%);
+      border: 1px solid rgba(124,92,191,0.16);
+      border-radius: 24px;
+      box-shadow: 0 8px 26px rgba(124,92,191,0.10);
+    }
+    .cui-welcome-text h2 span { color: #5b3fa3; }
+
+    /* Botões primários com gradiente da identidade */
+    .btn-primary, .btn-send-icon {
+      background: linear-gradient(135deg, #4a7eb5, #2e5fa3);
+      box-shadow: 0 4px 16px rgba(46,95,163,0.28);
+    }
+    .btn-primary:hover, .btn-send-icon:hover {
+      background: linear-gradient(135deg, #3f6fa3, #244e88);
+    }
+
+    /* Badge de status online mais discreto */
+    .cui-status-badge { border-radius: 14px; }
+
+    /* Acessibilidade: respeita quem prefere menos movimento */
+    @media (prefers-reduced-motion: reduce) {
+      .cui-stat, .cui-nav-btn, .btn-primary, .btn-secondary,
+      .btn-send-icon, .vinculo-teen-card, .alerta-item, .obs-item {
+        transition: none !important;
+      }
+      .cui-stat:hover { transform: none; }
+      .cui-status-dot { animation: none; }
+    }
+  </style>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="app-nav">
+    <a class="logo" href="home-cuidador.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-cuidador.html" class="active" id="nav-painel-link">Painel</a>
+      <a href="#" onclick="irTela('alertas',null);return false;">Alertas <span id="nav-alerta-cnt" style="display:none;background:#f44336;color:#fff;font-size:10px;border-radius:99px;padding:1px 6px;margin-left:4px;"></span></a>
+      <a href="#" onclick="irTela('relatorio',null);return false;">Relatórios</a>
+      <a href="#" onclick="irTela('chat',null);return false;">Perguntar à Lumi</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt=""></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairCui()">Sair</button>
+    </div>
+
+    <!-- Burger menu (mobile) -->
+    <label class="app-burger" for="burger-cuidador">
+      <input type="checkbox" id="burger-cuidador">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+  </nav>
+
+  <!-- Mobile menu dropdown -->
+  <div id="mm-cuidador" class="app-mobile-menu">
+    <a href="home-cuidador.html">Painel</a>
+    <a href="#" onclick="irTela('alertas',null);return false;">Alertas</a>
+    <a href="#" onclick="irTela('relatorio',null);return false;">Relatórios</a>
+    <a href="#" onclick="irTela('chat',null);return false;">Perguntar à Lumi</a>
+    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+      <button class="btn-logout" onclick="sairCui()">Sair</button>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var cb = document.getElementById('burger-cuidador');
+    var menu = document.getElementById('mm-cuidador');
+    cb.addEventListener('change', function(){ menu.style.display = cb.checked ? 'flex' : 'none'; });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ cb.checked=false; menu.style.display='none'; });
+    });
+  })();
+  </script>
+
+  <!-- ALERTA URGENTE GLOBAL -->
+  <div class="cui-alerta-strip" id="cui-alerta-strip">
+    <span>🚨</span>
+    <div class="cui-alerta-strip-msg" id="cui-alerta-strip-msg">Atenção necessária!</div>
+    <button class="cui-alerta-strip-btn" onclick="irTela('alertas',null)">Ver alertas</button>
+    <button onclick="fecharAlertaStrip()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:16px;padding:0 4px">✕</button>
+  </div>
+
+  <div class="cui-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="cui-sidebar">
+      <div class="cui-logo">
+        <div class="cui-logo-img"><img src="img/urso-joia.png" alt="LumiTEA"></div>
+        <div>
+          <div class="cui-logo-text">LumiTEA</div>
+          <div class="cui-logo-sub">Painel do Cuidador</div>
+        </div>
+      </div>
+
+      <div class="cui-status-badge">
+        <div class="cui-status-dot"></div>
+        <span class="cui-status-txt">Monitoramento ativo</span>
+      </div>
+
+      <nav class="cui-nav">
+        <div class="cui-nav-section">Principal</div>
+        <button class="cui-nav-btn ativo" onclick="irTela('painel',this)"><span class="cui-nav-icon">🏠</span> Painel Geral</button>
+        <button class="cui-nav-btn" onclick="irTela('alertas',this)" id="nav-btn-alertas"><span class="cui-nav-icon">🔔</span> Alertas</button>
+        <button class="cui-nav-btn" onclick="irTela('live',this)"><span class="cui-nav-icon">📡</span> Ao Vivo</button>
+
+        <div class="cui-nav-section">Acompanhamento</div>
+        <button class="cui-nav-btn" onclick="irTela('humor',this)"><span class="cui-nav-icon">💜</span> Histórico de Humor</button>
+        <button class="cui-nav-btn" onclick="irTela('relatorio',this)"><span class="cui-nav-icon">📊</span> Relatórios IA</button>
+        <button class="cui-nav-btn" onclick="irTela('observacoes',this)"><span class="cui-nav-icon">📝</span> Observações</button>
+        <button class="cui-nav-btn" onclick="irTela('progresso',this)"><span class="cui-nav-icon">⭐</span> Progresso</button>
+        <button class="cui-nav-btn" onclick="irTela('estatisticas',this)"><span class="cui-nav-icon">📈</span> Estatísticas</button>
+
+        <div class="cui-nav-section">Conta</div>
+        <button class="cui-nav-btn" onclick="irTela('vinculo',this)"><span class="cui-nav-icon">🔗</span> Vínculos</button>
+        <button class="cui-nav-btn" onclick="irTela('chat',this)"><span class="cui-nav-icon">💬</span> Perguntar à Lumi</button>
+      </nav>
+
+      <div class="cui-sidebar-footer">
+        <div id="cui-nome-area" class="cui-nome-area">Carregando...</div>
+        <button class="cui-sair" onclick="sairCui()">🚪 Sair da conta</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="cui-main">
+
+      <!-- TEEN SELECTOR BAR -->
+      <div class="cui-teen-bar">
+        <label>👤 Adolescente:</label>
+        <select id="teen-sel" class="cui-teen-sel" onchange="trocarTeen()">
+          <option value="">Selecione...</option>
+        </select>
+        <div id="teen-link-area" style="font-size:12px;color:#6b9ab8;font-weight:700;"></div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <div id="teen-humor-current" style="display:none;padding:6px 12px;border-radius:10px;background:#f4f8fd;border:1px solid #d6eaf8;font-size:12px;font-weight:800;"></div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#6b9ab8;">
+            <div class="cui-status-dot" style="background:#4CAF50;width:6px;height:6px;animation:glowPulse 2s infinite;border-radius:50%;"></div> Monitorando
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TELA: PAINEL GERAL ══ -->
+      <div id="tela-painel" class="cui-tela ativa">
+
+        <div class="cui-welcome-hero" id="cui-welcome-hero">
+          <div class="cui-welcome-av">
+            <img src="img/urso-joia.png" alt="Lumi">
+          </div>
+          <div class="cui-welcome-text">
+            <h2>Olá, <span id="cui-welcome-nome">cuidador</span>! 👋</h2>
+            <p id="cui-welcome-sub">A Lumi está monitorando e pronta para ajudar.</p>
+            <div class="cui-welcome-badges">
+              <span>📡 Monitorando</span>
+              <span id="wb-alerta-cnt" style="display:none;background:rgba(244,67,54,0.10);border-color:rgba(244,67,54,0.20);color:#c62828;">🔔 Alertas</span>
+              <span id="wb-teen-nome">Selecione um adolescente</span>
+            </div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start">
+            <button class="btn-secondary btn-sm" onclick="irTela('alertas',null)">🔔 Ver alertas</button>
+            <button class="btn-primary btn-sm" onclick="irTela('chat',null)">💬 Perguntar à Lumi</button>
+          </div>
+        </div>
+
+        <div class="cui-stats-grid" id="painel-stats">
+          <div class="cui-stat"><div class="cui-stat-icon">👤</div><div class="cui-stat-val">—</div><div class="cui-stat-label">Selecione um adolescente</div></div>
+        </div>
+
+        <div class="cui-alertas-card">
+          <h3>🔔 Alertas Recentes</h3>
+          <div id="painel-alertas-lista"><p style="font-size:13px;color:#6b9ab8;">Selecione um adolescente para ver alertas.</p></div>
+        </div>
+
+        <div class="cui-humor-chart">
+          <h3>📊 Humor — Últimos 7 dias</h3>
+          <div class="humor-bars" id="humor-chart-bars">
+            <p style="font-size:13px;color:#6b9ab8;margin:auto;">Selecione um adolescente para ver o humor.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ TELA: ALERTAS ══ -->
+      <div id="tela-alertas" class="cui-tela">
+        <div class="cui-section-title">🔔 Alertas</div>
+        <div id="alertas-lista"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><p>Selecione um adolescente para ver alertas.</p></div></div>
+      </div>
+
+      <!-- ══ TELA: AO VIVO ══ -->
+      <div id="tela-live" class="cui-tela">
+        <div class="cui-section-title">📡 Ao Vivo</div>
+        <div class="cui-alertas-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <div class="cui-status-dot"></div>
+            <span style="font-size:13px;font-weight:800;color:#2e7d32;">Monitoramento em tempo real ativo</span>
+          </div>
+          <div id="live-feed"><p style="font-size:13px;color:#6b9ab8;">Selecione um adolescente para monitorar em tempo real.</p></div>
+        </div>
+      </div>
+
+      <!-- ══ TELA: HUMOR ══ -->
+      <div id="tela-humor" class="cui-tela">
+        <div class="cui-section-title">💜 Histórico de Humor</div>
+        <div class="cui-humor-chart">
+          <h3>Últimos 7 dias</h3>
+          <div class="humor-bars" id="humor-bars-full" style="height:120px;"></div>
+        </div>
+        <div class="cui-alertas-card">
+          <h3>📋 Registros Detalhados</h3>
+          <div id="humor-tabela"></div>
+        </div>
+      </div>
+
+      <!-- ══ TELA: RELATÓRIOS ══ -->
+      <div id="tela-relatorio" class="cui-tela">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div class="cui-section-title" style="margin-bottom:0;">📊 Relatórios IA</div>
+          <button class="btn-primary" id="btn-gerar-relatorio" onclick="gerarRelatorioManual()" style="display:none;">✨ Gerar Relatório</button>
+        </div>
+        <div id="relatorios-list"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><p>Nenhum relatório ainda. Selecione um adolescente e gere o primeiro!</p></div></div>
+      </div>
+
+      <!-- ══ TELA: OBSERVAÇÕES ══ -->
+      <div id="tela-observacoes" class="cui-tela">
+        <div class="cui-section-title">📝 Observações</div>
+        <div class="obs-lista" id="obs-lista"></div>
+        <div class="obs-form">
+          <textarea id="obs-txt" rows="2" placeholder="Adicione uma observação sobre o adolescente..."></textarea>
+          <button class="btn-primary" onclick="salvarObs()">Salvar</button>
+        </div>
+      </div>
+
+      <!-- ══ TELA: PROGRESSO ══ -->
+      <div id="tela-progresso" class="cui-tela">
+        <div class="cui-section-title">⭐ Progresso</div>
+        <div class="prog-card">
+          <h4>Nível e XP</h4>
+          <div id="prog-nivel" class="prog-xp-nivel">—</div>
+          <div class="prog-xp-label">Nível atual</div>
+          <div style="margin-top:16px;" class="prog-xp">
+            <div class="prog-xp-row"><span>XP Atual</span><span id="prog-xp-val">—</span></div>
+            <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-bar" style="width:0%"></div></div>
+            <div class="prog-xp-row"><span>Próximo nível</span><span id="prog-prox">—</span></div>
+          </div>
+        </div>
+        <div class="prog-card">
+          <h4>Atividades</h4>
+          <div class="stats-grid-2">
+            <div class="stat-box"><div class="stat-box-val" id="prog-conversas">—</div><div class="stat-box-lbl">Conversas</div></div>
+            <div class="stat-box"><div class="stat-box-val" id="prog-roleplays">—</div><div class="stat-box-lbl">Roleplays</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TELA: ESTATÍSTICAS ══ -->
+      <div id="tela-estatisticas" class="cui-tela">
+        <div class="cui-section-title">📈 Estatísticas</div>
+        <div class="stats-grid-2">
+          <div class="stat-box"><div class="stat-box-val" id="stat-conversas">—</div><div class="stat-box-lbl">Total de Conversas</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-relatorios">—</div><div class="stat-box-lbl">Relatórios Gerados</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-nivel">—</div><div class="stat-box-lbl">Nível Atual</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-humor-med">—</div><div class="stat-box-lbl">Humor Médio (7 dias)</div></div>
+        </div>
+      </div>
+
+      <!-- ══ TELA: VÍNCULOS ══ -->
+      <div id="tela-vinculo" class="cui-tela">
+        <div class="cui-section-title">🔗 Vínculos</div>
+        <div class="cui-vinculo-box">
+          <p style="font-size:13px;color:#5a7fa8;margin-bottom:16px;">Adolescentes vinculados à sua conta:</p>
+          <div id="vinculo-teens-list"></div>
+          <hr style="border:none;border-top:1.5px solid #eaf1fb;margin:20px 0;">
+          <p style="font-size:13px;font-weight:700;color:#1a2e4a;margin-bottom:8px;">Adicionar adolescente pelo código de vínculo:</p>
+          <div class="vinculo-input-row">
+            <input type="text" id="inp-codigo-cuidador" maxlength="6" placeholder="CÓDIGO (6 dígitos)">
+            <button class="btn-primary" onclick="aceitarVinculoCuidador()">Conectar</button>
+          </div>
+          <div class="err-msg" id="err-vinculo-cuidador">Código inválido. Verifique com o adolescente.</div>
+        </div>
+      </div>
+
+      <!-- ══ TELA: CHAT ══ -->
+      <div id="tela-chat" class="cui-tela chat-tela">
+        <div class="cui-chat-wrapper">
+          <div class="cui-chat-hd">
+            <div class="cui-chat-av"><img src="img/urso-joia.png" alt="Lumi"></div>
+            <div class="cui-chat-hd-info">
+              <h4>Lumi — Consultora TEA</h4>
+              <p>● Online agora</p>
+            </div>
+          </div>
+          <div class="cui-chat-msgs" id="chat-msgs-cuidador"></div>
+          <div class="cui-pills" id="chat-pills-cuidador">
+            <button class="cui-pill" onclick="usarPill(this)">Como lidar com crises?</button>
+            <button class="cui-pill" onclick="usarPill(this)">Estratégias de rotina</button>
+            <button class="cui-pill" onclick="usarPill(this)">Como se comunicar melhor?</button>
+            <button class="cui-pill" onclick="usarPill(this)">Sinais de sobrecarga sensorial</button>
+          </div>
+          <div class="cui-chat-input-bar">
+            <textarea class="cui-chat-ta" id="cui-ta" rows="1" placeholder="Pergunte à Lumi sobre o adolescente..."></textarea>
+            <button class="btn-send-icon" id="btn-send-cui" disabled onclick="enviarMsgCuidador()">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <!-- ── SCRIPTS ─────────────────────────────────────────────── -->
+  <script>
+    const SUPABASE_URL      = 'https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const GROQ_KEY          = (window.LUMITEA && window.LUMITEA.GROQ_API_KEY) || '';
+    const GROQ_API          = 'https://api.groq.com/openai/v1/chat/completions';
+    const GROQ_MODEL        = 'llama-3.3-70b-versatile';
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    var _uid           = null;
+    var _perfil        = null;
+    var _teenSelecionado = null;
+    var _teensVinculados = [];
+    var _histCuidador  = [];
+    var _carregando    = false;
+    var _obs           = [];
+    var NIVEL_XP       = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
+
+    /* ── INIT ──────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', async function() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      _uid = session.user.id;
+
+      const { data: perfil, error } = await sb.from('profiles').select('nome, sobrenome, tipo').eq('id', _uid).single();
+      if (error || !perfil) { window.location.href = 'login.html'; return; }
+
+      if (perfil.tipo !== 'responsavel') { window.location.href = 'home-autista.html'; return; }
+
+      _perfil = perfil;
+      var nome = perfil.nome || 'Cuidador';
+      document.getElementById('nav-user-name').textContent = nome;
+      document.getElementById('cui-nome-area').innerHTML = '🧑‍🍼 <strong style="color:#1a2e4a">' + nome + '</strong>';
+      document.getElementById('cui-welcome-nome').textContent = nome.split(' ')[0];
+
+      // Busca teens vinculados (responsavel_id = _uid)
+      await _carregarTeensVinculados();
+
+      // Chat boas-vindas
+      setTimeout(_benvindoCuidador, 400);
+
+      // Setup textarea
+      var ta = document.getElementById('cui-ta');
+      if (ta) {
+        ta.addEventListener('input', function() {
+          ta.style.height = 'auto';
+          ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
+          document.getElementById('btn-send-cui').disabled = !ta.value.trim();
+        });
+        ta.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMsgCuidador(); }
+        });
+      }
+
+      // Vinculo input uppercase
+      var inp = document.getElementById('inp-codigo-cuidador');
+      if (inp) inp.addEventListener('input', function() { inp.value = inp.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,6); });
+
+      // Polling a cada 30s
+      setInterval(_pollingAtualizar, 30000);
+    });
+
+    /* ── CARREGAR TEENS ────────────────────────────────────── */
+    async function _carregarTeensVinculados() {
+      const { data: teens } = await sb.from('neurodivergente').select('id, codigo_vinculo, xp, nivel').eq('id_responsavel', _uid);
+      _teensVinculados = [];
+
+      var sel = document.getElementById('teen-sel');
+      sel.innerHTML = '<option value="">Selecione...</option>';
+      var vinculoList = document.getElementById('vinculo-teens-list');
+      vinculoList.innerHTML = '';
+
+      if (!teens || !teens.length) {
+        vinculoList.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><p>Nenhum adolescente vinculado ainda.<br>Peça o código ao adolescente.</p></div>';
+        return;
+      }
+
+      for (var i = 0; i < teens.length; i++) {
+        var t = teens[i];
+        const { data: p } = await sb.from('profiles').select('nome, sobrenome').eq('id', t.id).single();
+        var teen = { id: t.id, nome: (p && p.nome) ? p.nome : 'Sem nome', sobrenome: (p && p.sobrenome) || '', xp: t.xp || 0, nivel: t.nivel || 1 };
+        _teensVinculados.push(teen);
+
+        var opt = document.createElement('option');
+        opt.value = teen.id; opt.textContent = teen.nome;
+        sel.appendChild(opt);
+
+        var card = document.createElement('div');
+        card.className = 'vinculo-teen-card';
+        card.innerHTML = '<div class="vinculo-teen-av">👤</div><div class="vinculo-teen-info"><div class="vinculo-teen-nome">' + teen.nome + '</div><div class="vinculo-teen-meta">Nível ' + teen.nivel + ' • XP ' + teen.xp + '</div></div><span class="vinculo-status">✓ Vinculado</span>';
+        vinculoList.appendChild(card);
+      }
+
+      if (_teensVinculados.length === 1) {
+        sel.value = _teensVinculados[0].id;
+        trocarTeen();
+      }
+    }
+
+    function trocarTeen() {
+      var sel = document.getElementById('teen-sel');
+      _teenSelecionado = sel ? sel.value : null;
+      if (!_teenSelecionado) return;
+      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
+      if (teen) {
+        document.getElementById('wb-teen-nome').textContent = '👤 ' + teen.nome;
+        document.getElementById('btn-gerar-relatorio').style.display = 'inline-flex';
+      }
+      carregarPainel();
+      carregarAlertas();
+    }
+
+    /* ── PAINEL ────────────────────────────────────────────── */
+    async function carregarPainel() {
+      if (!_teenSelecionado) return;
+      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
+      if (!teen) return;
+
+      // Stats básicos
+      var stats = document.getElementById('painel-stats');
+      stats.innerHTML =
+        cuiStat('⭐','XP Total', (teen.xp||0).toLocaleString()) +
+        cuiStat('🎯','Nível', teen.nivel||1) +
+        cuiStat('🔔','Alertas', '—') +
+        cuiStat('💜','Humor hoje', '—');
+
+      // Humores
+      var { data: humores } = await sb.from('humores').select('nivel, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(30);
+      humores = humores || [];
+
+      if (humores.length) {
+        var hoje = humores.filter(function(h){ return (h.timestamp||'').slice(0,10) === new Date().toISOString().slice(0,10); });
+        var ultimoHumor = hoje.length ? humoreEmoji(hoje[0].nivel) : '—';
+        var med7 = calcMediaHumor(humores, 7);
+
+        stats.innerHTML =
+          cuiStat('⭐','XP Total', (teen.xp||0).toLocaleString()) +
+          cuiStat('🎯','Nível', teen.nivel||1) +
+          cuiStat('💜','Humor hoje', ultimoHumor) +
+          cuiStat('📊','Humor (7d)', med7 ? med7.toFixed(1)+'/5' : '—');
+
+        renderHumorBars(humores, 'humor-chart-bars');
+        var hAtual = document.getElementById('teen-humor-current');
+        if (hAtual) { hAtual.style.display='block'; hAtual.textContent = 'Humor: ' + humoreEmoji(humores[0] && humores[0].nivel); }
+      }
+
+      // Alertas painel
+      await _renderAlertasPainel();
+    }
+
+    function cuiStat(icon, label, val) {
+      return '<div class="cui-stat"><div class="cui-stat-icon">'+icon+'</div><div class="cui-stat-val">'+val+'</div><div class="cui-stat-label">'+label+'</div></div>';
+    }
+
+    function humoreEmoji(n) {
+      return ['😤','😰','😔','😐','🙂','😄'][n] || '—';
+    }
+
+    function calcMediaHumor(humores, dias) {
+      var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - dias);
+      var recentes = humores.filter(function(h){ return h.timestamp && new Date(h.timestamp) >= cutoff; });
+      if (!recentes.length) return null;
+      return recentes.reduce(function(a,h){ return a+h.nivel; }, 0) / recentes.length;
+    }
+
+    function renderHumorBars(humores, containerId) {
+      var box = document.getElementById(containerId);
+      if (!box) return;
+      var dias = [];
+      for (var i = 6; i >= 0; i--) {
+        var d = new Date(); d.setDate(d.getDate()-i);
+        var ds = d.toISOString().slice(0,10);
+        var enc = humores.filter(function(h){ return (h.timestamp||'').slice(0,10)===ds; });
+        var med = enc.length ? Math.round(enc.reduce(function(a,h){return a+h.nivel;},0)/enc.length) : 0;
+        dias.push({ label: d.toLocaleDateString('pt-BR',{weekday:'short'}).slice(0,3), valor: med });
+      }
+      box.innerHTML = dias.map(function(d) {
+        var h = d.valor ? (d.valor/5*100)+'%' : '4%';
+        return '<div class="humor-bar-wrap"><div class="humor-bar h'+d.valor+'" style="height:'+h+'" title="'+humoreEmoji(d.valor)+'"></div><div class="humor-label">'+d.label+'</div></div>';
+      }).join('');
+    }
+
+    /* ── ALERTAS ───────────────────────────────────────────── */
+    async function carregarAlertas() {
+      if (!_teenSelecionado) return;
+      var { data: alertas } = await sb.from('alertas').select('*').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
+      alertas = alertas || [];
+
+      var naoLidos = alertas.filter(function(a){ return !a.lido; }).length;
+      var cnt = document.getElementById('nav-alerta-cnt');
+      var btnCnt = document.getElementById('nav-btn-alertas');
+      if (naoLidos > 0) {
+        if (cnt) { cnt.style.display='inline'; cnt.textContent=naoLidos; }
+        var wbCnt = document.getElementById('wb-alerta-cnt');
+        if (wbCnt) { wbCnt.style.display='inline'; wbCnt.textContent='🔔 '+naoLidos+' alerta'+(naoLidos>1?'s':''); }
+        if (alertas[0] && alertas[0].tipo === 'crise') {
+          var strip = document.getElementById('cui-alerta-strip');
+          var msg = document.getElementById('cui-alerta-strip-msg');
+          if (strip) strip.classList.add('show');
+          if (msg) msg.textContent = '🚨 ' + (alertas[0].titulo || 'Estado de crise detectado!');
+        }
+      }
+
+      var lista = document.getElementById('alertas-lista');
+      if (!lista) return;
+      if (!alertas.length) {
+        lista.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><p>Nenhum alerta. Tudo tranquilo! 🐻</p></div>';
+        return;
+      }
+      lista.innerHTML = alertas.map(function(a) {
+        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
+        var tipo = a.tipo || 'info';
+        return '<div class="alerta-item '+tipo+(a.lido?' lido':'')+'"><div class="alerta-icon">'+(a.emoji||'📌')+'</div><div class="alerta-info"><label>'+data+'</label><p>'+(a.titulo||'')+(a.desc?'<br><span style="font-weight:500;color:#5a7fa8;">'+a.desc+'</span>':'')+'</p></div><span class="alerta-badge b-'+tipo+'">'+tipo.toUpperCase()+'</span></div>';
+      }).join('');
+    }
+
+    async function _renderAlertasPainel() {
+      if (!_teenSelecionado) return;
+      var { data: alertas } = await sb.from('alertas').select('*').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(3);
+      alertas = alertas || [];
+      var el = document.getElementById('painel-alertas-lista');
+      if (!el) return;
+      if (!alertas.length) { el.innerHTML = '<p style="font-size:13px;color:#6b9ab8;">Nenhum alerta. Tudo tranquilo!</p>'; return; }
+      el.innerHTML = alertas.map(function(a) {
+        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
+        return '<div class="alerta-item '+(a.tipo||'info')+(a.lido?' lido':'')+'"><div class="alerta-icon">'+(a.emoji||'📌')+'</div><div class="alerta-info"><label>'+data+'</label><p>'+(a.titulo||a.texto||'Alerta')+'</p></div></div>';
+      }).join('');
+    }
+
+    /* ── RELATÓRIOS ────────────────────────────────────────── */
+    async function carregarRelatorios() {
+      if (!_teenSelecionado) return;
+      var { data: rels } = await sb.from('relatorios').select('*').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(10);
+      rels = rels || [];
+      var lista = document.getElementById('relatorios-list');
+      if (!lista) return;
+      if (!rels.length) {
+        lista.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><p>Nenhum relatório ainda. Clique em "Gerar Relatório" para criar o primeiro!</p></div>';
+        return;
+      }
+      var labels = { otimo:'🌟 Ótimo', bom:'😊 Bom', neutro:'😐 Neutro', dificil:'😔 Difícil', crise:'🚨 Crise' };
+      lista.innerHTML = rels.map(function(rel, idx) {
+        var data = rel.timestamp ? new Date(rel.timestamp).toLocaleDateString('pt-BR',{dateStyle:'long'}) : 'Sem data';
+        var hclass = 'humor-'+(rel.humor_geral||'neutro');
+        var id = 'rel-'+idx;
+        var h = '<div class="relatorio-card" id="'+id+'">';
+        h += '<div class="relatorio-header"><div class="relatorio-date">📅 '+data+'</div>';
+        h += '<span class="humor-badge '+hclass+'">'+(labels[rel.humor_geral]||'Neutro')+'</span></div>';
+        if (rel.resumo) h += '<div class="relatorio-resumo">'+rel.resumo+'</div>';
+        if (rel.pontos_atencao && rel.pontos_atencao.length) {
+          h += '<div class="relatorio-section-title">👀 Pontos de Atenção</div>';
+          h += '<ul class="relatorio-list">'+rel.pontos_atencao.map(function(p){return'<li>'+p+'</li>';}).join('')+'</ul>';
+        }
+        if (rel.dicas_cuidador && rel.dicas_cuidador.length) {
+          h += '<div class="relatorio-section-title">💡 Dicas para o Cuidador</div>';
+          h += '<ul class="relatorio-list">'+rel.dicas_cuidador.map(function(d){return'<li><strong>'+(d.titulo||'')+':</strong> '+(d.descricao||d)+'</li>';}).join('')+'</ul>';
+        }
+        if (rel.sugestoes && rel.sugestoes.length) {
+          h += '<div class="relatorio-section-title">📝 Sugestões</div>';
+          h += '<ul class="relatorio-list">'+rel.sugestoes.map(function(s){return'<li>'+s+'</li>';}).join('')+'</ul>';
+        }
+        if (rel.visao_psicologica) {
+          h += '<div class="relatorio-section-title">🔬 Visão Psicológica (confidencial)</div>';
+          h += '<div style="background:rgba(33,150,243,0.06);border-left:3px solid #2196f3;border-radius:0 12px 12px 0;padding:10px 14px;font-size:13px;color:#3d6080;line-height:1.6;">'+rel.visao_psicologica+'</div>';
+        }
+        h += '<button class="btn-pdf" onclick="baixarPDF(\''+id+'\',\''+data+'\')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Baixar PDF</button>';
+        h += '</div>';
+        return h;
+      }).join('');
+    }
+
+    async function gerarRelatorioManual() {
+      if (!_teenSelecionado) { alert('Selecione um adolescente primeiro.'); return; }
+      var btn = document.getElementById('btn-gerar-relatorio');
+      if (btn) { btn.textContent = '⏳ Gerando...'; btn.disabled = true; }
+      irTela('relatorio', null);
+
+      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
+      var nomeTeen = teen ? teen.nome : 'adolescente';
+
+      var { data: convs } = await sb.from('conversas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
+      convs = (convs || []).reverse();
+
+      try {
+        var resumoMsgs = convs.map(function(m){ return (m.role||'').toUpperCase()+': '+(m.content||''); }).join('\n');
+        if (!resumoMsgs) resumoMsgs = 'Sem conversas recentes. O adolescente está começando a usar a plataforma.';
+
+        var res = await fetch(GROQ_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+          body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [
+              { role: 'system', content: 'Você é a Lumi, especialista em TEA. Gere um relatório para o cuidador. RESPONDA SOMENTE COM JSON VÁLIDO: {"resumo":"","humor_geral":"neutro","pontos_atencao":[],"dicas_cuidador":[],"sugestoes":[],"nivel_crise":false}. - resumo: 2-3 frases. - pontos_atencao: o que observar. - dicas_cuidador: [{titulo,descricao}]. - sugestoes: ações práticas. Português brasileiro. SOMENTE JSON.' },
+              { role: 'user', content: 'Sessão de '+nomeTeen+':\n\n'+resumoMsgs }
+            ],
+            max_tokens: 700, temperature: 0.4
+          })
+        });
+
+        var data = await res.json();
+        var raw = (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'{}';
+        raw = raw.replace(/```json|```/g,'').trim();
+        var m = raw.match(/\{[\s\S]*\}/);
+        var rel = m ? JSON.parse(m[0]) : { resumo: 'Relatório gerado.', humor_geral: 'neutro', pontos_atencao: [], sugestoes: [] };
+        rel.timestamp = new Date().toISOString();
+
+        // Visão psicológica
+        try {
+          var res2 = await fetch(GROQ_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+            body: JSON.stringify({
+              model: GROQ_MODEL,
+              messages: [
+                { role: 'system', content: 'Você é psicóloga especialista em TEA. Com base neste relatório de sessão de um adolescente autista, escreva uma análise psicológica CONFIDENCIAL (apenas para o cuidador) de 3-4 frases. Foco em padrões emocionais, áreas de atenção e recursos internos do jovem. Português brasileiro. Sem markdown.' },
+                { role: 'user', content: JSON.stringify(rel) }
+              ],
+              max_tokens: 350, temperature: 0.5
+            })
+          });
+          if (res2.ok) { var d2 = await res2.json(); rel.visao_psicologica = (d2.choices&&d2.choices[0]&&d2.choices[0].message&&d2.choices[0].message.content)||''; }
+        } catch(e) {}
+
+        // Salva no Supabase
+        rel.id_neurodivergente = _teenSelecionado;
+        await sb.from('relatorios').insert(rel);
+        await carregarRelatorios();
+
+        // Alerta de crise
+        if (rel.nivel_crise) {
+          await sb.from('alertas').insert({ id_neurodivergente: _teenSelecionado, tipo: 'crise', titulo: 'Crise detectada no relatório', desc: 'O relatório gerado indica sinais de crise.', emoji: '🚨', lido: false, timestamp: new Date().toISOString() });
+          carregarAlertas();
+        }
+      } catch(e) { alert('Erro ao gerar relatório. Verifique sua conexão.'); console.error(e); }
+
+      if (btn) { btn.textContent = '✨ Gerar Relatório'; btn.disabled = false; }
+    }
+
+    function baixarPDF(cardId, data) {
+      var card = document.getElementById(cardId); if (!card) return;
+      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
+      var nomeTeen = teen ? teen.nome : 'Adolescente';
+      var win = window.open('','_blank');
+      if (!win) { alert('Permita popups para baixar o PDF.'); return; }
+      win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório LumiTEA — '+nomeTeen+'</title><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet"><style>body{font-family:Nunito,sans-serif;color:#2c3e5a;max-width:700px;margin:40px auto;padding:20px}h1{font-family:"Baloo 2",sans-serif;color:#2f5f8e;font-size:1.6rem;margin-bottom:4px}.meta{color:#8faac4;font-size:.85rem;margin-bottom:24px}h3{color:#4a7eb5;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px}p,li{line-height:1.7;font-size:.92rem;color:#5a7499}ul{padding-left:20px}.psi{background:#dce9f7;border-left:3px solid #4a7eb5;padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}.footer{border-top:1px solid #cddff0;margin-top:40px;padding-top:14px;font-size:.78rem;color:#8faac4;text-align:center}@media print{body{margin:20px}}</style></head><body><h1>📋 Relatório LumiTEA</h1><div class="meta">Adolescente: <strong>'+nomeTeen+'</strong> &nbsp;|&nbsp; Data: <strong>'+data+'</strong> &nbsp;|&nbsp; Documento confidencial</div><hr style="border:none;border-top:1px solid #cddff0;margin-bottom:20px;">'+card.innerHTML.replace(/<button[^>]*>.*?<\/button>/gi,'')+'<div class="footer">LumiTEA © 2026 — Relatório gerado pela IA Lumi. Documento confidencial destinado ao cuidador responsável.</div><script>window.onload=function(){window.print();}<\/script></body></html>');
+      win.document.close();
+    }
+
+    /* ── OBSERVAÇÕES ───────────────────────────────────────── */
+    async function carregarObs() {
+      if (!_teenSelecionado) return;
+      var { data: obs } = await sb.from('observacoes_cuidador').select('*').eq('id_neurodivergente', _teenSelecionado).eq('id_cuidador', _uid).order('timestamp', { ascending: false });
+      _obs = obs || [];
+      _renderObs();
+    }
+
+    function _renderObs() {
+      var lista = document.getElementById('obs-lista'); if (!lista) return;
+      if (!_obs.length) { lista.innerHTML = '<p style="font-size:13px;color:#6b9ab8;">Nenhuma observação ainda.</p>'; return; }
+      lista.innerHTML = _obs.map(function(o, idx) {
+        var dt = o.timestamp ? new Date(o.timestamp).toLocaleDateString('pt-BR',{dateStyle:'short'}) : '';
+        return '<div class="obs-item"><div class="obs-item-top"><span class="obs-data">'+dt+'</span><button class="obs-del" onclick="deletarObs(\''+o.id+'\')">🗑</button></div><div class="obs-texto">'+o.texto+'</div></div>';
+      }).join('');
+    }
+
+    async function salvarObs() {
+      if (!_teenSelecionado) { alert('Selecione um adolescente.'); return; }
+      var txt = document.getElementById('obs-txt');
+      var texto = txt.value.trim(); if (!texto) return;
+      await sb.from('observacoes_cuidador').insert({ id_neurodivergente: _teenSelecionado, id_cuidador: _uid, texto: texto, timestamp: new Date().toISOString() });
+      txt.value = '';
+      await carregarObs();
+    }
+
+    async function deletarObs(id) {
+      await sb.from('observacoes_cuidador').delete().eq('id', id);
+      _obs = _obs.filter(function(o){ return o.id !== id; });
+      _renderObs();
+    }
+
+    /* ── PROGRESSO ─────────────────────────────────────────── */
+    async function carregarProgresso() {
+      if (!_teenSelecionado) return;
+      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
+      if (!teen) return;
+      var xp = teen.xp || 0; var nivel = teen.nivel || 1;
+      var base = NIVEL_XP[Math.min(nivel-1, NIVEL_XP.length-1)] || 0;
+      var next = NIVEL_XP[Math.min(nivel, NIVEL_XP.length-1)] || NIVEL_XP[NIVEL_XP.length-1];
+      var pct = next > base ? Math.min(Math.round((xp-base)/(next-base)*100), 100) : 100;
+      document.getElementById('prog-nivel').textContent = nivel;
+      document.getElementById('prog-xp-val').textContent = xp + ' XP';
+      document.getElementById('prog-prox').textContent = next + ' XP';
+      document.getElementById('prog-bar').style.width = pct + '%';
+      var { data: convs } = await sb.from('conversas').select('id').eq('id_neurodivergente', _teenSelecionado);
+      var { data: rels } = await sb.from('relatorios').select('id').eq('id_neurodivergente', _teenSelecionado);
+      document.getElementById('prog-conversas').textContent = (convs||[]).length;
+      document.getElementById('prog-roleplays').textContent = (rels||[]).length;
+    }
+
+    /* ── ESTATÍSTICAS ──────────────────────────────────────── */
+    async function carregarEstatisticas() {
+      if (!_teenSelecionado) return;
+      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
+      var { data: convs } = await sb.from('conversas').select('id').eq('id_neurodivergente', _teenSelecionado);
+      var { data: rels } = await sb.from('relatorios').select('id').eq('id_neurodivergente', _teenSelecionado);
+      var { data: humores } = await sb.from('humores').select('nivel, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(30);
+      var med = calcMediaHumor(humores||[], 7);
+      document.getElementById('stat-conversas').textContent = (convs||[]).length;
+      document.getElementById('stat-relatorios').textContent = (rels||[]).length;
+      document.getElementById('stat-nivel').textContent = teen ? teen.nivel : '—';
+      document.getElementById('stat-humor-med').textContent = med ? med.toFixed(1)+'/5' : '—';
+    }
+
+    /* ── VÍNCULO CUIDADOR ──────────────────────────────────── */
+    async function aceitarVinculoCuidador() {
+      var inp = document.getElementById('inp-codigo-cuidador');
+      var err = document.getElementById('err-vinculo-cuidador');
+      var codigo = (inp.value||'').trim().toUpperCase();
+      if (!codigo || codigo.length < 4) { err.classList.add('on'); return; }
+      err.classList.remove('on');
+      const { data, error } = await sb.rpc('aceitar_vinculo', { p_codigo: codigo });
+      if (error || data !== 'ok') {
+        var msg = data === 'codigo_invalido' ? 'Código inválido.' : data === 'ja_vinculado' ? 'Este adolescente já tem um cuidador.' : 'Erro ao vincular. Tente novamente.';
+        err.textContent = msg; err.classList.add('on'); return;
+      }
+      inp.value = '';
+      await _carregarTeensVinculados();
+    }
+
+    /* ── CHAT CUIDADOR ─────────────────────────────────────── */
+    function _benvindoCuidador() {
+      var nome = (_perfil && _perfil.nome) ? _perfil.nome.split(' ')[0] : 'cuidador';
+      _renderMsgCui('assistant', 'Olá, '+nome+'! 🐻 Sou a Lumi, sua consultora especialista em TEA. Estou aqui para te orientar sobre como apoiar o adolescente sob seus cuidados. Pode me perguntar sobre estratégias, rotinas, comunicação ou qualquer situação que esteja vivenciando.');
+    }
+
+    function _renderMsgCui(role, texto) {
+      var msgs = document.getElementById('chat-msgs-cuidador'); if (!msgs) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'cui-msg-wrap ' + role;
+      var bbl = document.createElement('div');
+      bbl.className = 'cui-msg-bbl';
+      bbl.innerHTML = texto.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+      var hora = document.createElement('div');
+      hora.className = 'cui-msg-hora';
+      var now = new Date(); hora.textContent = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+      wrap.appendChild(bbl); wrap.appendChild(hora);
+      msgs.appendChild(wrap); msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function _mostrarTypingCui() {
+      var msgs = document.getElementById('chat-msgs-cuidador');
+      if (document.getElementById('typing-cui')) return;
+      var el = document.createElement('div');
+      el.id = 'typing-cui'; el.className = 'cui-msg-wrap lumi';
+      el.innerHTML = '<div class="cui-typing"><span></span><span></span><span></span></div>';
+      msgs.appendChild(el); msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function _esconderTypingCui() { var el = document.getElementById('typing-cui'); if (el) el.remove(); }
+
+    async function enviarMsgCuidador() {
+      var ta = document.getElementById('cui-ta'); if (!ta) return;
+      var texto = ta.value.trim(); if (!texto || _carregando) return;
+      ta.value = ''; ta.style.height = 'auto';
+      document.getElementById('btn-send-cui').disabled = true;
+      document.getElementById('chat-pills-cuidador').style.display = 'none';
+      _carregando = true;
+      _renderMsgCui('user', texto);
+      _histCuidador.push({ role: 'user', content: texto });
+      _mostrarTypingCui();
+      try {
+        var msgs = [{ role: 'system', content: 'Você é a Lumi, consultora especializada em TEA que orienta cuidadores e familiares de adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos profissionais quando necessário.' }].concat(_histCuidador);
+        var res = await fetch(GROQ_API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer '+GROQ_KEY }, body: JSON.stringify({ model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 }) });
+        var data = await res.json();
+        var resposta = (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+        _esconderTypingCui();
+        _histCuidador.push({ role: 'assistant', content: resposta });
+        _renderMsgCui('assistant', resposta);
+      } catch(e) { _esconderTypingCui(); _renderMsgCui('assistant', 'Ops, tive um probleminha de conexão. Tente novamente.'); }
+      _carregando = false;
+    }
+
+    function usarPill(btn) {
+      var ta = document.getElementById('cui-ta'); if (!ta) return;
+      ta.value = btn.textContent.trim();
+      document.getElementById('btn-send-cui').disabled = false;
+      ta.focus();
+    }
+
+    /* ── NAVEGAÇÃO ─────────────────────────────────────────── */
+    window.irTela = function(id, btn) {
+      document.querySelectorAll('.cui-tela').forEach(function(t){ t.classList.remove('ativa'); });
+      document.querySelectorAll('.cui-nav-btn').forEach(function(b){ b.classList.remove('ativo'); });
+      var tela = document.getElementById('tela-'+id);
+      if (tela) tela.classList.add('ativa');
+      if (btn) btn.classList.add('ativo');
+      switch(id) {
+        case 'painel':       carregarPainel(); break;
+        case 'alertas':      carregarAlertas(); break;
+        case 'relatorio':    carregarRelatorios(); break;
+        case 'observacoes':  carregarObs(); break;
+        case 'progresso':    carregarProgresso(); break;
+        case 'estatisticas': carregarEstatisticas(); break;
+        case 'humor':
+          if (_teenSelecionado) {
+            sb.from('humores').select('nivel, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', {ascending: false}).limit(30).then(function(r) {
+              var humores = r.data || [];
+              renderHumorBars(humores, 'humor-bars-full');
+              var tab = document.getElementById('humor-tabela');
+              if (tab && humores.length) {
+                tab.innerHTML = humores.slice(0,15).map(function(h) {
+                  var dt = h.timestamp ? new Date(h.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
+                  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #eaf1fb;font-size:13px;"><span style="font-size:1.2rem">'+humoreEmoji(h.nivel)+'</span><span style="font-weight:700;color:#1a2e4a">Nível '+h.nivel+'/5</span><span style="color:#6b9ab8;margin-left:auto">'+dt+'</span></div>';
+                }).join('');
+              } else if (tab) { tab.innerHTML = '<p style="color:#6b9ab8;font-size:13px;">Nenhum registro de humor ainda.</p>'; }
+            });
+          }
+          break;
+        case 'live':
+          if (_teenSelecionado) {
+            sb.from('conversas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', {ascending: false}).limit(5).then(function(r) {
+              var convs = r.data || [];
+              var feed = document.getElementById('live-feed');
+              if (!feed) return;
+              if (!convs.length) { feed.innerHTML = '<p style="font-size:13px;color:#6b9ab8;">Nenhuma atividade recente.</p>'; return; }
+              feed.innerHTML = convs.map(function(c) {
+                var dt = c.timestamp ? new Date(c.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
+                var icon = c.role === 'user' ? '👤' : '🐻';
+                return '<div class="alerta-item"><div class="alerta-icon">'+icon+'</div><div class="alerta-info"><label>'+dt+'</label><p>'+(c.content||'').slice(0,120)+'</p></div></div>';
+              }).join('');
+            });
+          }
+          break;
+      }
+    };
+
+    function fecharAlertaStrip() { var s = document.getElementById('cui-alerta-strip'); if (s) s.classList.remove('show'); }
+
+    async function _pollingAtualizar() {
+      if (_teenSelecionado) {
+        var { data: nd } = await sb.from('neurodivergente').select('xp, nivel').eq('id', _teenSelecionado).single();
+        if (nd) {
+          var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
+          if (teen) { teen.xp = nd.xp; teen.nivel = nd.nivel; }
+        }
+      }
+    }
+
+    async function sairCui() {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
+    }
+  </script>
+  <script src="js/lumi-ia.js"></script>
+  <script src="js/cuidador.js"></script>
+</body>
+</html>

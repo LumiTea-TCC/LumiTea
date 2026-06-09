@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Calendário do Cuidador</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    .cal-page { display: grid; grid-template-columns: 1fr 380px; gap: 24px; padding: 24px 32px; min-height: calc(100vh - 64px); position: relative; z-index: 1; }
+    @media (max-width: 1100px) { .cal-page { grid-template-columns: 1fr; } }
+
+    .cal-box { background: white; border-radius: 22px; border: 1.5px solid #d6eaf8; padding: 24px; }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .cal-month { font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; font-weight: 800; color: #1a2e4a; }
+    .cal-nav { display: flex; gap: 8px; }
+    .cal-nav button { width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid #d6eaf8; background: #f4f8fd; color: #3d6080; font-size: 1rem; cursor: pointer; transition: all .2s; }
+    .cal-nav button:hover { background: #e08e30; color: white; border-color: #e08e30; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day-hdr { text-align: center; font-size: 11px; font-weight: 900; color: #6b9ab8; padding: 8px 0; text-transform: uppercase; letter-spacing: .06em; }
+    .cal-day { aspect-ratio: 1; border-radius: 12px; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 1.5px solid transparent; transition: all .18s; font-size: 14px; font-weight: 700; color: #3d6080; background: #f4f8fd; min-height: 52px; }
+    .cal-day:hover { border-color: #90caf9; background: #eaf1fb; }
+    .cal-day.today { background: rgba(224,142,48,0.10); border-color: #e08e30; color: #7a4f1a; font-weight: 900; }
+    .cal-day.other-month { opacity: .35; }
+    .cal-day.selected { background: #e08e30; color: white; border-color: #e08e30; }
+    .cal-dots { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; }
+    .cal-dots span { width: 5px; height: 5px; border-radius: 50%; }
+
+    .side-box { display: flex; flex-direction: column; gap: 18px; }
+    .event-box { background: white; border-radius: 20px; border: 1.5px solid #d6eaf8; padding: 20px; }
+    .event-box-title { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: #1a2e4a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+    .event-item { display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: #f4f8fd; border: 1.5px solid #d6eaf8; margin-bottom: 8px; transition: all .18s; }
+    .event-item:hover { border-color: #90caf9; }
+    .event-item.from-teen { border-color: rgba(124,92,191,0.30); background: rgba(124,92,191,0.04); }
+    .ev-color { width: 4px; border-radius: 4px; flex-shrink: 0; }
+    .ev-info { flex: 1; }
+    .ev-title { font-size: 13px; font-weight: 800; color: #1a2e4a; }
+    .ev-time { font-size: 11px; color: #6b9ab8; font-weight: 700; margin-top: 2px; }
+    .ev-desc { font-size: 12px; color: #5a7fa8; margin-top: 4px; }
+    .ev-del { background: none; border: none; color: #b3d9f8; cursor: pointer; font-size: 14px; transition: color .2s; padding: 2px; }
+    .ev-del:hover { color: #f44336; }
+    .teen-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(124,92,191,0.10); border: 1px solid rgba(124,92,191,0.20); border-radius: 99px; font-size: 10px; font-weight: 900; color: #5a3d8f; margin-top: 4px; }
+
+    .form-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+    .form-field label { font-size: 11px; font-weight: 800; color: #6b9ab8; text-transform: uppercase; letter-spacing: .06em; }
+    .form-field input, .form-field textarea, .form-field select { background: #f4f8fd; border: 1.5px solid #b3d9f8; border-radius: 10px; padding: 9px 13px; color: #1a2e4a; font-family: 'Nunito', sans-serif; font-size: 13px; outline: none; transition: border-color .2s; }
+    .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: #e08e30; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-field { flex: 1; }
+
+    .color-btns { display: flex; gap: 8px; }
+    .color-btn { width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid transparent; cursor: pointer; transition: all .18s; }
+    .color-btn.sel { border-color: #1a2e4a; transform: scale(1.15); }
+
+    .btn-add-ev { background: #e08e30; color: white; border: none; border-radius: 12px; padding: 10px 18px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+    .btn-add-ev:hover { background: #b8721f; }
+
+    .sel-teen-box { background: rgba(224,142,48,0.06); border: 1.5px solid rgba(224,142,48,0.25); border-radius: 14px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #7a4f1a; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .sel-teen-box select { flex: 1; background: white; border: 1.5px solid rgba(224,142,48,0.30); border-radius: 8px; padding: 6px 10px; font-family: 'Nunito', sans-serif; font-size: 13px; color: #1a2e4a; outline: none; }
+
+    .empty-ev { text-align: center; padding: 24px; color: #6b9ab8; font-size: 13px; font-weight: 700; }
+    .empty-ev .em-icon { font-size: 2rem; margin-bottom: 8px; }
+
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #6b9ab8; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  </style>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-cuidador.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-cuidador.html">Painel</a>
+      <a href="calendario-cuidador.html" class="active">Calendário</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt=""></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairCui()">Sair</button>
+    </div>
+  </nav>
+
+  <div class="cal-page">
+    <div>
+      <div class="cal-box">
+        <div class="cal-header">
+          <div>
+            <div class="cal-month" id="cal-month-title">Abril 2026</div>
+            <div class="legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#e08e30"></div> Você adicionou</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#7c5cbf"></div> Adolescente</div>
+            </div>
+          </div>
+          <div class="cal-nav">
+            <button onclick="navMes(-1)">‹</button>
+            <button onclick="navMes(1)">›</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div class="event-box" style="margin-top:18px;">
+        <div class="event-box-title">📅 <span id="dia-sel-label">Selecione um dia</span></div>
+        <div id="eventos-do-dia"><div class="empty-ev"><div class="em-icon">📅</div>Selecione um dia para ver os eventos</div></div>
+      </div>
+    </div>
+
+    <div class="side-box">
+      <div class="event-box">
+        <div class="event-box-title">👨‍👧 Adicionar Evento para o Adolescente</div>
+
+        <div class="sel-teen-box">
+          <span>👤</span>
+          <select id="sel-teen">
+            <option value="">Selecione o adolescente...</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Título do Evento</label>
+          <input type="text" id="ev-titulo" placeholder="Ex: Consulta médica, Terapia..." maxlength="60">
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Data</label>
+            <input type="date" id="ev-data">
+          </div>
+          <div class="form-field">
+            <label>Hora</label>
+            <input type="time" id="ev-hora">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Mensagem para o adolescente</label>
+          <textarea id="ev-desc" rows="2" placeholder="Escreva uma mensagem carinhosa explicando o evento..."></textarea>
+        </div>
+        <div class="form-field">
+          <label>Cor</label>
+          <div class="color-btns" id="color-btns">
+            <div class="color-btn sel" data-color="#e08e30" style="background:#e08e30" onclick="selColor(this)"></div>
+            <div class="color-btn" data-color="#2196f3" style="background:#2196f3" onclick="selColor(this)"></div>
+            <div class="color-btn" data-color="#4ade80" style="background:#4ade80" onclick="selColor(this)"></div>
+            <div class="color-btn" data-color="#ef4444" style="background:#ef4444" onclick="selColor(this)"></div>
+            <div class="color-btn" data-color="#7c5cbf" style="background:#7c5cbf" onclick="selColor(this)"></div>
+          </div>
+        </div>
+        <button class="btn-add-ev" onclick="adicionarEventoCuidador()">📅 Enviar para a agenda do adolescente</button>
+        <div id="ev-feedback" style="display:none;margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:#2e7d32;">✅ Evento adicionado com sucesso!</div>
+      </div>
+
+      <div class="event-box">
+        <div class="event-box-title">📊 Eventos desta semana</div>
+        <div id="semana-evs"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL      = 'https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    var _uid = null;
+    var _teens = [];
+    var _eventos = [];
+    var _corSel = '#e08e30';
+    var _currentYear = new Date().getFullYear();
+    var _currentMonth = new Date().getMonth();
+    var _selectedDate = null;
+    var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    async function init() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      _uid = session.user.id;
+
+      const { data: perfil } = await sb.from('profiles').select('nome, tipo').eq('id', _uid).single();
+      if (!perfil || perfil.tipo !== 'responsavel') { window.location.href = 'home-autista.html'; return; }
+      document.getElementById('nav-user-name').textContent = perfil.nome || 'Cuidador';
+
+      await carregarTeens();
+      await carregarEventos();
+      renderCalendario();
+      renderSemana();
+      selecionarDia(new Date().toISOString().slice(0,10));
+
+      var hoje = new Date().toISOString().slice(0,10);
+      document.getElementById('ev-data').value = hoje;
+    }
+
+    async function carregarTeens() {
+      const { data: teens } = await sb.from('neurodivergente').select('id').eq('id_responsavel', _uid);
+      var sel = document.getElementById('sel-teen');
+      _teens = [];
+      for (var t of (teens||[])) {
+        const { data: p } = await sb.from('profiles').select('nome').eq('id', t.id).single();
+        _teens.push({ id: t.id, nome: p ? p.nome : 'Adolescente' });
+        var opt = document.createElement('option');
+        opt.value = t.id; opt.textContent = p ? p.nome : 'Adolescente';
+        sel.appendChild(opt);
+      }
+      if (_teens.length === 1) sel.value = _teens[0].id;
+    }
+
+    async function carregarEventos() {
+      // Carrega eventos de todos os teens vinculados
+      var teenIds = _teens.map(function(t){ return t.id; });
+      if (!teenIds.length) { _eventos = []; return; }
+      const { data } = await sb.from('eventos_calendario').select('*').in('id_neurodivergente', teenIds).order('data_evento', { ascending: true });
+      _eventos = data || [];
+    }
+
+    function renderCalendario() {
+      document.getElementById('cal-month-title').textContent = MESES[_currentMonth] + ' ' + _currentYear;
+      var primeirodia = new Date(_currentYear, _currentMonth, 1).getDay();
+      var totalDias = new Date(_currentYear, _currentMonth + 1, 0).getDate();
+      var mesPrev = new Date(_currentYear, _currentMonth, 0).getDate();
+      var hoje = new Date().toISOString().slice(0,10);
+
+      var grid = document.getElementById('cal-grid');
+      grid.innerHTML = DIAS_SEMANA.map(function(d){ return '<div class="cal-day-hdr">'+d+'</div>'; }).join('');
+
+      for (var i = primeirodia - 1; i >= 0; i--) {
+        var dia = mesPrev - i;
+        var ds = (_currentMonth-1<0?_currentYear-1:_currentYear)+'-'+pad(_currentMonth<1?12:_currentMonth)+'-'+pad(dia);
+        grid.innerHTML += '<div class="cal-day other-month" onclick="selecionarDia(\''+ds+'\')">'+dia+'</div>';
+      }
+      for (var d = 1; d <= totalDias; d++) {
+        var dateStr = _currentYear+'-'+pad(_currentMonth+1)+'-'+pad(d);
+        var cls = 'cal-day';
+        if (dateStr === hoje) cls += ' today';
+        if (dateStr === _selectedDate) cls += ' selected';
+        var evs = _eventos.filter(function(e){ return (e.data_evento||'').slice(0,10) === dateStr; });
+        var dots = evs.map(function(e){ return '<span style="background:'+(e.cor||'#7c5cbf')+'"></span>'; }).join('');
+        grid.innerHTML += '<div class="'+cls+'" onclick="selecionarDia(\''+dateStr+'\')" data-date="'+dateStr+'">'+d+(dots?'<div class="cal-dots">'+dots+'</div>':'')+'</div>';
+      }
+      var total = primeirodia + totalDias;
+      var prox = 7 - (total % 7 === 0 ? 7 : total % 7);
+      for (var p = 1; p <= prox; p++) {
+        var mes = _currentMonth+1>11?0:_currentMonth+1;
+        var ano = _currentMonth+1>11?_currentYear+1:_currentYear;
+        var ds = ano+'-'+pad(mes+1)+'-'+pad(p);
+        grid.innerHTML += '<div class="cal-day other-month" onclick="selecionarDia(\''+ds+'\')" data-date="'+ds+'">'+p+'</div>';
+      }
+    }
+
+    function pad(n){ return n<10?'0'+n:''+n; }
+    function navMes(dir) {
+      _currentMonth+=dir;
+      if(_currentMonth>11){_currentMonth=0;_currentYear++;}
+      if(_currentMonth<0){_currentMonth=11;_currentYear--;}
+      renderCalendario();
+    }
+
+    function selecionarDia(dateStr) {
+      _selectedDate = dateStr;
+      document.getElementById('ev-data').value = dateStr;
+      document.querySelectorAll('.cal-day').forEach(function(el){ el.classList.remove('selected'); if(el.getAttribute('data-date')===dateStr) el.classList.add('selected'); });
+      var d = new Date(dateStr+'T12:00:00');
+      document.getElementById('dia-sel-label').textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+      var evs = _eventos.filter(function(e){ return (e.data_evento||'').slice(0,10) === dateStr; });
+      var cont = document.getElementById('eventos-do-dia');
+      if (!evs.length) { cont.innerHTML = '<div class="empty-ev"><div class="em-icon">✨</div>Nenhum evento neste dia.</div>'; return; }
+      cont.innerHTML = evs.map(function(ev) {
+        var hora = ev.hora_evento ? ev.hora_evento.slice(0,5) : 'Sem hora';
+        var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });
+        var origemTag = ev.origem === 'cuidador' ? '👨‍👧 Você adicionou' : '👤 '+(teen?teen.nome:'Adolescente');
+        return '<div class="event-item '+(ev.origem!=='cuidador'?'from-teen':'')+'">'
+          +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
+          +'<div class="ev-info">'
+          +'<div class="ev-title">'+(ev.titulo||'Evento')+'</div>'
+          +'<div class="ev-time">🕐 '+hora+'</div>'
+          +(ev.descricao?'<div class="ev-desc">'+ev.descricao+'</div>':'')
+          +'<div class="teen-tag">'+origemTag+'</div>'
+          +'</div>'
+          +(ev.origem==='cuidador'?'<button class="ev-del" onclick="deletarEvento(\''+ev.id+'\')">🗑</button>':'')
+          +'</div>';
+      }).join('');
+    }
+
+    function selColor(btn) {
+      document.querySelectorAll('.color-btn').forEach(function(b){ b.classList.remove('sel'); });
+      btn.classList.add('sel'); _corSel = btn.getAttribute('data-color');
+    }
+
+    async function adicionarEventoCuidador() {
+      var teenId = document.getElementById('sel-teen').value;
+      var titulo = document.getElementById('ev-titulo').value.trim();
+      var data = document.getElementById('ev-data').value;
+      var hora = document.getElementById('ev-hora').value;
+      var desc = document.getElementById('ev-desc').value.trim();
+      if (!teenId) { alert('Selecione o adolescente!'); return; }
+      if (!titulo || !data) { alert('Preencha título e data!'); return; }
+
+      await sb.from('eventos_calendario').insert({
+        id_neurodivergente: teenId,
+        titulo: titulo,
+        data_evento: data,
+        hora_evento: hora || null,
+        descricao: desc || null,
+        cor: _corSel,
+        roleplay_prep: false,
+        origem: 'cuidador',
+        id_cuidador: _uid,
+        timestamp: new Date().toISOString()
+      });
+
+      // Gera alerta para o adolescente ver
+      await sb.from('alertas').insert({
+        id_neurodivergente: teenId,
+        tipo: 'info',
+        titulo: '📅 Novo evento: ' + titulo,
+        desc: 'Seu cuidador adicionou um evento para ' + new Date(data+'T12:00:00').toLocaleDateString('pt-BR'),
+        emoji: '👨‍👧',
+        lido: false,
+        timestamp: new Date().toISOString()
+      });
+
+      document.getElementById('ev-titulo').value = '';
+      document.getElementById('ev-hora').value = '';
+      document.getElementById('ev-desc').value = '';
+      var fb = document.getElementById('ev-feedback');
+      fb.style.display = 'block';
+      setTimeout(function(){ fb.style.display = 'none'; }, 3000);
+
+      await carregarEventos();
+      renderCalendario();
+      renderSemana();
+      if (_selectedDate) selecionarDia(_selectedDate);
+    }
+
+    async function deletarEvento(id) {
+      if (!confirm('Remover este evento?')) return;
+      await sb.from('eventos_calendario').delete().eq('id', id);
+      await carregarEventos();
+      renderCalendario();
+      renderSemana();
+      if (_selectedDate) selecionarDia(_selectedDate);
+    }
+
+    function renderSemana() {
+      var cont = document.getElementById('semana-evs');
+      var hoje = new Date();
+      var inicioSemana = new Date(hoje); inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+      var fimSemana = new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate() + 6);
+      var ini = inicioSemana.toISOString().slice(0,10);
+      var fim = fimSemana.toISOString().slice(0,10);
+      var evs = _eventos.filter(function(e){ var d=(e.data_evento||'').slice(0,10); return d>=ini && d<=fim; });
+      if (!evs.length) { cont.innerHTML = '<div class="empty-ev" style="padding:16px 0">Nenhum evento esta semana.</div>'; return; }
+      cont.innerHTML = evs.map(function(ev) {
+        var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });
+        return '<div class="event-item" style="margin-bottom:8px;">'
+          +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
+          +'<div class="ev-info"><div class="ev-title">'+(ev.titulo||'Evento')+'</div>'
+          +'<div class="ev-time">'+new Date((ev.data_evento||'')+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})+'</div>'
+          +'<div class="teen-tag">'+(ev.origem==='cuidador'?'👨‍👧 Você':'👤 '+(teen?teen.nome:'Teen'))+'</div>'
+          +'</div></div>';
+      }).join('');
+    }
+
+    async function sairCui() { await sb.auth.signOut(); window.location.href = 'login.html'; }
+
+    init();
+  </script>
+</body>
+</html>

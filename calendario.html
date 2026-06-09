@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Calendário</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <style>
+    /* ── LAYOUT ───────────────────────────────────────────── */
+    .cal-page{display:grid;grid-template-columns:300px 1fr;gap:20px;padding:22px 28px;min-height:calc(100vh - 64px);position:relative;z-index:1;max-width:1180px;margin:0 auto;width:100%}
+    @media(max-width:860px){.cal-page{grid-template-columns:1fr}}
+
+    /* ── COLUNA ESQUERDA: calendário compacto + form ─────── */
+    .cal-left{display:flex;flex-direction:column;gap:16px}
+
+    /* MINI CALENDÁRIO */
+    .mini-cal{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px;overflow:hidden}
+    .mini-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .mini-month{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--text-main)}
+    .mini-nav{display:flex;gap:5px}
+    .mini-nav button{width:30px;height:30px;border-radius:8px;border:1.5px solid rgba(74,126,181,0.15);background:var(--bg);color:var(--text-soft);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .17s}
+    .mini-nav button:hover{background:var(--primary);color:white;border-color:var(--primary)}
+    .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+    .mini-hdr{text-align:center;font-size:.58rem;font-weight:900;color:var(--text-muted);padding:5px 0;text-transform:uppercase;letter-spacing:.05em}
+    .mini-day{aspect-ratio:1;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid transparent;transition:all .16s;font-size:.72rem;font-weight:700;color:var(--text-soft);background:transparent;position:relative;min-height:34px}
+    .mini-day:hover{background:rgba(74,126,181,0.08);color:var(--primary-dark)}
+    .mini-day.today{background:rgba(33,150,243,0.10);border-color:var(--primary);color:var(--primary-dark);font-weight:900}
+    .mini-day.other{opacity:.32}
+    .mini-day.sel{background:var(--primary);color:white;border-color:var(--primary);font-weight:900}
+    .mini-day.sel .md{background:rgba(255,255,255,0.7)}
+    .mini-day.has-ev{font-weight:900}
+    .md-dots{display:flex;gap:2px;justify-content:center;position:absolute;bottom:3px}
+    .md{width:4px;height:4px;border-radius:50%}
+
+    /* FORM ADICIONAR */
+    .form-card{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px}
+    .fc-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:var(--text-main);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .fc-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+    .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+    .fg:last-child{margin-bottom:0}
+    .fl{font-size:.65rem;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
+    .fi{background:var(--bg);border:1.5px solid rgba(74,126,181,0.18);border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-main);outline:none;transition:border-color .2s;width:100%}
+    .fi:focus{border-color:var(--primary);background:white}
+    .fi::placeholder{color:var(--text-muted)}
+    .fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .colors{display:flex;gap:6px;flex-wrap:wrap}
+    .clr{width:24px;height:24px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:all .16s}
+    .clr.sel{border-color:var(--text-main);transform:scale(1.18)}
+    .btn-add{background:var(--primary);color:white;border:none;border-radius:11px;padding:10px 18px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px;box-shadow:0 3px 12px rgba(33,150,243,0.25);width:100%;justify-content:center;margin-top:12px}
+    .btn-add:hover{background:var(--primary-dark)}
+    .btn-add:disabled{background:var(--border);box-shadow:none;cursor:not-allowed}
+
+    /* ── COLUNA DIREITA: agenda ───────────────────────────── */
+    .cal-right{display:flex;flex-direction:column;gap:16px}
+
+    /* Cabeçalho da agenda */
+    .agenda-header{background:linear-gradient(135deg,#4a7eb5,#2e5fa3);border-radius:20px;padding:20px 24px;color:white;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(46,95,163,0.22)}
+    .ah-date{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:2px}
+    .ah-sub{font-size:.76rem;font-weight:600;opacity:.82}
+    .ah-count{background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.25);border-radius:99px;padding:5px 14px;font-size:.75rem;font-weight:800}
+
+    /* Aviso cuidador */
+    .cuid-strip{background:linear-gradient(135deg,rgba(224,142,48,0.10),rgba(224,142,48,0.05));border:1.5px solid rgba(224,142,48,0.30);border-radius:16px;padding:13px 16px;display:none;align-items:center;gap:12px;animation:slideIn .35s ease}
+    .cuid-strip.show{display:flex}
+    @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    .cs-icon{font-size:1.4rem}
+    .cs-txt{font-size:.8rem;font-weight:800;color:#7a4f1a}
+    .cs-sub{font-size:.72rem;color:#9a6730;font-weight:600;margin-top:1px}
+
+    /* Lista de eventos */
+    .eventos-box{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 20px;flex:1}
+    .eb-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:var(--text-main);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .ev-item{display:flex;gap:10px;padding:11px 13px;border-radius:13px;background:var(--bg);border:1.5px solid rgba(74,126,181,0.10);margin-bottom:8px;cursor:pointer;transition:all .17s;align-items:flex-start}
+    .ev-item:last-child{margin-bottom:0}
+    .ev-item:hover{border-color:rgba(74,126,181,0.25);background:#eaf1fb}
+    .ev-item.cuid{border-color:rgba(224,142,48,0.28);background:rgba(224,142,48,0.04)}
+    .ev-stripe{width:3px;border-radius:99px;flex-shrink:0;align-self:stretch;min-height:36px}
+    .ev-body{flex:1}
+    .ev-tit{font-size:.84rem;font-weight:800;color:var(--text-main);margin-bottom:3px}
+    .ev-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .ev-time{font-size:.68rem;font-weight:700;color:var(--text-muted)}
+    .ev-tag{font-size:.6rem;font-weight:900;padding:1px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+    .ev-tag.cuid-tag{background:rgba(224,142,48,0.14);color:#7a4f1a}
+    .ev-tag.rp-tag{background:rgba(124,92,191,0.14);color:#5a3d8f}
+    .ev-desc{font-size:.73rem;color:var(--text-muted);font-weight:600;margin-top:4px}
+    .ev-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:.9rem;padding:2px 4px;border-radius:6px;transition:all .16s;flex-shrink:0;margin-left:auto}
+    .ev-del:hover{color:#ef4444;background:rgba(239,68,68,0.08)}
+    .empty-state{text-align:center;padding:32px 20px;color:var(--text-muted)}
+    .empty-state .es-icon{font-size:2.4rem;margin-bottom:8px}
+    .empty-state .es-txt{font-size:.82rem;font-weight:700}
+    .empty-state .es-sub{font-size:.74rem;font-weight:600;margin-top:4px;opacity:.75}
+
+    /* Minicalendário: mês exibido */
+    .mini-today-box{background:linear-gradient(135deg,rgba(74,126,181,0.07),rgba(74,126,181,0.03));border:1.5px solid rgba(74,126,181,0.14);border-radius:13px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .mtb-date{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--primary-dark)}
+    .mtb-sub{font-size:.7rem;color:var(--text-muted);font-weight:600}
+
+    /* Roleplay prep */
+    .rp-prep{background:linear-gradient(135deg,#f3eeff,#edf4ff);border:1.5px solid rgba(124,92,191,0.18);border-radius:20px;padding:18px 20px}
+    .rp-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:#5a3d8f;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+    .rp-sub{font-size:.72rem;color:#7c5cbf;font-weight:600;margin-bottom:12px}
+    .rp-list{display:flex;flex-direction:column;gap:7px}
+    .rp-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border:1.5px solid rgba(124,92,191,0.18);border-radius:12px;cursor:pointer;transition:all .17s}
+    .rp-card:hover{border-color:#7c5cbf;background:#f9f3ff}
+    .rp-card.active{border-color:#7c5cbf;background:rgba(124,92,191,0.08)}
+    .rp-info{flex:1}
+    .rp-name{font-size:.8rem;font-weight:800;color:var(--text-main)}
+    .rp-date{font-size:.66rem;color:var(--text-muted);font-weight:600;margin-top:1px}
+    .rp-days{font-size:.68rem;font-weight:900;padding:2px 8px;border-radius:99px;background:rgba(124,92,191,0.12);color:#5a3d8f;flex-shrink:0}
+    /* Mini chat RP */
+    .rp-chat{display:none;flex-direction:column;margin-top:12px}
+    .rp-chat.show{display:flex}
+    .rp-msgs{height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,0.7);border-radius:12px;border:1.5px solid rgba(124,92,191,0.15);padding:10px;margin-bottom:8px}
+    .rp-msgs::-webkit-scrollbar{width:3px}.rp-msgs::-webkit-scrollbar-thumb{background:rgba(124,92,191,0.3);border-radius:4px}
+    .rp-m{max-width:88%;padding:8px 12px;border-radius:13px;font-size:.78rem;line-height:1.55;font-weight:600}
+    .rp-m.lumi{background:white;border:1.5px solid rgba(124,92,191,0.18);color:var(--text-main);align-self:flex-start;border-bottom-left-radius:4px}
+    .rp-m.user{background:#7c5cbf;color:white;align-self:flex-end;border-bottom-right-radius:4px}
+    .rp-input-row{display:flex;gap:7px}
+    .rp-ta{flex:1;background:white;border:1.5px solid rgba(124,92,191,0.25);border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:600;color:var(--text-main);outline:none;resize:none;transition:border-color .2s}
+    .rp-ta:focus{border-color:#7c5cbf}
+    .rp-send{width:36px;height:36px;background:#7c5cbf;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .17s;flex-shrink:0}
+    .rp-send:hover{background:#5a3d8f}
+    .rp-send svg{width:14px;height:14px;fill:white}
+    .rp-typ{display:flex;gap:4px;padding:8px 12px;background:white;border:1.5px solid rgba(124,92,191,0.18);border-radius:13px;border-bottom-left-radius:4px;width:fit-content}
+    .rp-td{width:5px;height:5px;border-radius:50%;background:#7c5cbf;animation:rtd 1.2s ease-in-out infinite}
+    .rp-td:nth-child(2){animation-delay:.2s}.rp-td:nth-child(3){animation-delay:.4s}
+    @keyframes rtd{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+    .empty-rp{text-align:center;padding:16px;font-size:.76rem;color:var(--text-muted);font-weight:700}
+  </style>
+</head>
+<body class="app-body">
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="roleplay.html">Roleplay</a>
+      <a href="games.html">Games</a>
+      <a href="calendario.html" class="active">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">...</span>
+      </div>
+      <button class="btn-logout" onclick="sair()">Sair</button>
+    </div>
+    <label class="app-burger" for="burg-cl">
+      <input type="checkbox" id="burg-cl">
+      <span></span><span></span><span></span>
+    </label>
+  </nav>
+  <div id="mm-cl" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="roleplay.html">Roleplay</a>
+    <a href="games.html">Games</a>
+    <a href="calendario.html" class="active">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px">
+      <button class="btn-logout" onclick="sair()">Sair</button>
+    </div>
+  </div>
+  <script>(function(){var cb=document.getElementById('burg-cl'),m=document.getElementById('mm-cl');cb.addEventListener('change',function(){m.style.display=cb.checked?'flex':'none'});m.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){cb.checked=false;m.style.display='none'})})})();</script>
+
+  <div class="cal-page">
+    <!-- ESQUERDA -->
+    <div class="cal-left">
+
+      <!-- Hoje -->
+      <div class="mini-today-box">
+        <span style="font-size:1.5rem">📅</span>
+        <div>
+          <div class="mtb-date" id="hoje-label">Hoje</div>
+          <div class="mtb-sub">Selecione um dia para ver sua agenda</div>
+        </div>
+      </div>
+
+      <!-- Mini Calendário -->
+      <div class="mini-cal">
+        <div class="mini-cal-header">
+          <div class="mini-month" id="mini-month">Abril 2026</div>
+          <div class="mini-nav">
+            <button onclick="navMes(-1)">‹</button>
+            <button onclick="navMes(1)">›</button>
+          </div>
+        </div>
+        <div class="mini-grid" id="mini-grid"></div>
+      </div>
+
+      <!-- Form adicionar -->
+      <div class="form-card">
+        <div class="fc-title">
+          <div class="fc-icon" style="background:#e3f2fd">➕</div>
+          Adicionar Evento
+        </div>
+
+        <div class="fg">
+          <label class="fl">Título</label>
+          <input type="text" class="fi" id="ev-titulo" placeholder="Ex: Consulta, Passeio, Escola..." maxlength="60">
+        </div>
+
+        <div class="fr">
+          <div class="fg">
+            <label class="fl">Data</label>
+            <input type="date" class="fi" id="ev-data">
+          </div>
+          <div class="fg">
+            <label class="fl">Hora</label>
+            <input type="time" class="fi" id="ev-hora">
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="fl">Descrição</label>
+          <input type="text" class="fi" id="ev-desc" placeholder="Opcional...">
+        </div>
+
+        <div class="fg">
+          <label class="fl">Categoria</label>
+          <select class="fi" id="ev-cat" style="appearance:none;cursor:pointer">
+            <option value="escola">Escola</option>
+            <option value="familia">Família</option>
+            <option value="social">Social</option>
+            <option value="saude">Saúde</option>
+            <option value="lazer">Lazer</option>
+            <option value="outro" selected>Outro</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label class="fl">Contexto pro Theo (opcional)</label>
+          <textarea class="fi" id="ev-contexto" rows="3" placeholder="Ex: vai ter a tia Cláudia que fala alto. Tem primos pequenos." maxlength="400" style="resize:vertical;min-height:64px"></textarea>
+        </div>
+
+        <div class="fg">
+          <label class="fl">Cor</label>
+          <div class="colors">
+            <div class="clr sel" data-c="#7c5cbf" style="background:#7c5cbf" onclick="selCor(this)"></div>
+            <div class="clr" data-c="#2196f3" style="background:#2196f3" onclick="selCor(this)"></div>
+            <div class="clr" data-c="#4ade80" style="background:#4ade80" onclick="selCor(this)"></div>
+            <div class="clr" data-c="#f59e0b" style="background:#f59e0b" onclick="selCor(this)"></div>
+            <div class="clr" data-c="#ef4444" style="background:#ef4444" onclick="selCor(this)"></div>
+            <div class="clr" data-c="#e08e30" style="background:#e08e30" onclick="selCor(this)"></div>
+            <div class="clr" data-c="#06b6d4" style="background:#06b6d4" onclick="selCor(this)"></div>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="fl">Quando o Theo deve te lembrar?</label>
+          <select class="fi" id="ev-lembrete" style="appearance:none;cursor:pointer">
+            <option value="15">15 min antes</option>
+            <option value="30">30 min antes</option>
+            <option value="60" selected>1 hora antes</option>
+            <option value="120">2 horas antes</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:#3d6080;cursor:pointer">
+            <input type="checkbox" id="ev-checkin-pre" checked style="width:18px;height:18px;accent-color:#4a7eb5">
+            Theo aparece antes pra ver como você está
+          </label>
+        </div>
+        <div class="fg">
+          <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:#3d6080;cursor:pointer">
+            <input type="checkbox" id="ev-checkin-pos" checked style="width:18px;height:18px;accent-color:#4a7eb5">
+            E depois pra saber como foi
+          </label>
+        </div>
+
+        <div class="fg">
+          <label class="fl">Preparar com roleplay?</label>
+          <select class="fi" id="ev-rp" style="appearance:none;cursor:pointer">
+            <option value="0">Não</option>
+            <option value="1">Sim — praticar antes!</option>
+          </select>
+        </div>
+
+        <button class="btn-add" id="btn-add" onclick="adicionarEvento()">✨ Salvar evento</button>
+      </div>
+    </div>
+
+    <!-- DIREITA -->
+    <div class="cal-right">
+
+      <!-- Header agenda -->
+      <div class="agenda-header">
+        <div>
+          <div class="ah-date" id="ah-date">Selecione um dia</div>
+          <div class="ah-sub">Sua agenda pessoal</div>
+        </div>
+        <div class="ah-count" id="ah-count">0 eventos</div>
+      </div>
+
+      <!-- Aviso cuidador -->
+      <div class="cuid-strip" id="cuid-strip">
+        <div class="cs-icon">👨‍👧</div>
+        <div>
+          <div class="cs-txt" id="cs-txt">Novo evento do seu cuidador!</div>
+          <div class="cs-sub" id="cs-sub">Confira na agenda</div>
+        </div>
+      </div>
+
+      <!-- Eventos do dia -->
+      <div class="eventos-box">
+        <div class="eb-title">
+          <span style="font-size:1.1rem">📋</span>
+          <span id="eb-day-label">Eventos de hoje</span>
+        </div>
+        <div id="ev-lista">
+          <div class="empty-state">
+            <div class="es-icon">🗓️</div>
+            <div class="es-txt">Selecione um dia</div>
+            <div class="es-sub">Clique no mini calendário para ver os eventos</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roleplay pré-evento -->
+      <div class="rp-prep">
+        <div class="rp-title">🎮 Preparar com Roleplay</div>
+        <div class="rp-sub">Escolha um evento e pratique com a Lumi antes do grande dia!</div>
+        <div class="rp-list" id="rp-list">
+          <div class="empty-rp">Adicione um evento com roleplay ativado para começar!</div>
+        </div>
+        <div class="rp-chat" id="rp-chat">
+          <div class="rp-msgs" id="rp-msgs"></div>
+          <div class="rp-input-row">
+            <textarea class="rp-ta" id="rp-ta" rows="1" placeholder="Responda a Lumi..."></textarea>
+            <button class="rp-send" onclick="enviarRP()">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const SB_URL='https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SB_KEY='sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const GROQ_KEY=(window.LUMITEA && window.LUMITEA.GROQ_API_KEY) || '';
+    const GROQ_API='https://api.groq.com/openai/v1/chat/completions';
+    const GROQ_MODEL='llama-3.3-70b-versatile';
+    const {createClient}=supabase;
+    const sb=createClient(SB_URL,SB_KEY);
+
+    var _uid=null,_nome='',_cor='#7c5cbf',_Y=new Date().getFullYear(),_M=new Date().getMonth(),_sel=null,_evs=[],_rpHist=[],_rpEv=null,_rpLoad=false;
+    var MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var DS=['D','S','T','Q','Q','S','S'];
+
+    (async function(){
+      var {data:{session}}=await sb.auth.getSession();
+      if(!session){window.location.href='login.html';return}
+      _uid=session.user.id;
+      var {data:p}=await sb.from('profiles').select('nome,tipo').eq('id',_uid).single();
+      if(!p||p.tipo==='responsavel'){window.location.href='home-cuidador.html';return}
+      _nome=p.nome||'amigo';
+      document.getElementById('nav-user-name').textContent=_nome;
+      var hoje=new Date();
+      document.getElementById('ev-data').value=hoje.toISOString().slice(0,10);
+      document.getElementById('hoje-label').textContent='📅 '+hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+      await carregarEvs();
+      render();
+      selDia(hoje.toISOString().slice(0,10));
+      verificarCuidador();
+    })();
+
+    async function carregarEvs(){
+      var {data}=await sb.from('eventos_calendario').select('*').eq('id_neurodivergente',_uid).order('data_evento',{ascending:true});
+      _evs=data||[];
+      renderRPList();
+    }
+
+    function pad(n){return n<10?'0'+n:''+n}
+
+    function render(){
+      document.getElementById('mini-month').textContent=MESES[_M]+' '+_Y;
+      var prim=new Date(_Y,_M,1).getDay();
+      var tot=new Date(_Y,_M+1,0).getDate();
+      var prevTot=new Date(_Y,_M,0).getDate();
+      var hoje=new Date().toISOString().slice(0,10);
+      var g=document.getElementById('mini-grid');
+      g.innerHTML=DS.map(function(d){return'<div class="mini-hdr">'+d+'</div>'}).join('');
+      for(var i=prim-1;i>=0;i--){var d=prevTot-i;var m=_M-1<0?11:_M-1;var a=_M-1<0?_Y-1:_Y;var ds=a+'-'+pad(m+1)+'-'+pad(d);g.innerHTML+='<div class="mini-day other" onclick="selDia(\''+ds+'\')" data-d="'+ds+'">'+d+'</div>'}
+      for(var d=1;d<=tot;d++){
+        var ds=_Y+'-'+pad(_M+1)+'-'+pad(d);
+        var evsDia=_evs.filter(function(e){return(e.data_evento||'').slice(0,10)===ds});
+        var cls='mini-day'+(ds===hoje?' today':'')+(ds===_sel?' sel':'')+(evsDia.length?' has-ev':'');
+        var dots=evsDia.slice(0,3).map(function(e){return'<span class="md" style="background:'+(e.cor||'#7c5cbf')+'"></span>'}).join('');
+        g.innerHTML+='<div class="'+cls+'" onclick="selDia(\''+ds+'\')" data-d="'+ds+'">'+d+(dots?'<div class="md-dots">'+dots+'</div>':'')+'</div>'
+      }
+      var resto=prim+tot;var prox=7-(resto%7===0?7:resto%7);
+      for(var d=1;d<=prox;d++){var m=_M+1>11?0:_M+1;var a=_M+1>11?_Y+1:_Y;var ds=a+'-'+pad(m+1)+'-'+pad(d);g.innerHTML+='<div class="mini-day other" onclick="selDia(\''+ds+'\')" data-d="'+ds+'">'+d+'</div>'}
+    }
+
+    function navMes(dir){_M+=dir;if(_M>11){_M=0;_Y++}if(_M<0){_M=11;_Y--}render()}
+
+    function selDia(ds){
+      _sel=ds;
+      document.getElementById('ev-data').value=ds;
+      document.querySelectorAll('.mini-day').forEach(function(el){el.classList.remove('sel');if(el.getAttribute('data-d')===ds)el.classList.add('sel')});
+      var d=new Date(ds+'T12:00:00');
+      var lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+      document.getElementById('ah-date').textContent=lbl.charAt(0).toUpperCase()+lbl.slice(1);
+      document.getElementById('eb-day-label').textContent='Eventos de '+d.toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
+      var evsDia=_evs.filter(function(e){return(e.data_evento||'').slice(0,10)===ds});
+      document.getElementById('ah-count').textContent=evsDia.length+' evento'+(evsDia.length!==1?'s':'');
+      var lista=document.getElementById('ev-lista');
+      if(!evsDia.length){lista.innerHTML='<div class="empty-state"><div class="es-icon">✨</div><div class="es-txt">Nenhum evento aqui</div><div class="es-sub">Que tal adicionar algo no formulário ao lado?</div></div>';return}
+      lista.innerHTML=evsDia.map(function(ev){
+        var hora=ev.hora_evento?ev.hora_evento.slice(0,5):'Sem hora';
+        var cuid=ev.origem==='cuidador';
+        return'<div class="ev-item'+(cuid?' cuid':'')+'">'+
+          '<div class="ev-stripe" style="background:'+(ev.cor||'#7c5cbf')+'"></div>'+
+          '<div class="ev-body">'+
+            '<div class="ev-tit">'+(ev.titulo||'Evento')+'</div>'+
+            '<div class="ev-meta">'+
+              '<span class="ev-time">🕐 '+hora+'</span>'+
+              (cuid?'<span class="ev-tag cuid-tag">👨‍👧 Cuidador</span>':'')+
+              (ev.roleplay_prep?'<span class="ev-tag rp-tag">🎮 Roleplay</span>':'')+
+            '</div>'+
+            (ev.descricao?'<div class="ev-desc">'+ev.descricao+'</div>':'')+
+          '</div>'+
+          (!cuid?'<button class="ev-del" onclick="delEv(\''+ev.id+'\')">🗑</button>':'')+
+        '</div>'
+      }).join('');
+    }
+
+    function selCor(el){document.querySelectorAll('.clr').forEach(function(c){c.classList.remove('sel')});el.classList.add('sel');_cor=el.getAttribute('data-c')}
+
+    async function adicionarEvento(){
+      var tit=document.getElementById('ev-titulo').value.trim();
+      var dt=document.getElementById('ev-data').value;
+      var hr=document.getElementById('ev-hora').value;
+      var desc=document.getElementById('ev-desc').value.trim();
+      var rp=document.getElementById('ev-rp').value==='1';
+      var cat=document.getElementById('ev-cat').value;
+      var ctx=document.getElementById('ev-contexto').value.trim();
+      var lembrete=parseInt(document.getElementById('ev-lembrete').value,10)||60;
+      var ckPre=document.getElementById('ev-checkin-pre').checked;
+      var ckPos=document.getElementById('ev-checkin-pos').checked;
+      if(!tit||!dt){alert('Preencha o título e a data!');return}
+      var btn=document.getElementById('btn-add');btn.disabled=true;btn.textContent='Salvando...';
+      // Tenta com as colunas novas primeiro; se a migração SQL não rodou ainda, faz fallback
+      var registroCompleto={id_neurodivergente:_uid,titulo:tit,data_evento:dt,hora_evento:hr||null,descricao:desc||null,cor:_cor,roleplay_prep:rp,origem:'adolescente',categoria:cat,contexto_roleplay:ctx||null,lembrete_pre_minutos:lembrete,checkin_pre:ckPre,checkin_pos:ckPos,timestamp:new Date().toISOString()};
+      var registroLegado={id_neurodivergente:_uid,titulo:tit,data_evento:dt,hora_evento:hr||null,descricao:desc||null,cor:_cor,roleplay_prep:rp,origem:'adolescente',timestamp:new Date().toISOString()};
+      try{
+        var resp=await sb.from('eventos_calendario').insert(registroCompleto);
+        if(resp.error){
+          // se falhou por coluna inexistente, salva só o legado
+          await sb.from('eventos_calendario').insert(registroLegado);
+        }
+        document.getElementById('ev-titulo').value='';
+        document.getElementById('ev-hora').value='';
+        document.getElementById('ev-desc').value='';
+        document.getElementById('ev-contexto').value='';
+        document.getElementById('ev-rp').value='0';
+        try{var {data:nd}=await sb.from('neurodivergente').select('xp').eq('id',_uid).single();if(nd)await sb.from('neurodivergente').update({xp:(nd.xp||0)+10}).eq('id',_uid)}catch(e){}
+        await carregarEvs();render();if(_sel)selDia(_sel);
+      }catch(e){alert('Erro ao salvar. Tente novamente.')}
+      btn.disabled=false;btn.textContent='✨ Salvar evento';
+    }
+
+    async function delEv(id){
+      if(!confirm('Remover este evento?'))return;
+      await sb.from('eventos_calendario').delete().eq('id',id);
+      await carregarEvs();render();if(_sel)selDia(_sel);
+    }
+
+    function verificarCuidador(){
+      var hoje=new Date().toISOString().slice(0,10);
+      var evsCuid=_evs.filter(function(e){return e.origem==='cuidador'&&(e.data_evento||'').slice(0,10)>=hoje});
+      if(evsCuid.length>0){
+        var strip=document.getElementById('cuid-strip');strip.classList.add('show');
+        document.getElementById('cs-txt').textContent='Seu cuidador adicionou: '+evsCuid[0].titulo;
+        document.getElementById('cs-sub').textContent='📅 '+new Date(evsCuid[0].data_evento+'T12:00:00').toLocaleDateString('pt-BR');
+        setTimeout(function(){strip.classList.remove('show')},8000);
+      }
+    }
+
+    function renderRPList(){
+      var hoje=new Date().toISOString().slice(0,10);
+      var evs=_evs.filter(function(e){return e.roleplay_prep&&(e.data_evento||'').slice(0,10)>=hoje}).slice(0,4);
+      var cont=document.getElementById('rp-list');
+      if(!evs.length){cont.innerHTML='<div class="empty-rp">Adicione um evento com roleplay para praticar!</div>';return}
+      cont.innerHTML=evs.map(function(ev){
+        var diff=Math.ceil((new Date(ev.data_evento+'T12:00:00')-new Date())/86400000);
+        return'<div class="rp-card" onclick="iniciarRP(\''+ev.id+'\',\''+ev.titulo.replace(/'/g,'')+'\')" id="rpc-'+ev.id+'">'+
+          '<div class="rp-info"><div class="rp-name">'+ev.titulo+'</div><div class="rp-date">'+new Date(ev.data_evento+'T12:00:00').toLocaleDateString('pt-BR')+'</div></div>'+
+          '<div class="rp-days">'+diff+'d</div>'+
+        '</div>'
+      }).join('');
+    }
+
+    async function iniciarRP(id,titulo){
+      _rpEv={id,titulo};_rpHist=[];
+      document.querySelectorAll('.rp-card').forEach(function(c){c.classList.remove('active')});
+      var c=document.getElementById('rpc-'+id);if(c)c.classList.add('active');
+      document.getElementById('rp-chat').classList.add('show');
+      document.getElementById('rp-msgs').innerHTML='';
+      var msg='Oi, '+_nome.split(' ')[0]+'! 🐻 Vamos nos preparar para "'+titulo+'"! Me conta: o que vai acontecer nesse evento? O que te deixa mais animado ou nervoso?';
+      _rpHist.push({role:'assistant',content:msg});
+      addMsgRP('lumi',msg);
+    }
+
+    function addMsgRP(who,txt){
+      var c=document.getElementById('rp-msgs');
+      var el=document.createElement('div');el.className='rp-m '+who;
+      el.innerHTML=txt.replace(/\n/g,'<br>');c.appendChild(el);c.scrollTop=c.scrollHeight;
+    }
+
+    async function enviarRP(){
+      var ta=document.getElementById('rp-ta'),txt=ta.value.trim();
+      if(!txt||_rpLoad)return;
+      ta.value='';_rpLoad=true;
+      addMsgRP('user',txt);_rpHist.push({role:'user',content:txt});
+      var typ=document.createElement('div');typ.className='rp-typ';typ.id='rptyp';
+      typ.innerHTML='<span class="rp-td"></span><span class="rp-td"></span><span class="rp-td"></span>';
+      document.getElementById('rp-msgs').appendChild(typ);
+      document.getElementById('rp-msgs').scrollTop=99999;
+      try{
+        var msgs=[{role:'system',content:'Você é a Lumi, ajudando o adolescente autista a se preparar para o evento "'+(_rpEv?_rpEv.titulo:'evento')+'". Use roleplay para simular situações do evento. Seja gentil, encorajador e use linguagem simples. Máximo 3 frases. Português brasileiro.'}].concat(_rpHist);
+        var res=await fetch(GROQ_API,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:GROQ_MODEL,messages:msgs,max_tokens:280,temperature:.8})});
+        var data=await res.json();
+        var resp=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'Ótimo! Continue praticando!';
+        var te=document.getElementById('rptyp');if(te)te.remove();
+        _rpHist.push({role:'assistant',content:resp});
+        addMsgRP('lumi',resp);
+      }catch(e){var te=document.getElementById('rptyp');if(te)te.remove();addMsgRP('lumi','Tive um probleminha. Tente de novo!')}
+      _rpLoad=false;
+    }
+
+    document.addEventListener('DOMContentLoaded',function(){
+      var ta=document.getElementById('rp-ta');
+      if(ta)ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarRP()}});
+    });
+
+    async function sair(){await sb.auth.signOut();window.location.href='login.html'}
+  </script>
+  <script src="js/lumi-ia.js"></script>
+
+  <!-- Widgets globais -->
+  <script src="js/evento-checkin.js"></script>
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>

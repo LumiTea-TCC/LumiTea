@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Games</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <style>
+    /* === GAMES PAGE === */
+    .gm-wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 100px; position: relative; z-index: 1; }
+    .gm-hero {
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      background: linear-gradient(135deg, #4a7eb5, #2e5fa3); color: white;
+      border-radius: 24px; padding: 28px 32px; margin-bottom: 28px;
+      box-shadow: 0 8px 28px rgba(46,95,163,.22);
+    }
+    .gm-hero-text { max-width: 540px; }
+    .gm-tag { display: inline-block; font-size: .66rem; font-weight: 900; letter-spacing: .14em; padding: 5px 12px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25); border-radius: 99px; }
+    .gm-hero h1 { font-family: 'Baloo 2', sans-serif; font-size: 1.85rem; margin: 10px 0 6px; }
+    .gm-hero p { font-size: .95rem; line-height: 1.55; opacity: .92; }
+    .gm-hero-bear { flex-shrink: 0; }
+    .gm-hero-bear img { display: block; width: 160px; height: auto; border-radius: 20px; background: rgba(255,255,255,.12); padding: 8px; }
+    @media(max-width:720px){ .gm-hero{ flex-direction: column-reverse; text-align: left } .gm-hero-bear img{ width:120px } }
+
+    .gm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+    .gm-card {
+      display: flex; flex-direction: column; gap: 14px; min-height: 220px;
+      background: white; border: 1.5px solid rgba(74,126,181,.14);
+      border-radius: 20px; padding: 22px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(74,126,181,.08); transition: all .18s ease-out;
+      font: inherit; color: inherit; text-align: left;
+    }
+    .gm-card:hover, .gm-card:focus-visible { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(74,126,181,.16); border-color: var(--cor); outline: none; }
+    .gm-card-icon { width: 54px; height: 54px; border-radius: 16px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 1.7rem; }
+    .gm-card h2 { font-family: 'Baloo 2', sans-serif; font-size: 1.15rem; color: #1a2e4a; margin: 0 0 6px; }
+    .gm-card p { font-size: .86rem; color: #5a7fa8; line-height: 1.5; margin: 0 0 10px; }
+    .gm-card-meta { display: flex; gap: 12px; font-size: .72rem; color: #6b9ab8; font-weight: 700; }
+    .gm-card-cta { margin-top: auto; align-self: flex-end; font-weight: 800; color: var(--cor); font-size: .9rem; }
+
+    /* === Painel do jogo === */
+    .gm-painel { background: white; border: 1.5px solid rgba(74,126,181,.14); border-radius: 24px; padding: 28px; box-shadow: 0 4px 18px rgba(74,126,181,.08); min-height: 480px; display: none; }
+    .gm-painel.ativo { display: block; }
+    .gm-painel-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .gm-back { background: transparent; border: none; color: #4a7eb5; font-weight: 800; cursor: pointer; font-size: .9rem; padding: 6px 10px; border-radius: 8px; }
+    .gm-back:hover { background: #eaf1fb; }
+    .gm-titulo { display: flex; align-items: center; gap: 10px; }
+    .gm-titulo h2 { font-family: 'Baloo 2', sans-serif; color: #1a2e4a; margin: 0; font-size: 1.3rem; }
+    .gm-ajuda { font-size: .85rem; color: #5a7fa8; }
+
+    .btn-jogo-primary, .btn-jogo-secondary {
+      padding: 13px 22px; min-height: 48px; border-radius: 14px; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 800;
+      border: 1.5px solid #4a7eb5; text-decoration: none; display: inline-flex; align-items: center;
+      transition: all .18s ease-out;
+    }
+    .btn-jogo-primary { background: #4a7eb5; color: white; }
+    .btn-jogo-primary:hover:not(:disabled) { background: #2e5fa3; }
+    .btn-jogo-secondary { background: white; color: #4a7eb5; }
+    .btn-jogo-secondary:hover { background: #eaf1fb; }
+    .btn-jogo-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* RESPIRA */
+    .rs { display: flex; flex-direction: column; align-items: center; gap: 24px; padding-top: 8px; }
+    .rs-cena { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+    .rs-balao {
+      width: 160px; height: 160px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #cfe4f9, #4a7eb5);
+      box-shadow: 0 8px 28px rgba(74,126,181,.35);
+      transform: scale(1);
+      transition: transform .4s ease;
+    }
+    .rs-fase { font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; color: #1a2e4a; margin: 12px 0 0; }
+    .rs-conta { font-size: 1rem; color: #5a7fa8; font-weight: 700; }
+    .rs-ciclo { font-size: .85rem; color: #6b9ab8; font-weight: 700; }
+    .rs-controles { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+    /* CARA DA EMOCAO */
+    .ce { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .ce-rodada { color: #6b9ab8; font-weight: 800; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
+    .ce-rosto-box { padding: 18px; border-radius: 24px; background: linear-gradient(180deg, #fff, #f4f8fd); border: 1.5px solid rgba(74,126,181,.14); }
+    .ce-opcoes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 420px; }
+    .ce-op {
+      padding: 14px 16px; min-height: 48px; border-radius: 14px; cursor: pointer;
+      background: white; border: 1.5px solid rgba(74,126,181,.18);
+      font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 800; color: #1a2e4a;
+      transition: all .18s ease;
+    }
+    .ce-op:hover:not(:disabled) { border-color: #4a7eb5; background: #eaf1fb; }
+    .ce-op.acerto { background: #e6f6e8; border-color: #3aa37b; color: #1f6b3f; }
+    .ce-op:disabled { cursor: default; opacity: .85; }
+    .ce-feedback { font-family: 'Baloo 2', sans-serif; color: #1a2e4a; font-size: 1.05rem; }
+
+    /* PADRAO CALMO */
+    .pc { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .pc-status { color: #6b9ab8; font-weight: 800; font-size: .8rem; letter-spacing: .04em; }
+    .pc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 14px; }
+    .pc-btn {
+      width: 130px; height: 130px; min-width: 44px; min-height: 44px;
+      border: none; border-radius: 24px; cursor: pointer; padding: 0;
+      background: #f4f8fd; box-shadow: 0 4px 14px rgba(74,126,181,.10);
+      transition: box-shadow .18s ease, transform .18s ease;
+    }
+    .pc-btn:disabled { cursor: default; }
+    .pc-btn .pc-inner {
+      display: block; width: 100%; height: 100%; border-radius: 22px;
+      background: var(--cor); opacity: .65;
+      transition: opacity .2s ease, box-shadow .2s ease;
+    }
+    .pc-btn.aceso .pc-inner { opacity: 1; box-shadow: 0 0 24px 6px var(--glow), inset 0 0 12px rgba(255,255,255,.4); }
+    .pc-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--cor); }
+
+    .gm-fim { text-align: center; padding: 20px 6px; }
+    .gm-fim h3 { font-family: 'Baloo 2', sans-serif; color: #1a2e4a; margin: 8px 0; }
+    .gm-fim p { color: #5a7fa8; margin: 6px 0; }
+    .gm-fim-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .gm-card, .rs-balao, .pc-btn, .pc-inner { transition: none !important; }
+    }
+  </style>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="roleplay.html">Roleplay</a>
+      <a href="games.html" class="active">Games</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+    <label class="app-burger" for="burger-home">
+      <input type="checkbox" id="burger-home">
+      <span></span><span></span><span></span>
+    </label>
+  </nav>
+
+  <div id="mm-home" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="roleplay.html">Roleplay</a>
+    <a href="games.html" class="active">Games</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+
+  <main class="gm-wrap">
+    <!-- HERO -->
+    <header class="gm-hero">
+      <div class="gm-hero-text">
+        <span class="gm-tag">JOGOS</span>
+        <h1>Jogos pra desacelerar</h1>
+        <p>
+          Não são jogos competitivos. São pausas curtas pra cuidar do corpo,
+          das emoções e do foco — no seu ritmo. Pode pausar a qualquer hora.
+        </p>
+      </div>
+      <div class="gm-hero-bear">
+        <img src="img/urso-jogando.png" alt="">
+      </div>
+    </header>
+
+    <!-- GRID DE JOGOS -->
+    <section id="gm-lista" class="gm-grid" aria-label="Lista de jogos" style="grid-template-columns:1fr; max-width:760px; margin:0 auto;">
+      <a class="gm-card" href="rpg-social.html" style="--cor:#be4a1d; --bg:#fff1de; text-decoration:none; min-height:280px; padding:32px;">
+        <div class="gm-card-icon" aria-hidden style="width:80px; height:80px; font-size:2.6rem;">🗺️</div>
+        <div>
+          <h2 style="font-size:1.8rem;">Vila do Theo — RPG</h2>
+          <p style="font-size:1rem; line-height:1.6;">
+            Aventura 2D pela vila do Theo. Converse com vizinhos, faça escolhas sociais reais
+            e veja como cada decisão muda a história. Sem combate — só conexões.
+            Cada conversa treina uma habilidade diferente: cumprimentar, pedir ajuda,
+            recusar, expressar emoção, resolver conflito.
+          </p>
+          <div class="gm-card-meta" style="gap:18px; font-size:.85rem; margin-top:12px;">
+            <span>⏱ 15-25 min</span>
+            <span>🎯 8 NPCs</span>
+            <span>🌅 6 finais</span>
+            <span>🧠 8 habilidades</span>
+          </div>
+        </div>
+        <span class="gm-card-cta" style="font-size:1.05rem; padding:10px 22px; background:#be4a1d; color:#fff; border-radius:999px; align-self:flex-start;">Começar aventura →</span>
+      </a>
+    </section>
+
+    <!-- PAINEL DE UM JOGO -->
+    <section id="gm-painel" class="gm-painel">
+      <div class="gm-painel-topo">
+        <button class="gm-back" type="button" id="gm-voltar">← Outros jogos</button>
+      </div>
+      <div class="gm-titulo">
+        <span id="gm-emoji" aria-hidden></span>
+        <h2 id="gm-nome"></h2>
+      </div>
+      <p class="gm-ajuda" id="gm-ajuda"></p>
+
+      <div id="gm-cena" style="margin-top:18px;"></div>
+    </section>
+  </main>
+
+  <script>
+    /* ============== Identificação do usuário ============== */
+    var sb = window.LUMITEA.criarSupabase();
+    var _userId = null;
+
+    async function iniciar() {
+      var r = await sb.auth.getSession();
+      if (!r.data.session) { window.location.href = 'login.html'; return; }
+      _userId = r.data.session.user.id;
+      var p = await sb.from('profiles').select('nome, tipo').eq('id', _userId).single();
+      if (p.error || !p.data) { window.location.href = 'login.html'; return; }
+      if (p.data.tipo === 'responsavel') { window.location.href = 'home-cuidador.html'; return; }
+      document.getElementById('nav-user-name').textContent = p.data.nome || 'amigo';
+    }
+    iniciar();
+
+    function sairDaConta() {
+      sb.auth.signOut().then(function () { window.location.href = 'login.html'; });
+    }
+
+    /* ============== Salvar sessão ============== */
+    function salvarSessao(jogoId, dados) {
+      if (!_userId) return;
+      sb.from('sessoes_jogo').insert({
+        id_neurodivergente: _userId,
+        jogo_id: jogoId,
+        duracao_segundos: dados.duracao || 0,
+        pontuacao: dados.pontuacao || 0,
+        acertos: dados.acertos || 0,
+        total: dados.total || 0,
+        terminou: !!dados.terminou,
+        dados: dados.extra || {},
+      }).then(function () { /* ok */ });
+    }
+
+    /* ============== Router de jogos ============== */
+    var JOGOS = {
+      'respira':      { nome: 'Respira com o Theo', emoji: '🫧', ajuda: 'Sem pressa. O balão sobe quando você puxa o ar.' },
+      'cara-emocao':  { nome: 'Cara da Emoção',     emoji: '😊', ajuda: 'Errar tudo bem. O Theo conta a resposta certa.' },
+      'padrao-calmo': { nome: 'Padrão Calmo',       emoji: '🌊', ajuda: 'Sem relógio. Você manda no ritmo.' },
+    };
+
+    var lista = document.getElementById('gm-lista');
+    var painel = document.getElementById('gm-painel');
+    var cena = document.getElementById('gm-cena');
+    document.querySelectorAll('.gm-card').forEach(function (c) {
+      c.addEventListener('click', function () { abrirJogo(c.getAttribute('data-jogo')); });
+    });
+    document.getElementById('gm-voltar').addEventListener('click', voltarLista);
+
+    function abrirJogo(id) {
+      var j = JOGOS[id]; if (!j) return;
+      document.getElementById('gm-emoji').textContent = j.emoji;
+      document.getElementById('gm-nome').textContent = j.nome;
+      document.getElementById('gm-ajuda').textContent = j.ajuda;
+      cena.innerHTML = '';
+      lista.style.display = 'none';
+      painel.classList.add('ativo');
+      if (id === 'respira') iniciarRespira();
+      else if (id === 'cara-emocao') iniciarCaraEmocao();
+      else if (id === 'padrao-calmo') iniciarPadrao();
+    }
+
+    function voltarLista() {
+      painel.classList.remove('ativo');
+      lista.style.display = '';
+      cena.innerHTML = '';
+    }
+
+    /* =========================================================
+       JOGO 1: RESPIRA COM O THEO
+       ========================================================= */
+    function iniciarRespira() {
+      cena.innerHTML =
+        '<div class="rs">' +
+          '<div class="rs-cena" aria-live="polite">' +
+            '<div class="rs-balao" id="rs-balao"></div>' +
+            '<p class="rs-fase" id="rs-fase">Quando estiver pronto, comece.</p>' +
+            '<p class="rs-conta" id="rs-conta"></p>' +
+            '<p class="rs-ciclo" id="rs-ciclo"></p>' +
+            '<img id="rs-urso" src="img/urso-joia.png" alt="" style="display:none; width:110px;">' +
+          '</div>' +
+          '<div class="rs-controles">' +
+            '<button class="btn-jogo-primary" id="rs-iniciar">Começar</button>' +
+            '<button class="btn-jogo-secondary" id="rs-parar" style="display:none">Pausar / Sair</button>' +
+            '<button class="btn-jogo-primary" id="rs-terminei" style="display:none">Terminei ✓</button>' +
+          '</div>' +
+          '<div class="rs-controles" id="rs-fim-btns" style="display:none">' +
+            '<button class="btn-jogo-primary" id="rs-denovo">Jogar de novo</button>' +
+            '<button class="btn-jogo-secondary" onclick="voltarLista()">Outro jogo</button>' +
+            '<a class="btn-jogo-secondary" href="conversa.html">Conversar com o Theo</a>' +
+          '</div>' +
+        '</div>';
+
+      var FASES = { inspira: { texto: 'Puxa o ar...', segs: 4 }, segura: { texto: 'Segura...', segs: 7 }, expira: { texto: 'Solta devagar...', segs: 8 } };
+      var fase = null, contagem = 0, ciclos = 0, tInicio = 0, intervalo = null;
+      var balao = document.getElementById('rs-balao'), elFase = document.getElementById('rs-fase'),
+          elConta = document.getElementById('rs-conta'), elCiclo = document.getElementById('rs-ciclo'),
+          urso = document.getElementById('rs-urso');
+
+      function aplicarBalao() {
+        if (fase === 'inspira') { balao.style.transform = 'scale(1.5)'; balao.style.transition = 'transform 4s ease-in'; }
+        else if (fase === 'segura') { balao.style.transform = 'scale(1.5)'; balao.style.transition = 'transform .4s ease'; }
+        else if (fase === 'expira') { balao.style.transform = 'scale(.85)'; balao.style.transition = 'transform 8s ease-out'; }
+        else { balao.style.transform = 'scale(1)'; balao.style.transition = 'transform .4s ease'; }
+      }
+
+      function tick() {
+        contagem++;
+        var meta = FASES[fase];
+        if (contagem >= meta.segs) {
+          if (fase === 'expira') { ciclos++; elCiclo.textContent = 'Ciclos completos: ' + ciclos; document.getElementById('rs-terminei').style.display = ciclos >= 1 ? '' : 'none'; }
+          fase = fase === 'inspira' ? 'segura' : fase === 'segura' ? 'expira' : 'inspira';
+          contagem = 0;
+          aplicarBalao();
+        }
+        var restante = (FASES[fase].segs - contagem);
+        elFase.textContent = FASES[fase].texto;
+        elConta.textContent = restante + (restante === 1 ? ' segundo' : ' segundos');
+      }
+
+      function comecar() {
+        fase = 'inspira'; contagem = 0; ciclos = 0;
+        tInicio = Date.now();
+        document.getElementById('rs-iniciar').style.display = 'none';
+        document.getElementById('rs-parar').style.display = '';
+        document.getElementById('rs-terminei').style.display = 'none';
+        document.getElementById('rs-fim-btns').style.display = 'none';
+        urso.style.display = 'none';
+        elCiclo.textContent = '';
+        aplicarBalao();
+        elFase.textContent = FASES[fase].texto;
+        elConta.textContent = FASES[fase].segs + ' segundos';
+        if (intervalo) clearInterval(intervalo);
+        intervalo = setInterval(tick, 1000);
+      }
+
+      function parar(terminou) {
+        if (intervalo) { clearInterval(intervalo); intervalo = null; }
+        var dur = Math.round((Date.now() - tInicio) / 1000);
+        salvarSessao('respira', { duracao: dur, pontuacao: ciclos, acertos: ciclos, total: ciclos, terminou: !!terminou, extra: { ciclos: ciclos } });
+        fase = null; aplicarBalao();
+        elFase.textContent = 'Bom trabalho.';
+        elConta.textContent = 'Você fez ' + ciclos + ' ciclo' + (ciclos === 1 ? '' : 's');
+        document.getElementById('rs-iniciar').style.display = 'none';
+        document.getElementById('rs-parar').style.display = 'none';
+        document.getElementById('rs-terminei').style.display = 'none';
+        document.getElementById('rs-fim-btns').style.display = '';
+        urso.style.display = '';
+      }
+
+      document.getElementById('rs-iniciar').addEventListener('click', comecar);
+      document.getElementById('rs-parar').addEventListener('click', function () { parar(false); });
+      document.getElementById('rs-terminei').addEventListener('click', function () { parar(true); });
+      document.getElementById('rs-denovo').addEventListener('click', iniciarRespira);
+    }
+
+    /* =========================================================
+       JOGO 2: CARA DA EMOÇÃO
+       ========================================================= */
+    function iniciarCaraEmocao() {
+      var ROSTOS = {
+        calmo:    { label: 'Calmo',    sobrancelha: 'M55 80 Q70 76 85 80',  boca: 'M58 130 Q75 138 92 130', olho: 0,   cor: '#4a7eb5' },
+        feliz:    { label: 'Feliz',    sobrancelha: 'M55 78 Q70 70 85 78',  boca: 'M55 125 Q75 152 95 125', olho: 0,   cor: '#3aa39f' },
+        triste:   { label: 'Triste',   sobrancelha: 'M55 76 Q70 84 85 76',  boca: 'M58 140 Q75 124 92 140', olho: -2,  cor: '#7a8aa0' },
+        raiva:    { label: 'Raiva',    sobrancelha: 'M50 70 L88 82',        boca: 'M55 138 L95 138',        olho: 1,   cor: '#c94c4c' },
+        surpreso: { label: 'Surpreso', sobrancelha: 'M55 70 Q70 62 85 70',  boca: 'M70 132 a8 8 0 1 0 .1 0',olho: 2,   cor: '#e08e30' },
+        ansioso:  { label: 'Ansioso',  sobrancelha: 'M52 76 Q70 70 88 78',  boca: 'M58 134 Q66 130 73 134 Q80 138 87 134 Q92 132 95 134', olho: -1, cor: '#7c5cbf' }
+      };
+      var TODAS = Object.keys(ROSTOS);
+      var TOTAL = 10;
+      var rodada = 0, acertos = 0, tInicio = 0, correta = null, opcoes = [], travado = false;
+
+      function sortear(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+      function gerar(c) {
+        var distrat = TODAS.filter(function (e) { return e !== c; });
+        var set = [c]; while (set.length < 4) { var n = sortear(distrat); if (set.indexOf(n) < 0) set.push(n); }
+        return set.sort(function () { return Math.random() - 0.5; });
+      }
+
+      cena.innerHTML =
+        '<div class="ce">' +
+          '<p class="ce-rodada" id="ce-rodada" aria-live="polite"></p>' +
+          '<div class="ce-rosto-box" id="ce-rosto-box"></div>' +
+          '<div class="ce-opcoes" id="ce-opcoes" role="list"></div>' +
+          '<p class="ce-feedback" id="ce-feedback" aria-live="polite"></p>' +
+          '<button class="btn-jogo-secondary" id="ce-sair">Pausar / Sair</button>' +
+        '</div>';
+
+      document.getElementById('ce-sair').addEventListener('click', function () { finalizar(false); });
+
+      function desenharRosto(emocao) {
+        var r = ROSTOS[emocao];
+        document.getElementById('ce-rosto-box').innerHTML =
+          '<svg viewBox="0 0 150 180" width="180" height="216" role="img" aria-label="Rosto">' +
+            '<circle cx="75" cy="95" r="62" fill="#fde8c8" stroke="' + r.cor + '" stroke-width="3" />' +
+            '<circle cx="58" cy="92" r="' + (4 + r.olho) + '" fill="#1a2e4a" />' +
+            '<circle cx="92" cy="92" r="' + (4 + r.olho) + '" fill="#1a2e4a" />' +
+            '<path d="' + r.sobrancelha + '" stroke="#1a2e4a" stroke-width="3" fill="none" stroke-linecap="round" />' +
+            '<path d="' + r.boca + '" stroke="#1a2e4a" stroke-width="3" fill="none" stroke-linecap="round" />' +
+          '</svg>';
+      }
+
+      function novaRodada() {
+        correta = sortear(TODAS); opcoes = gerar(correta); travado = false;
+        document.getElementById('ce-rodada').textContent = 'Rodada ' + (rodada + 1) + ' de ' + TOTAL;
+        document.getElementById('ce-feedback').textContent = '';
+        desenharRosto(correta);
+        var div = document.getElementById('ce-opcoes');
+        div.innerHTML = '';
+        opcoes.forEach(function (o) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'ce-op'; b.textContent = ROSTOS[o].label;
+          b.addEventListener('click', function () { escolher(o, b); });
+          div.appendChild(b);
+        });
+      }
+
+      function escolher(o, btn) {
+        if (travado) return; travado = true;
+        var ok = o === correta;
+        if (ok) { acertos++; btn.classList.add('acerto'); document.getElementById('ce-feedback').textContent = 'Isso mesmo.'; }
+        else { document.getElementById('ce-feedback').textContent = 'Tudo bem, era ' + ROSTOS[correta].label.toLowerCase() + '.'; document.querySelectorAll('#ce-opcoes .ce-op').forEach(function (b) { if (b.textContent === ROSTOS[correta].label) b.classList.add('acerto'); }); }
+        document.querySelectorAll('#ce-opcoes .ce-op').forEach(function (b) { b.disabled = true; });
+        setTimeout(function () {
+          rodada++;
+          if (rodada >= TOTAL) finalizar(true);
+          else novaRodada();
+        }, ok ? 900 : 1500);
+      }
+
+      function finalizar(terminou) {
+        var dur = Math.round((Date.now() - tInicio) / 1000);
+        salvarSessao('cara-emocao', { duracao: dur, pontuacao: acertos, acertos: acertos, total: TOTAL, terminou: terminou });
+        cena.innerHTML =
+          '<div class="gm-fim">' +
+            '<img src="img/urso-joia.png" alt="" style="width:120px">' +
+            '<h3>Bom jogo.</h3>' +
+            '<p>Você reconheceu ' + acertos + ' de ' + TOTAL + ' emoções.</p>' +
+            '<p>O Theo curtiu jogar com você.</p>' +
+            '<div class="gm-fim-btns">' +
+              '<button class="btn-jogo-primary" id="ce-denovo">Jogar de novo</button>' +
+              '<button class="btn-jogo-secondary" onclick="voltarLista()">Outro jogo</button>' +
+              '<a class="btn-jogo-secondary" href="conversa.html">Conversar com o Theo</a>' +
+            '</div>' +
+          '</div>';
+        document.getElementById('ce-denovo').addEventListener('click', iniciarCaraEmocao);
+      }
+
+      tInicio = Date.now();
+      novaRodada();
+    }
+
+    /* =========================================================
+       JOGO 3: PADRÃO CALMO
+       ========================================================= */
+    function iniciarPadrao() {
+      var CORES = [
+        { id: 'azul',    cor: '#4a7eb5', glow: 'rgba(74,126,181,.45)' },
+        { id: 'verde',   cor: '#3aa39f', glow: 'rgba(58,163,159,.45)' },
+        { id: 'violeta', cor: '#7c5cbf', glow: 'rgba(124,92,191,.45)' },
+        { id: 'ambar',   cor: '#e08e30', glow: 'rgba(224,142,48,.45)' }
+      ];
+      var sequencia = [], entrada = [], rodada = 0, maxRodada = 0, tInicio = 0, fase = 'pronto';
+
+      cena.innerHTML =
+        '<div class="pc">' +
+          '<p class="pc-status" id="pc-status" aria-live="polite">Olha bem...</p>' +
+          '<div class="pc-grid" id="pc-grid"></div>' +
+          '<button class="btn-jogo-secondary" id="pc-sair">Pausar / Sair</button>' +
+        '</div>';
+
+      var grid = document.getElementById('pc-grid');
+      CORES.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'pc-btn'; b.setAttribute('data-id', c.id);
+        b.style.setProperty('--cor', c.cor); b.style.setProperty('--glow', c.glow);
+        b.setAttribute('aria-label', c.id);
+        b.innerHTML = '<span class="pc-inner"></span>';
+        b.addEventListener('click', function () { clicar(c.id); });
+        grid.appendChild(b);
+      });
+      document.getElementById('pc-sair').addEventListener('click', function () { finalizar(false); });
+
+      function acender(id, ms) {
+        var b = grid.querySelector('[data-id="' + id + '"]');
+        if (!b) return;
+        b.classList.add('aceso');
+        setTimeout(function () { b.classList.remove('aceso'); }, ms || 220);
+      }
+
+      function novaSeq(n) {
+        var tamanho = Math.min(3 + Math.floor(n / 2), 6);
+        sequencia = []; entrada = [];
+        for (var i = 0; i < tamanho; i++) sequencia.push(CORES[Math.floor(Math.random() * CORES.length)].id);
+        fase = 'mostrando'; document.getElementById('pc-status').textContent = 'Olha bem... · sequência ' + (n + 1);
+        var i = 0;
+        function passo() {
+          if (i >= sequencia.length) { fase = 'esperando'; document.getElementById('pc-status').textContent = 'Sua vez. · sequência ' + (n + 1); return; }
+          acender(sequencia[i], 650);
+          setTimeout(function () { i++; passo(); }, 900);
+        }
+        setTimeout(passo, 400);
+      }
+
+      function clicar(id) {
+        if (fase !== 'esperando') return;
+        entrada.push(id); acender(id, 220);
+        var idx = entrada.length - 1;
+        if (entrada[idx] !== sequencia[idx]) { fase = 'feedback'; setTimeout(function () { finalizar(false); }, 900); return; }
+        if (entrada.length === sequencia.length) {
+          fase = 'feedback'; rodada++; maxRodada = Math.max(maxRodada, rodada);
+          setTimeout(function () { if (rodada >= 10) finalizar(true); else novaSeq(rodada); }, 700);
+        }
+      }
+
+      function finalizar(ganhou) {
+        var dur = Math.round((Date.now() - tInicio) / 1000);
+        salvarSessao('padrao-calmo', { duracao: dur, pontuacao: maxRodada, acertos: maxRodada, total: 10, terminou: ganhou });
+        cena.innerHTML =
+          '<div class="gm-fim">' +
+            '<img src="img/urso-joia.png" alt="" style="width:120px">' +
+            '<h3>Bom jogo.</h3>' +
+            '<p>Você completou ' + maxRodada + ' sequência' + (maxRodada === 1 ? '' : 's') + '.</p>' +
+            '<p>O Theo curtiu jogar com você.</p>' +
+            '<div class="gm-fim-btns">' +
+              '<button class="btn-jogo-primary" id="pc-denovo">Jogar de novo</button>' +
+              '<button class="btn-jogo-secondary" onclick="voltarLista()">Outro jogo</button>' +
+              '<a class="btn-jogo-secondary" href="conversa.html">Conversar com o Theo</a>' +
+            '</div>' +
+          '</div>';
+        document.getElementById('pc-denovo').addEventListener('click', iniciarPadrao);
+      }
+
+      tInicio = Date.now();
+      novaSeq(0);
+    }
+
+    /* ============== Burger mobile ============== */
+    (function () {
+      var cb = document.getElementById('burger-home'), menu = document.getElementById('mm-home');
+      if (cb && menu) {
+        cb.addEventListener('change', function () { menu.style.display = cb.checked ? 'flex' : 'none'; });
+        menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { cb.checked = false; menu.style.display = 'none'; }); });
+      }
+    })();
+  </script>
+
+  <!-- Widgets globais -->
+  <script src="js/evento-checkin.js"></script>
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+/* ============================================================
+   LumiTEA — tokens.css (v1.0)
+   Carregue depois de lumitea.css e app.css. Adiciona o sistema
+   de tokens (glassmorphism, sombras, easings) sem reescrever
+   o legado. Não muda a paleta — só refina.
+   ============================================================ */
+
+:root {
+  --brand-primary: #4a7eb5;
+  --brand-primary-dark: #2e5fa3;
+  --brand-violeta: #7c5cbf;
+  --brand-violeta-dark: #5b3fa3;
+  --brand-ambar: #e08e30;
+  --brand-verde: #3aa39f;
+  --brand-rosa: #d95bb5;
+
+  --surface: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.72);
+  --surface-glass-strong: rgba(255, 255, 255, 0.84);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: 18px;
+
+  --ink-strong: #1a2e4a;
+  --ink: #3d6080;
+  --ink-soft: #5a7fa8;
+  --ink-muted: #6b9ab8;
+
+  --shadow-1: 0 2px 8px rgba(74, 126, 181, 0.06);
+  --shadow-2: 0 6px 22px rgba(74, 126, 181, 0.10);
+  --shadow-3: 0 12px 32px rgba(74, 126, 181, 0.16);
+  --shadow-glow: 0 0 0 3px rgba(74, 126, 181, 0.18);
+
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+
+  --ease-soft: cubic-bezier(.22, .61, .36, 1);
+  --focus-ring: 0 0 0 3px rgba(74, 126, 181, 0.45);
+}
+
+/* ==== Utilitário glass ==== */
+.lt-glass {
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-2);
+}
+
+/* ==== Acessibilidade ==== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ==== Modo sobrecarga (data attr no <html>) ==== */
+html[data-modo-calmo="true"] {
+  filter: brightness(.92);
+}
+html[data-modo-calmo="true"] *,
+html[data-modo-calmo="true"] *::before,
+html[data-modo-calmo="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ==== Botão sobrecarga unificado ==== */
+.lt-sobrecarga-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  min-height: 48px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, #e08e30, #c2741d);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-size: .88rem;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(224, 142, 48, .35);
+  transition: transform .18s var(--ease-soft);
+}
+.lt-sobrecarga-fab:hover { transform: translateY(-2px); }
+.lt-sobrecarga-fab:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(224, 142, 48, .45), 0 8px 24px rgba(224, 142, 48, .35); }
+@media (max-width: 720px) {
+  .lt-sobrecarga-fab span { display: none; }
+  .lt-sobrecarga-fab { padding: 14px; }
+}
+
+/* ==== Chip de check-in de evento (canto inferior esquerdo) ==== */
+.lt-checkin {
+  position: fixed; bottom: 18px; left: 18px; z-index: 90;
+  width: min(320px, calc(100vw - 36px));
+  background: var(--surface-glass-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  box-shadow: 0 12px 32px rgba(74,126,181,.22);
+  animation: lt-checkin-in .3s var(--ease-soft);
+}
+@keyframes lt-checkin-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lt-checkin-x {
+  position: absolute; top: 8px; right: 10px;
+  background: transparent; border: none; cursor: pointer;
+  font-size: 1.4rem; line-height: 1; color: #9ab4cf; padding: 4px;
+}
+.lt-checkin-x:hover { color: var(--ink-strong); }
+.lt-checkin-head { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; padding-right: 18px; }
+.lt-checkin-emoji { font-size: 1.5rem; }
+.lt-checkin-titulo { font-family: 'Baloo 2', sans-serif; font-size: .95rem; font-weight: 800; color: var(--ink-strong); margin: 0; }
+.lt-checkin-quando { font-size: .78rem; color: var(--ink-soft); margin: 2px 0 0; }
+.lt-checkin-acoes { display: flex; gap: 6px; flex-wrap: wrap; }
+.lt-checkin-acoes a,
+.lt-checkin-acoes button {
+  flex: 1; min-width: 90px; min-height: 40px;
+  padding: 8px 10px;
+  border: 1.5px solid rgba(74,126,181,.22);
+  background: white; border-radius: 10px;
+  font-family: 'Nunito', sans-serif; font-size: .78rem; font-weight: 800;
+  color: var(--ink-strong); cursor: pointer; text-decoration: none;
+  text-align: center; display: inline-flex; align-items: center; justify-content: center;
+  transition: all .18s var(--ease-soft);
+}
+.lt-checkin-acoes a:hover,
+.lt-checkin-acoes button:hover { border-color: var(--brand-primary); background: #eaf1fb; }
+
+/* ==== Banner modo calmo ==== */
+.lt-calmo-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 95;
+  background: rgba(224,142,48,.95); color: white;
+  padding: 8px 14px; text-align: center; font-weight: 800; font-size: .85rem;
+  display: none;
+  font-family: 'Nunito', sans-serif;
+}
+.lt-calmo-banner button {
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4);
+  color: white; padding: 4px 10px; border-radius: 99px;
+  font-weight: 800; font-size: .8rem; cursor: pointer; margin-left: 10px;
+}
+html[data-modo-calmo="true"] .lt-calmo-banner { display: block; }
+html[data-modo-calmo="true"] body { padding-top: 38px; }

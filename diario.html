@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Meu Diário</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="roleplay.html">Roleplay</a>
+      <a href="games.html">Games</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+
+    <!-- Burger menu (mobile) -->
+    <label class="app-burger" for="burger-diario">
+      <input type="checkbox" id="burger-diario">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+  </nav>
+
+  <!-- Mobile menu dropdown -->
+  <div id="mm-diario" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="roleplay.html">Roleplay</a>
+    <a href="games.html">Games</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html" class="active">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var cb = document.getElementById('burger-diario');
+    var menu = document.getElementById('mm-diario');
+    cb.addEventListener('change', function(){ menu.style.display = cb.checked ? 'flex' : 'none'; });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ cb.checked=false; menu.style.display='none'; });
+    });
+  })();
+  </script>
+  <script>
+  // ── Menu ativo automático ─────────────────────────────────────
+  (function() {
+    var pagina = window.location.pathname.split("/").pop() || "home-autista.html";
+    document.querySelectorAll(".app-nav-links a").forEach(function(link) {
+      link.classList.remove("active");
+      var href = link.getAttribute("href");
+      if (href === pagina || (pagina === "" && href === "home-autista.html")) {
+        link.classList.add("active");
+      }
+    });
+  })();
+
+
+  // ── Mobile menu ativo automático ─────────────────────────────
+  (function() {
+    var pagina = window.location.pathname.split("/").pop() || "diario.html";
+    document.querySelectorAll("#mm-diario a").forEach(function(link) {
+      link.classList.remove("active");
+      var href = link.getAttribute("href");
+      if (href === pagina) link.classList.add("active");
+    });
+  })();
+  </script>
+
+  <div class="diario-layout">
+
+    <!-- ── SIDEBAR ──────────────────────────────────────────── -->
+    <div class="diario-sidebar">
+      <div class="ds-header">
+        <h2>📓 Meu Diário</h2>
+        <p>Um espaço só seu para expressar sentimentos</p>
+      </div>
+
+      <button class="ds-nova-btn" onclick="novaEntrada()">✏️ Nova Entrada</button>
+
+      <div class="ds-lista" id="ds-lista">
+        <div class="ds-vazio">
+          <span class="dv-emoji">📝</span>
+          <p>Carregando suas entradas...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MAIN ──────────────────────────────────────────────── -->
+    <div class="diario-main">
+
+      <!-- Tela de boas-vindas -->
+      <div class="dm-boas-vindas" id="tela-inicio">
+        <div class="bv-emoji">📓</div>
+        <h2>Seu Diário Pessoal</h2>
+        <p>Aqui você pode escrever livremente sobre seus sentimentos, seu dia e tudo que quiser expressar. A Lumi vai te ajudar a compreender suas emoções com carinho.</p>
+        <div class="dm-stats">
+          <div class="dm-stat"><div class="dm-stat-val" id="stat-entradas">0</div><div class="dm-stat-label">Entradas</div></div>
+          <div class="dm-stat"><div class="dm-stat-val" id="stat-sequencia">0</div><div class="dm-stat-label">Dias seguidos</div></div>
+          <div class="dm-stat"><div class="dm-stat-val" id="stat-humor">😊</div><div class="dm-stat-label">Humor hoje</div></div>
+        </div>
+        <button class="btn-purple" onclick="novaEntrada()" style="margin-top:8px;padding:13px 28px;font-size:1rem;">✏️ Escrever agora</button>
+      </div>
+
+      <!-- Tela de edição -->
+      <div id="tela-editor">
+
+        <div class="de-humor-row">
+          <span style="font-size:0.82rem;font-weight:800;align-self:center;">Como você está?</span>
+          <button class="de-humor-btn" onclick="selecionarHumor(this,'otimo','😄')">😄 Ótimo</button>
+          <button class="de-humor-btn" onclick="selecionarHumor(this,'bem','🙂')">🙂 Bem</button>
+          <button class="de-humor-btn" onclick="selecionarHumor(this,'mais-ou-menos','😐')">😐 Mais ou menos</button>
+          <button class="de-humor-btn" onclick="selecionarHumor(this,'triste','😔')">😔 Triste</button>
+          <button class="de-humor-btn" onclick="selecionarHumor(this,'ansioso','😰')">😰 Ansioso</button>
+          <button class="de-humor-btn" onclick="selecionarHumor(this,'raiva','😤')">😤 Com raiva</button>
+        </div>
+
+        <input class="de-titulo-input" id="de-titulo" type="text" placeholder="Título desta entrada (opcional)..." maxlength="80">
+
+        <div>
+          <div style="font-size:0.78rem;font-weight:800;color:var(--primary-dark);margin-bottom:8px;">💡 A Lumi pergunta:</div>
+          <div class="de-perguntas" id="de-perguntas"></div>
+        </div>
+
+        <textarea class="de-texto-area" id="de-texto" placeholder="Escreva o que quiser aqui... Não precisa ser perfeito. Este espaço é só seu. 🫶" rows="8"></textarea>
+
+        <div class="de-acoes">
+          <button class="btn-outline-gray" onclick="cancelarEdicao()">Cancelar</button>
+          <button class="btn-purple" onclick="salvarEntrada()">💾 Salvar e ver reflexão da Lumi</button>
+        </div>
+
+      </div>
+
+      <!-- Tela de leitura -->
+      <div id="tela-leitura">
+
+        <div class="dl-header">
+          <div class="dl-emoji-grande" id="dl-emoji">📝</div>
+          <div class="dl-info">
+            <h2 id="dl-titulo">Título</h2>
+            <div class="dl-meta">
+              <span id="dl-data">Data</span>
+              <span id="dl-humor-badge">Humor</span>
+            </div>
+          </div>
+          <div class="dl-acoes">
+            <button class="btn-outline-gray" onclick="editarEntrada()" title="Editar">✏️ Editar</button>
+            <button class="btn-red" onclick="excluirEntrada()" title="Excluir">🗑️</button>
+          </div>
+        </div>
+
+        <div class="dl-texto" id="dl-texto"></div>
+
+        <div class="lumi-reflexao">
+          <div class="lr-header">
+            <div class="lr-avatar">🐻</div>
+            <div>
+              <div class="lr-titulo">Reflexão da Lumi</div>
+              <div class="lr-sub">Análise e apoio emocional personalizado</div>
+            </div>
+          </div>
+          <div class="lr-texto" id="lr-texto">
+            <div class="lr-carregando">⏳ Carregando reflexão da Lumi...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL      = 'https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
+    const GROQ_KEY = (window.LUMITEA && window.LUMITEA.GROQ_API_KEY) || '';
+    const GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
+    async function chamarGroq(systemPrompt, msgs, maxTokens) {
+      async function tryModel(model) {
+        const r = await fetch(GROQ_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+          body: JSON.stringify({ model: model, max_tokens: maxTokens || 700, temperature: 0.7,
+            messages: [{ role: 'system', content: systemPrompt }].concat(msgs) })
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        return d.choices?.[0]?.message?.content || '';
+      }
+      try { return await tryModel(GROQ_MODEL); }
+      catch(e) { return await tryModel('llama-3.1-8b-instant'); }
+    }
+
+    var _userId = null, _nomeUsuario = 'amigo';
+    var _entradas = [], _entradaAtiva = null;
+    var _humorSel = null, _humorEmoji = '📝';
+    var _editandoId = null;
+
+    const PERGUNTAS_POR_HUMOR = {
+      'otimo': ['O que te deixou tão feliz hoje? 😄', 'Que momento você quer guardar na memória?', 'Quem contribuiu para esse dia incrível?'],
+      'bem': ['Como foi seu dia?', 'Tem algo que te deu satisfação hoje?', 'O que você aprendeu hoje?'],
+      'mais-ou-menos': ['O que foi difícil hoje?', 'O que poderia ter sido melhor?', 'Tem algo que te preocupou?'],
+      'triste': ['O que aconteceu que te deixou triste?', 'Você falou com alguém sobre isso?', 'O que te faria sentir melhor agora?'],
+      'ansioso': ['O que está te preocupando?', 'Isso já aconteceu antes? Como foi?', 'O que você pode fazer para se sentir mais seguro?'],
+      'raiva': ['O que te deixou assim?', 'Como você reagiu?', 'O que te ajudaria a se acalmar?']
+    };
+
+    const HUMOR_CORES = {
+      'otimo': { bg: 'rgba(76,175,80,0.12)', color: '#2e7d32', label: '😄 Ótimo' },
+      'bem': { bg: 'rgba(33,150,243,0.12)', color: '#1565c0', label: '🙂 Bem' },
+      'mais-ou-menos': { bg: 'rgba(158,158,158,0.12)', color: '#424242', label: '😐 Mais ou menos' },
+      'triste': { bg: 'rgba(124,92,191,0.12)', color: '#5b3a8a', label: '😔 Triste' },
+      'ansioso': { bg: 'rgba(224,142,48,0.12)', color: '#7a4f1a', label: '😰 Ansioso' },
+      'raiva': { bg: 'rgba(244,67,54,0.12)', color: '#c62828', label: '😤 Com raiva' }
+    };
+
+    /* ── INICIALIZAÇÃO ───────────────────────────────────── */
+    async function iniciarPagina() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      _userId = session.user.id;
+      const { data: perfil } = await sb.from('profiles').select('nome, tipo').eq('id', _userId).single();
+      if (perfil) {
+        _nomeUsuario = perfil.nome || 'amigo';
+        document.getElementById('nav-user-name').textContent = _nomeUsuario;
+        if (perfil.tipo === 'responsavel') { window.location.href = 'home-cuidador.html'; return; }
+      }
+      await carregarEntradas();
+      gerarPerguntasInicio();
+    }
+
+    /* ── CARREGAR ENTRADAS ───────────────────────────────── */
+    async function carregarEntradas() {
+      try {
+        const { data, error } = await sb.from('diario_entradas').select('*').eq('id_neurodivergente', _userId).order('created_at', { ascending: false });
+        if (error) throw error;
+        _entradas = data || [];
+      } catch(e) {
+        console.error('[Diário] Erro ao carregar entradas:', e.message);
+        _entradas = [];
+      }
+      renderSidebar();
+      atualizarStats();
+    }
+
+    function renderSidebar() {
+      const lista = document.getElementById('ds-lista');
+      if (_entradas.length === 0) {
+        lista.innerHTML = '<div class="ds-vazio"><span class="dv-emoji">📖</span><p>Nenhuma entrada ainda.<br>Que tal escrever a primeira?</p></div>';
+        return;
+      }
+      lista.innerHTML = _entradas.map(e => {
+        const hc = HUMOR_CORES[e.humor] || HUMOR_CORES['mais-ou-menos'];
+        const data = new Date(e.created_at || e.timestamp || Date.now());
+        const dataStr = data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        return `
+          <div class="ds-entrada ${_entradaAtiva?.id === e.id ? 'ativa' : ''}" onclick="abrirEntrada('${e.id}')">
+            <div class="ds-e-top">
+              <span class="ds-e-emoji">${e.emoji || '📝'}</span>
+              <span class="ds-e-data">${dataStr}</span>
+              <span class="ds-e-humor" style="background:${hc.bg};color:${hc.color};">${hc.label}</span>
+            </div>
+            <div class="ds-e-titulo">${e.titulo || 'Entrada sem título'}</div>
+            <div class="ds-e-preview">${(e.texto || '').substring(0, 60)}...</div>
+          </div>`;
+      }).join('');
+    }
+
+    function atualizarStats() {
+      document.getElementById('stat-entradas').textContent = _entradas.length;
+      // Sequência simples
+      const hoje = new Date().toDateString();
+      const temHoje = _entradas.some(e => new Date(e.created_at || e.timestamp || Date.now()).toDateString() === hoje);
+      document.getElementById('stat-sequencia').textContent = temHoje ? '🔥' : '⭐';
+      // Humor de hoje
+      const entradaHoje = _entradas.find(e => new Date(e.created_at || e.timestamp || Date.now()).toDateString() === hoje);
+      const hc = entradaHoje ? HUMOR_CORES[entradaHoje.humor] : null;
+      document.getElementById('stat-humor').textContent = hc ? hc.label.split(' ')[0] : '—';
+    }
+
+    /* ── NOVA ENTRADA ────────────────────────────────────── */
+    function novaEntrada() {
+      _editandoId = null; _humorSel = null; _humorEmoji = '📝';
+      document.getElementById('de-titulo').value = '';
+      document.getElementById('de-texto').value = '';
+      document.querySelectorAll('.de-humor-btn').forEach(b => b.classList.remove('sel'));
+      gerarPerguntasInicio();
+      mostrarTela('editor');
+    }
+
+    function gerarPerguntasInicio() {
+      const perguntas = PERGUNTAS_POR_HUMOR[_humorSel || 'mais-ou-menos'];
+      const div = document.getElementById('de-perguntas');
+      if (div) div.innerHTML = perguntas.map(p => `<button class="de-pergunta" onclick="usarPergunta(this)">${p}</button>`).join('');
+    }
+
+    function selecionarHumor(btn, valor, emoji) {
+      document.querySelectorAll('.de-humor-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      _humorSel = valor; _humorEmoji = emoji;
+      // Atualizar perguntas
+      const perguntas = PERGUNTAS_POR_HUMOR[valor] || PERGUNTAS_POR_HUMOR['mais-ou-menos'];
+      document.getElementById('de-perguntas').innerHTML = perguntas.map(p => `<button class="de-pergunta" onclick="usarPergunta(this)">${p}</button>`).join('');
+    }
+
+    function usarPergunta(btn) {
+      const ta = document.getElementById('de-texto');
+      const q = btn.textContent;
+      const atual = ta.value.trim();
+      ta.value = atual ? atual + '\n\n' + q + '\n' : q + '\n';
+      ta.focus();
+      ta.scrollTop = ta.scrollHeight;
+    }
+
+    /* ── SALVAR ENTRADA ──────────────────────────────────── */
+    async function salvarEntrada() {
+      const titulo = document.getElementById('de-titulo').value.trim() || 'Entrada de ' + new Date().toLocaleDateString('pt-BR');
+      const texto = document.getElementById('de-texto').value.trim();
+      if (!texto) { alert('Escreva algo antes de salvar! 📝'); return; }
+
+      const entrada = {
+        id: _editandoId || 'e_' + Date.now(),
+        id_neurodivergente: _userId,
+        titulo, texto,
+        humor: _humorSel || 'mais-ou-menos',
+        emoji: _humorEmoji,
+        created_at: _editandoId ? (_entradas.find(e => e.id === _editandoId)?.created_at || new Date().toISOString()) : new Date().toISOString(),
+        reflexao_lumi: null
+      };
+
+      // Salvar no Supabase
+      try {
+        if (_editandoId) {
+          const { error } = await sb.from('diario_entradas').update({ titulo, texto, humor: entrada.humor, emoji: _humorEmoji }).eq('id', _editandoId);
+          if (error) throw error;
+        } else {
+          const { error } = await sb.from('diario_entradas').insert(entrada);
+          if (error) throw error;
+        }
+      } catch(e) {
+        console.error('[Diário] Erro ao salvar entrada:', e.message);
+        alert('Erro ao salvar. Verifique sua conexão e tente novamente.');
+        return;
+      }
+
+      await carregarEntradas();
+      _entradaAtiva = _entradas.find(e => e.id === entrada.id) || entrada;
+      mostrarTela('leitura');
+      preencherLeitura(_entradaAtiva);
+      renderSidebar();
+
+      // Gerar reflexão da Lumi
+      gerarReflexaoLumi(_entradaAtiva);
+    }
+
+    /* ── ABRIR ENTRADA ───────────────────────────────────── */
+    async function abrirEntrada(id) {
+      _entradaAtiva = _entradas.find(e => e.id === id);
+      if (!_entradaAtiva) return;
+      mostrarTela('leitura');
+      preencherLeitura(_entradaAtiva);
+      renderSidebar();
+
+      if (!_entradaAtiva.reflexao_lumi) {
+        gerarReflexaoLumi(_entradaAtiva);
+      } else {
+        document.getElementById('lr-texto').innerHTML = formatarTexto(_entradaAtiva.reflexao_lumi);
+      }
+    }
+
+    function preencherLeitura(entrada) {
+      const hc = HUMOR_CORES[entrada.humor] || HUMOR_CORES['mais-ou-menos'];
+      const data = new Date(entrada.created_at || entrada.timestamp || Date.now());
+      document.getElementById('dl-emoji').textContent = entrada.emoji || '📝';
+      document.getElementById('dl-titulo').textContent = entrada.titulo || 'Entrada sem título';
+      document.getElementById('dl-data').textContent = data.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+      document.getElementById('dl-humor-badge').innerHTML = `<span style="background:${hc.bg};color:${hc.color};padding:3px 10px;border-radius:20px;font-weight:800;font-size:0.78rem;">${hc.label}</span>`;
+      document.getElementById('dl-texto').textContent = entrada.texto;
+      document.getElementById('lr-texto').innerHTML = '<div class="lr-carregando">⏳ Carregando reflexão da Lumi...</div>';
+    }
+
+    /* ── REFLEXÃO DA LUMI ─────────────────────────────────── */
+    async function gerarReflexaoLumi(entrada) {
+      try {
+        const reflexao = (await chamarGroq(
+          `Você é a Lumi, psicóloga especialista em TEA. Um adolescente autista escreveu em seu diário. Leia com carinho e responda com:
+1. Uma validação empática do sentimento (1-2 frases)
+2. Uma reflexão gentil e útil (2-3 frases)
+3. Uma dica prática para a situação (1-2 frases)
+4. Uma frase encorajadora para fechar
+
+Seja calorosa, simples e sem jargões. Máximo 5-6 frases no total. Português brasileiro.`,
+          [{ role: 'user', content: `Nome: ${_nomeUsuario}\nHumor: ${entrada.humor}\nTítulo: ${entrada.titulo}\n\n${entrada.texto}` }],
+          700)) || 'Obrigada por compartilhar comigo! Cada vez que você escreve aqui, você está cuidando de você mesmo. Isso é muito corajoso. 🐻';
+        document.getElementById('lr-texto').innerHTML = formatarTexto(reflexao);
+
+        // Salvar reflexão no Supabase
+        _entradaAtiva.reflexao_lumi = reflexao;
+        try {
+          await sb.from('diario_entradas').update({ reflexao_lumi: reflexao }).eq('id', _entradaAtiva.id);
+        } catch(e) {
+          console.warn('[Diário] Não foi possível salvar reflexão:', e.message);
+        }
+      } catch(e) {
+        document.getElementById('lr-texto').textContent = 'Obrigada por escrever aqui! Você foi muito corajoso em expressar seus sentimentos. Continue assim! 🐻';
+      }
+    }
+
+    function formatarTexto(texto) {
+      return texto.split('\n').filter(l => l.trim()).map(l => `<p style="margin-bottom:12px;">${l}</p>`).join('');
+    }
+
+    /* ── EDITAR / EXCLUIR ────────────────────────────────── */
+    function editarEntrada() {
+      if (!_entradaAtiva) return;
+      _editandoId = _entradaAtiva.id;
+      document.getElementById('de-titulo').value = _entradaAtiva.titulo || '';
+      document.getElementById('de-texto').value = _entradaAtiva.texto || '';
+      _humorSel = _entradaAtiva.humor || null;
+      _humorEmoji = _entradaAtiva.emoji || '📝';
+      document.querySelectorAll('.de-humor-btn').forEach(b => b.classList.remove('sel'));
+      document.querySelectorAll('.de-humor-btn').forEach(b => {
+        if (b.onclick.toString().includes("'" + _humorSel + "'")) b.classList.add('sel');
+      });
+      mostrarTela('editor');
+    }
+
+    async function excluirEntrada() {
+      if (!_entradaAtiva || !confirm('Tem certeza que quer excluir esta entrada?')) return;
+      try {
+        const { error } = await sb.from('diario_entradas').delete().eq('id', _entradaAtiva.id);
+        if (error) throw error;
+      } catch(e) {
+        console.error('[Diário] Erro ao excluir entrada:', e.message);
+        alert('Erro ao excluir. Tente novamente.');
+        return;
+      }
+      _entradaAtiva = null;
+      await carregarEntradas();
+      mostrarTela('inicio');
+    }
+
+    function cancelarEdicao() {
+      _editandoId = null;
+      mostrarTela(_entradaAtiva ? 'leitura' : 'inicio');
+      if (_entradaAtiva) preencherLeitura(_entradaAtiva);
+    }
+
+    /* ── CONTROLE DE TELAS ───────────────────────────────── */
+    function mostrarTela(nome) {
+      document.getElementById('tela-inicio').style.display = nome === 'inicio' ? 'flex' : 'none';
+      document.getElementById('tela-editor').classList.toggle('ativa', nome === 'editor');
+      document.getElementById('tela-leitura').classList.toggle('ativa', nome === 'leitura');
+    }
+
+    async function sairDaConta() { await sb.auth.signOut(); window.location.href = 'login.html'; }
+
+    iniciarPagina();
+  </script>
+  <script src="js/lumi-ia.js"></script>
+
+  <!-- Widgets globais -->
+  <script src="js/evento-checkin.js"></script>
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>

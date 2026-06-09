@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA – Suporte para neurodivergentes</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="manifest" href="img/site.webmanifest">
+
+
+  <!-- Folha de estilos externa -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&display=swap" rel="stylesheet">
+
+  <!-- Folha de estilos externa -->
+  <link rel="stylesheet" href="lumitea.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       FUNDO DECORATIVO
+       Blobs coloridos fixos que ficam por trás de todo o conteúdo.
+       Controlados por .bg-layer e .blob-* no CSS (seção 3).
+       ============================================================ -->
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+
+  <!-- ============================================================
+       NAVEGAÇÃO
+       Barra fixa no topo com logo, links e botões de ação.
+       Em telas ≤ 768px os links do meio ficam ocultos.
+       ============================================================ -->
+  <nav>
+
+    <!-- Logo: ícone + nome do app -->
+    <a class="logo" href="#">
+      <div class="logo-icon">
+        <img src="img/icon-urso.png" alt="Ícone LumiTEA">
+      </div>
+      LumiTEA
+    </a>
+
+    <!-- Links de navegação (ocultos em celular) -->
+    <div class="nav-links">
+      <a href="#funcionalidades">Funcionalidades</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#app">O App</a>
+    </div>
+
+    <!-- Botões de ação -->
+    <div class="nav-actions">
+      <a href="login.html"><button class="btn-nav-ghost">Entrar</button></a>
+      <a href="cadastro.html"><button class="btn-nav-solid">Criar</button></a>
+    </div>
+
+    <!-- Burger menu (mobile) -->
+    <label class="burger" for="burger-index">
+      <input type="checkbox" id="burger-index">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+
+  </nav>
+
+  <!-- Menu mobile vertical -->
+  <div id="mobile-nav-index" class="mobile-menu">
+    <a href="#funcionalidades">Funcionalidades</a>
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#app">O App</a>
+    <div class="mobile-menu-actions">
+      <a href="login.html"><button class="btn-nav-ghost" style="width:100%">Entrar</button></a>
+      <a href="cadastro.html"><button class="btn-nav-solid" style="width:100%">Criar conta</button></a>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var cb   = document.getElementById('burger-index');
+    var menu = document.getElementById('mobile-nav-index');
+    cb.addEventListener('change', function(){ menu.style.display = cb.checked ? 'flex' : 'none'; });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ cb.checked=false; menu.style.display='none'; });
+    });
+  })();
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const revealEls = document.querySelectorAll('section, .divider, footer');
+  revealEls.forEach((el) => {
+    el.classList.add('reveal-section');
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+
+  revealEls.forEach((el) => observer.observe(el));
+});
+
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const revealEls = document.querySelectorAll('section, .divider, footer, .how-section, .app-section');
+      revealEls.forEach((el) => {
+        el.classList.add('reveal-section');
+      });
+    
+      document.querySelectorAll('.app-section').forEach((el) => {
+        el.classList.add('reveal-scale');
+      });
+    
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+    
+      revealEls.forEach((el) => observer.observe(el));
+    });
+    </script>
+
+
+  <!-- ============================================================
+       HERO — SEÇÃO PRINCIPAL
+       Texto, botões e estatísticas à esquerda.
+       Imagem à direita (substitua o <img> pela sua imagem real).
+       ============================================================ -->
+  <div class="hero">
+
+    <!-- Coluna de conteúdo (esquerda) -->
+    <div class="hero-content">
+
+      <!-- Badge de categoria -->
+      <div class="badge">
+        <div class="badge-dot"></div>
+        Criado para neurodivergentes
+      </div>
+
+      <!-- Título principal -->
+      <h1>LumiTea. <span>Aprender e se adaptar nunca foi</span> tão fácil</h1>
+
+      <!-- Parágrafo descritivo -->
+      <p class="hero-sub">
+        LumiTEA é um aplicativo de suporte e aprendizado pensado especialmente
+        para crianças e adolescentes no espectro autista. Aqui, cada pessoa
+        aprende no seu próprio ritmo e consegue se adaptar à sua rotina diária
+        de maneira mais fácil.
+      </p>
+
+      <!-- Botões de ação -->
+      <div class="hero-actions">
+        <a href="cadastro.html"><button class="btn-primary">Criar conta — Acesse ao nosso suporte</button></a>
+        <a href="login.html"><button class="btn-secondary">Já tenho uma conta</button></a>
+      </div>
+
+     
+    </div>
+
+    <!-- Coluna de imagem (direita)
+         Substitua o <img> pela imagem real do app ou mascote. -->
+    <div class="hero-image-wrap">
+      <img src="img/urso-nogelo-pe.png" alt="Mascote LumiTEA">
+    </div>
+
+  </div><!-- /hero -->
+
+
+  <!-- ============================================================
+       DIVISOR DECORATIVO
+       Linha com texto centralizado separando o hero das features.
+       ============================================================ -->
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-text">POR QUE O LUMITEA É DIFERENTE</div>
+    <div class="divider-line"></div>
+  </div>
+
+
+  <!-- ============================================================
+       FUNCIONALIDADES
+       Grid de 6 cards descrevendo os principais recursos do app.
+       Em telas menores vira 2 colunas e depois 1 coluna.
+       ============================================================ -->
+  <section id="funcionalidades">
+
+    <!-- Cabeçalho da seção -->
+    <div class="section-header">
+      <div class="section-label">Funcionalidades</div>
+      <div class="section-title">Tudo pensado para o seu conforto</div>
+      <p class="section-sub">
+        Cada detalhe do LumiTEA foi desenvolvido junto com pesquisas de
+        especialistas em TEA para garantir uma experiência verdadeiramente útil.
+      </p>
+    </div>
+
+    <!-- Grid de cards -->
+    <div class="features-grid">
+
+      <!-- Card 1: Ritmo personalizado -->
+      <div class="feat-card-wrap">
+        <div class="feat-content">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M13 2.05V4.06c3.95.49 7 3.85 7 7.94 0 3.21-1.81 6-4.5 7.54L13 17v5h5l-1.22-1.22C19.91 19.07 22 15.76 22 12c0-5.18-3.95-9.45-9-9.95zM11 2.05C5.95 2.55 2 6.82 2 12c0 3.76 2.09 7.07 5.22 8.78L6 22h5v-5l-2.5 2.54C6.81 18 5 15.21 5 12c0-4.09 3.05-7.45 7-7.94V2.05z"/></svg>
+          <p class="feat-para"><strong>Ritmo personalizado</strong><br>O app se adapta ao desempenho e ao humor do usuário, propondo lições curtas, sem pressão por tempo.</p>
+          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+        </div>
+      </div>
+
+      <!-- Card 2: Rotinas previsíveis -->
+      <div class="feat-card-wrap">
+        <div class="feat-content">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          <p class="feat-para"><strong>Rotinas previsíveis</strong><br>Estrutura clara em cada sessão. O usuário sempre sabe o que vem a seguir, reduzindo ansiedade no dia a dia.</p>
+          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+        </div>
+      </div>
+
+      <!-- Card 3: Recompensas gentis -->
+      <div class="feat-card-wrap">
+        <div class="feat-content">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          <p class="feat-para"><strong>Recompensas gentis</strong><br>Conquistas celebradas de forma calma, sem sons estridentes ou animações excessivas. Cada progresso valorizado.</p>
+          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+        </div>
+      </div>
+
+      <!-- Card 4: Visual acessível -->
+      <div class="feat-card-wrap">
+        <div class="feat-content">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+          <p class="feat-para"><strong>Visual acessível</strong><br>Paleta de cores calmantes, fontes legíveis e espaçamento generoso. Sem informações em excesso na tela.</p>
+          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+        </div>
+      </div>
+
+      <!-- Card 5: Modo família -->
+      <div class="feat-card-wrap">
+        <div class="feat-content">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          <p class="feat-para"><strong>Modo família</strong><br>Pais, cuidadores e terapeutas acompanham o progresso e recebem relatórios detalhados de evolução.</p>
+          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+        </div>
+      </div>
+
+      <!-- Card 6: Lembretes inteligentes -->
+      <div class="feat-card-wrap">
+        <div class="feat-content">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <p class="feat-para"><strong>Lembretes inteligentes</strong><br>Notificações suaves e configuráveis para manter a regularidade sem criar pressão ou sobrecarga sensorial.</p>
+          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+        </div>
+      </div>
+
+    </div><!-- /features-grid -->
+  </section><!-- /funcionalidades -->
+
+
+  <!-- ============================================================
+       COMO FUNCIONA
+       4 passos numerados mostrando o fluxo de uso do app.
+       Cada passo tem número, texto e espaço para uma imagem de tela.
+       ============================================================ -->
+  <div class="alt-bg how-section" id="como-funciona">
+    <div class="alt-inner">
+
+      <!-- Cabeçalho da seção -->
+      <div class="section-header">
+        <div class="section-label">Como funciona</div>
+        <div class="section-title">Entenda como o LumiTEA funciona.</div>
+        <p class="section-sub">
+          Cadastre-se para ter acesso ao nosso suporte.
+        </p>
+      </div>
+
+      <!-- Vídeo demonstrativo -->
+      <div class="how-video-wrap">
+        <div class="how-video-inner">
+          <div class="how-video-frame">
+            <div class="how-video-play-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10"/>
+                <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+              </svg>
+              <span>Assista e veja o LumiTEA em ação</span>
+            </div>
+            <!-- Cole aqui a URL do seu vídeo no atributo src -->
+            <iframe
+              class="how-video-iframe"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              title="Como funciona o LumiTEA"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+      </div><!-- /how-video-wrap -->
+    </div>
+  </div><!-- /como-funciona -->
+
+
+  <!-- ============================================================
+       APP PREVIEW
+       Lista de benefícios à esquerda + grid de prints do app à direita.
+       Em telas menores vira coluna única.
+       ============================================================ -->
+  <div class="alt-bg app-section" id="app">
+    <div class="alt-inner">
+      <div class="preview-wrap preview-wrap--solo">
+
+        <!-- Coluna de texto (esquerda) -->
+        <div class="preview-content">
+          <div class="section-label">O aplicativo</div>
+          <div class="section-title">Feito para funcionar em qualquer dispositivo</div>
+          <p class="section-sub">
+            Disponível para celular, tablet e computador.
+            Sincronização automática para você nunca perder seu progresso.
+          </p>
+
+          <!-- Lista de benefícios com ícone de check -->
+          <div class="preview-list">
+
+            <div class="preview-item">
+              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div>
+                <div class="preview-item-title">Funciona offline</div>
+                <div class="preview-item-desc">Baixe as lições e aprenda sem internet. Ideal para viagens e lugares com sinal ruim.</div>
+              </div>
+            </div>
+
+            <div class="preview-item">
+              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div>
+                <div class="preview-item-title">Sem anúncios, sempre</div>
+                <div class="preview-item-desc">O LumiTEA é 100% livre de publicidade. Nenhuma interrupção, nenhuma surpresa visual inesperada.</div>
+              </div>
+            </div>
+
+            <div class="preview-item">
+              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div>
+                <div class="preview-item-title">Múltiplos perfis</div>
+                <div class="preview-item-desc">Uma conta para toda a família. Cada membro tem seu próprio perfil e progresso independente.</div>
+              </div>
+            </div>
+
+            <div class="preview-item">
+              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div>
+                <div class="preview-item-title">Controle de acessibilidade</div>
+                <div class="preview-item-desc">Ajuste texto, animações, volume e muito mais nas configurações para cada perfil.</div>
+              </div>
+            </div>
+
+          </div><!-- /preview-list -->
+        </div><!-- /preview-content -->
+
+
+
+      </div><!-- /preview-wrap -->
+    </div>
+  </div><!-- /app -->
+
+
+  <!-- ============================================================
+       CTA — CHAMADA PARA AÇÃO FINAL
+       Seção centralizada incentivando o usuário a criar conta.
+       ============================================================ -->
+  <div class="cta-bg">
+    <div class="cta-wrap">
+      <div class="badge"><div class="badge-dot"></div> Totalmente gratuito</div>
+      <h2>Pronto para começar a <span>jornada</span>?</h2>
+      <p>
+        Junte-se a milhares de famílias que já descobriram um jeito mais
+        tranquilo e eficaz de aprender. Sem cartão de crédito, sem compromisso
+        — só aprendizado de qualidade.
+      </p>
+      <button class="btn-primary-lg">Criar conta gratuita</button>
+    </div>
+  </div><!-- /cta -->
+
+
+  <!-- ============================================================
+       RODAPÉ (FOOTER)
+       Logo, links de navegação e copyright.
+       Em telas menores fica em coluna centralizada.
+       ============================================================ -->
+       <footer class="lumi-footer">
+        <div class="footer-inner">
+          <div class="footer-brand">
+            <h3>LumiTEA</h3>
+            <p>Suporte acessível, acolhedor e inteligente para adolescentes no espectro autista e seus cuidadores.</p>
+          </div>
+      
+          <div>
+            <div class="footer-title">Aplicativo</div>
+            <div class="footer-links-grid">
+              <a href="#hero">Início</a>
+              <a href="#funcionalidades">Funcionalidades</a>
+              <a href="#como-funciona">Como funciona</a>
+            </div>
+          </div>
+      
+          <div>
+            <div class="footer-title">Recursos</div>
+            <div class="footer-links-grid">
+              <a href="#app">O aplicativo</a>
+              <a href="#cta">Cadastro</a>
+              <a href="#cuidador">Painel do cuidador</a>
+            </div>
+          </div>
+      
+          <div>
+            <div class="footer-title">Suporte</div>
+            <div class="footer-links-grid">
+              <a href="#acessibilidade">Acessibilidade</a>
+              <a href="#privacidade">Privacidade</a>
+              <a href="#contato">Contato</a>
+            </div>
+          </div>
+        </div>
+      
+        <div class="footer-bottom">
+          <div>
+            <div class="footer-policy">
+              <a href="#privacidade">Privacy Policy</a>
+              <a href="#termos">Terms & Conditions</a>
+              <a href="#conduta">Code of Conduct</a>
+            </div>
+            <p class="footer-copy">
+              LumiTEA foi pensado para promover autonomia, conforto e aprendizado com acessibilidade.
+            </p>
+          </div>
+      
+          <div class="footer-social">
+            <a href="#" aria-label="Twitter">
+              <svg viewBox="0 0 24 24"><path d="M22 5.92c-.77.34-1.6.57-2.47.67.89-.53 1.57-1.37 1.9-2.37-.83.49-1.75.84-2.72 1.03A4.19 4.19 0 0 0 11.5 8.1a11.9 11.9 0 0 1-8.64-4.38 4.15 4.15 0 0 0 1.3 5.58c-.7-.02-1.36-.21-1.94-.54v.05a4.19 4.19 0 0 0 3.36 4.1c-.32.08-.66.13-1.01.13-.24 0-.47-.02-.7-.06a4.2 4.2 0 0 0 3.92 2.9A8.4 8.4 0 0 1 2 18.58 11.83 11.83 0 0 0 8.43 20.5c7.72 0 11.95-6.4 11.95-11.95v-.54c.82-.6 1.53-1.34 2.09-2.09Z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.2A4.8 4.8 0 1 1 7.2 12 4.8 4.8 0 0 1 12 7.2Zm0 2a2.8 2.8 0 1 0 2.8 2.8A2.8 2.8 0 0 0 12 9.2Zm5.6-3.1a1.1 1.1 0 1 1-1.1 1.1 1.1 1.1 0 0 1 1.1-1.1Z"/></svg>
+            </a>
+            <a href="#" aria-label="Facebook">
+              <svg viewBox="0 0 24 24"><path d="M14 9h3V6h-3c-1.66 0-3 1.34-3 3v2H8v3h3v8h3v-8h3l1-3h-4V9c0-.55.45-1 1-1Z"/></svg>
+            </a>
+            <a href="#" aria-label="Pinterest">
+              <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.64 19.32c-.05-.78-.1-1.98.02-2.84.11-.77.72-4.89.72-4.89s-.18-.37-.18-.92c0-.86.5-1.5 1.12-1.5.53 0 .78.4.78.88 0 .53-.34 1.34-.52 2.08-.15.62.32 1.12.94 1.12 1.13 0 2-1.2 2-2.94 0-1.54-1.11-2.6-2.69-2.6-1.83 0-2.91 1.37-2.91 2.79 0 .55.21 1.14.48 1.46.05.06.06.1.04.16l-.18.7c-.03.11-.1.13-.2.08-.75-.35-1.22-1.44-1.22-2.31 0-1.88 1.37-3.61 3.96-3.61 2.08 0 3.69 1.48 3.69 3.46 0 2.07-1.31 3.73-3.13 3.73-.61 0-1.19-.32-1.39-.7l-.38 1.44c-.14.56-.53 1.26-.8 1.69A10 10 0 1 0 12 2Z"/></svg>
+            </a>
+          </div>
+        </div>
+      </footer>
+    <!-- Copyright -->
+    <div class="footer-copy">© 2026 LumiTEA. Todos os direitos reservados.</div>
+
+  </footer><!-- /footer -->
+
+</body>
+</html>
