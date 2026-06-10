@@ -26,7 +26,7 @@
     /* Cores de texto */
     --text-main:  #1a2e4a;
     --text-soft:  #3d6080;
-    --text-muted: #6b9ab8;
+    --text-muted: var(--text-muted);
   
     /* Bordas e sombras */
     --border: #b3d9f8;
@@ -728,7 +728,7 @@
       right: 16px !important;
       width: 80px;
       height: 80px;
-      z-index: 999;
+      z-index: var(--z-banner);
       /* Sombra mais visível sobre o conteúdo */
       filter: drop-shadow(0 4px 16px rgba(74, 126, 181, 0.35));
     }

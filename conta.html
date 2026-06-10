@@ -122,6 +122,7 @@
     .tipo-tag{padding:3px 10px;border-radius:99px;font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
     .tipo-teen{background:rgba(74,126,181,0.12);color:var(--primary-dark)}
   </style>
+  <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -189,13 +190,13 @@
         <div class="ph-name" id="ph-name">Carregando...</div>
         <div class="ph-email" id="ph-email">—</div>
         <div class="ph-badges">
-          <span class="ph-badge" id="ph-nivel">⭐ Nível 1</span>
+          <span class="ph-badge" id="ph-nivel">Nível 1</span>
           <span class="ph-badge tipo-tag tipo-teen" style="background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.28);color:white;">Adolescente</span>
-          <span class="ph-badge" id="ph-membro">📅 Membro</span>
+          <span class="ph-badge" id="ph-membro">Membro</span>
         </div>
       </div>
       <div class="ph-actions">
-        <button class="ph-btn ph-btn-edit" onclick="scrollTo(0, document.getElementById('secEditar').offsetTop - 80)">✏️ Editar perfil</button>
+        <button class="ph-btn ph-btn-edit" onclick="scrollTo(0, document.getElementById('secEditar').offsetTop - 80)"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Editar perfil</button>
         <button class="ph-btn ph-btn-logout" onclick="sairDaConta()">Sair da conta</button>
       </div>
     </div>
@@ -206,11 +207,11 @@
       <!-- XP e Nível -->
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#e3f2fd;">🏆</div>
+          <div class="cct-icon" style="background:#e3f2fd;color:#1565c0;"><i class="lt-i" data-lt-icon="trending-up" aria-hidden="true"></i></div>
           Meu Progresso
         </div>
         <div class="nivel-grande">
-          <div class="ng-emoji" id="ng-emoji">⭐</div>
+          <div class="ng-emoji" id="ng-emoji" style="color:#1565c0"><i class="lt-i lt-i--lg" data-lt-icon="star" aria-hidden="true"></i></div>
           <div class="ng-num">Nível <span id="ng-nivel">1</span></div>
           <div class="ng-label" id="ng-nome-nivel">Explorador Iniciante</div>
         </div>
@@ -240,7 +241,7 @@
       <!-- Conquistas -->
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#fdf0f9;">🎖️</div>
+          <div class="cct-icon" style="background:#fdf0f9;color:#a83d8a;"><i class="lt-i" data-lt-icon="award" aria-hidden="true"></i></div>
           Conquistas
         </div>
         <div class="conquistas-grid" id="conquistas-grid">
@@ -252,14 +253,14 @@
     <!-- VÍNCULO COM CUIDADOR -->
     <div class="c-card">
       <div class="c-card-title">
-        <div class="cct-icon" style="background:#fff8ee;">🔗</div>
+        <div class="cct-icon" style="background:#fff8ee;color:#9a6730;"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i></div>
         Vínculo com Cuidador
       </div>
 
       <!-- Estado: sem vínculo -->
       <div id="secSemVinculo">
         <div class="vinculo-card" style="margin-bottom:14px">
-          <div class="vinc-icon">🏷️</div>
+          <div class="vinc-icon" style="color:#9a6730"><i class="lt-i lt-i--lg" data-lt-icon="copy" aria-hidden="true"></i></div>
           <div class="vinc-info">
             <div class="vinc-title">Seu código de vínculo</div>
             <div class="vinc-sub">Compartilhe com seu cuidador para ficarem conectados no LumiTEA</div>
@@ -277,7 +278,7 @@
 
       <!-- Estado: com vínculo -->
       <div class="vinculo-ativo" id="secComVinculo" style="display:none">
-        <span style="font-size:1.6rem">💚</span>
+        <i class="lt-i lt-i--lg" data-lt-icon="heart" aria-hidden="true" style="color:#1a6b4a;flex-shrink:0"></i>
         <div>
           <div style="font-weight:800;margin-bottom:2px">Você está conectado com seu cuidador!</div>
           <div style="font-size:.75rem;font-weight:600;opacity:.8">Ele acompanha seu progresso e pode adicionar eventos no seu calendário.</div>
@@ -288,7 +289,7 @@
     <!-- EDITAR PERFIL -->
     <div class="c-card" id="secEditar">
       <div class="c-card-title">
-        <div class="cct-icon" style="background:#eef4fb;">👤</div>
+        <div class="cct-icon" style="background:#eef4fb;color:#2e5fa3;"><i class="lt-i" data-lt-icon="user" aria-hidden="true"></i></div>
         Editar Perfil
       </div>
       <div class="form-grid">
@@ -316,7 +317,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:14px;margin-top:16px">
         <button class="btn-salvar" id="btn-salvar" onclick="salvarPerfil()">Salvar alterações</button>
-        <div class="save-ok" id="save-ok">✅ Salvo com sucesso!</div>
+        <div class="save-ok" id="save-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Salvo com sucesso!</div>
       </div>
     </div>
 
@@ -325,7 +326,7 @@
 
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#f3eeff;">⚙️</div>
+          <div class="cct-icon" style="background:#f3eeff;color:#5b3fa3;"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i></div>
           Preferências
         </div>
 
@@ -376,7 +377,7 @@
 
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#eaf7f2;">🎨</div>
+          <div class="cct-icon" style="background:#eaf7f2;color:#1a6b4a;"><i class="lt-i" data-lt-icon="type" aria-hidden="true"></i></div>
           Acessibilidade
         </div>
 
@@ -415,7 +416,7 @@
     <!-- ALTERAR SENHA -->
     <div class="c-card">
       <div class="c-card-title">
-        <div class="cct-icon" style="background:#fef9ee;">🔑</div>
+        <div class="cct-icon" style="background:#fef9ee;color:#9a6730;"><i class="lt-i" data-lt-icon="key" aria-hidden="true"></i></div>
         Alterar Senha
       </div>
       <div class="form-grid">
@@ -430,18 +431,18 @@
       </div>
       <div style="display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap">
         <button class="btn-salvar" onclick="alterarSenha()">Alterar senha</button>
-        <div class="save-ok" id="save-senha-ok">✅ Senha alterada!</div>
+        <div class="save-ok" id="save-senha-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Senha alterada!</div>
         <div class="save-ok" id="save-senha-err" style="color:#d95b5b;display:none">Erro: senhas não coincidem ou muito curtas.</div>
       </div>
     </div>
 
     <!-- ZONA DE PERIGO -->
     <div class="danger-card">
-      <div class="danger-title">⚠️ Zona de perigo</div>
+      <div class="danger-title"><i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i> Zona de perigo</div>
       <div class="danger-sub">Essas ações são permanentes e não podem ser desfeitas. Tenha certeza antes de continuar.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-danger" onclick="confirmarExcluirDados()">🗑️ Limpar histórico de conversas</button>
-        <button class="btn-danger" onclick="confirmarExcluirConta()">❌ Excluir minha conta</button>
+        <button class="btn-danger" onclick="confirmarExcluirDados()"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Limpar histórico de conversas</button>
+        <button class="btn-danger" onclick="confirmarExcluirConta()"><i class="lt-i" data-lt-icon="x" aria-hidden="true"></i> Excluir minha conta</button>
       </div>
     </div>
 
@@ -469,7 +470,8 @@
 
     var NIVEL_XP = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
     var NIVEL_NOMES = ['','Explorador Iniciante','Explorador','Aventureiro','Aventureiro Corajoso','Herói','Herói Dedicado','Campeão','Campeão Lendário','Mestre','Mestre Supremo'];
-    var NIVEL_EMOJIS = ['⭐','⭐','🌟','🌟','💫','💫','🏅','🏅','🥇','🥇','🏆'];
+    var NIVEL_ICONES = ['star','star','star','star','sparkles','sparkles','sparkles','award','award','award','award'];
+    function _icone(n){ return (window.LUMI&&window.LUMI.icon)?window.LUMI.icon(n):''; }
 
     /* INIT */
     (async function(){
@@ -511,11 +513,11 @@
       document.getElementById('ph-avatar').textContent = ini;
       document.getElementById('ph-name').textContent = (_perfil.apelido||_perfil.nome)+' '+(_perfil.sobrenome||'');
       document.getElementById('ph-email').textContent = _perfil.email||'';
-      document.getElementById('ph-nivel').textContent = NIVEL_EMOJIS[Math.min(_perfil.nivel-1, NIVEL_EMOJIS.length-1)]+' Nível '+_perfil.nivel;
+      document.getElementById('ph-nivel').textContent = 'Nível '+_perfil.nivel;
       document.getElementById('nav-user-name').textContent = _perfil.nome;
       if(_perfil.criado_em){
         var dt = new Date(_perfil.criado_em);
-        document.getElementById('ph-membro').textContent = '📅 Membro desde ' + dt.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+        document.getElementById('ph-membro').textContent = 'Membro desde ' + dt.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
       }
     }
 
@@ -524,7 +526,7 @@
       var b=NIVEL_XP[n-1]||0, nx=NIVEL_XP[n]||NIVEL_XP[NIVEL_XP.length-1];
       var pct=nx>b?Math.min(Math.round((x-b)/(nx-b)*100),100):100;
       document.getElementById('ng-nivel').textContent=n;
-      document.getElementById('ng-emoji').textContent=NIVEL_EMOJIS[Math.min(n-1,NIVEL_EMOJIS.length-1)];
+      document.getElementById('ng-emoji').innerHTML=_icone(NIVEL_ICONES[Math.min(n-1,NIVEL_ICONES.length-1)]);
       document.getElementById('ng-nome-nivel').textContent=NIVEL_NOMES[Math.min(n,NIVEL_NOMES.length-1)]||'Explorador';
       document.getElementById('xp-big-fill').style.width=pct+'%';
       document.getElementById('xp-atual').textContent=(x-b)+' XP';
@@ -560,7 +562,7 @@
         var div=document.createElement('div');
         div.className='conq-item '+(on?'desbloqueado':'bloqueado');
         div.title=c.desc+(on?'':' (bloqueado)');
-        div.innerHTML='<div class="conq-em">'+(on?c.em:'🔒')+'</div><div class="conq-name">'+c.nome+'</div><div class="conq-desc">'+(on?c.desc:'???')+'</div>';
+        div.innerHTML='<div class="conq-em">'+(on?c.em:_icone('lock'))+'</div><div class="conq-name">'+c.nome+'</div><div class="conq-desc">'+(on?c.desc:'???')+'</div>';
         grid.appendChild(div);
       });
       // Vínculo
@@ -614,7 +616,7 @@
     function copiarCodigo(){
       var el=document.getElementById('meu-codigo');
       if(!el||el.textContent==='------')return;
-      navigator.clipboard.writeText(el.textContent).then(function(){var old=el.textContent;el.textContent='Copiado! ✓';setTimeout(function(){el.textContent=old},1800)});
+      navigator.clipboard.writeText(el.textContent).then(function(){var old=el.textContent;el.textContent='Copiado!';setTimeout(function(){el.textContent=old},1800)});
     }
 
     async function vincular(){

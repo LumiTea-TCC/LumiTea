@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Configurações da Conta</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="js/core/icons.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+</head>
+<body class="app-body lt-pro">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="app-nav">
+    <a class="logo" href="home-cuidador.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-cuidador.html">Painel</a>
+      <a href="calendario-cuidador.html">Calendário</a>
+      <a href="conta-cuidador.html" class="active">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt=""></div>
+        <span id="nav-user-name">...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+    <label class="app-burger" for="burg-cc">
+      <input type="checkbox" id="burg-cc">
+      <span></span><span></span><span></span>
+    </label>
+  </nav>
+  <div id="mm-cc" class="app-mobile-menu">
+    <a href="home-cuidador.html">Painel</a>
+    <a href="calendario-cuidador.html">Calendário</a>
+    <a href="conta-cuidador.html" class="active">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+  <script>
+  (function(){var cb=document.getElementById('burg-cc'),menu=document.getElementById('mm-cc');cb.addEventListener('change',function(){menu.style.display=cb.checked?'flex':'none'});menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){cb.checked=false;menu.style.display='none'})})})();
+  </script>
+
+  <!-- CONTEÚDO -->
+  <main class="set-page">
+
+    <!-- HERO PERFIL -->
+    <div class="set-hero">
+      <div class="set-hero-av" id="hero-avatar">?</div>
+      <div class="set-hero-info">
+        <div class="set-hero-nome" id="hero-nome">Carregando...</div>
+        <div class="set-hero-email" id="hero-email">—</div>
+        <div class="set-hero-badges">
+          <span><i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i> Cuidador responsável</span>
+          <span id="hero-membro"><i class="lt-i" data-lt-icon="calendar" aria-hidden="true"></i> Membro</span>
+          <span id="hero-vinculos"><i class="lt-i" data-lt-icon="users" aria-hidden="true"></i> —</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DADOS DO PERFIL -->
+    <section class="set-card" aria-labelledby="t-perfil">
+      <div class="set-card-title" id="t-perfil"><i class="lt-i" data-lt-icon="user" aria-hidden="true"></i> Dados do perfil</div>
+      <div class="form-grid">
+        <div class="f-group">
+          <label class="f-label" for="f-nome">Nome</label>
+          <input type="text" class="f-input" id="f-nome" placeholder="Seu nome" autocomplete="given-name">
+        </div>
+        <div class="f-group">
+          <label class="f-label" for="f-sobrenome">Sobrenome</label>
+          <input type="text" class="f-input" id="f-sobrenome" placeholder="Seu sobrenome" autocomplete="family-name">
+        </div>
+        <div class="f-group f-full">
+          <label class="f-label" for="f-email">E-mail (somente leitura)</label>
+          <input type="email" class="f-input" id="f-email" disabled>
+          <span class="f-hint">Para alterar o e-mail de acesso, entre em contato com o suporte.</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn-salvar" id="btn-salvar" onclick="salvarPerfil()">Salvar alterações</button>
+        <span class="save-ok" id="save-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Salvo com sucesso</span>
+        <span class="save-err" id="save-err">Não foi possível salvar. Tente novamente.</span>
+      </div>
+    </section>
+
+    <!-- SEGURANÇA -->
+    <section class="set-card" aria-labelledby="t-senha">
+      <div class="set-card-title" id="t-senha"><i class="lt-i" data-lt-icon="key" aria-hidden="true"></i> Segurança — alterar senha</div>
+      <div class="form-grid">
+        <div class="f-group">
+          <label class="f-label" for="f-nova-senha">Nova senha</label>
+          <input type="password" class="f-input" id="f-nova-senha" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        </div>
+        <div class="f-group">
+          <label class="f-label" for="f-conf-senha">Confirmar nova senha</label>
+          <input type="password" class="f-input" id="f-conf-senha" placeholder="Repita a senha" autocomplete="new-password">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn-salvar" onclick="alterarSenha()">Alterar senha</button>
+        <span class="save-ok" id="senha-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Senha alterada</span>
+        <span class="save-err" id="senha-err">As senhas não coincidem ou têm menos de 8 caracteres.</span>
+      </div>
+    </section>
+
+    <!-- PREFERÊNCIAS -->
+    <section class="set-card" aria-labelledby="t-prefs">
+      <div class="set-card-title" id="t-prefs"><i class="lt-i" data-lt-icon="sliders" aria-hidden="true"></i> Preferências</div>
+
+      <div class="f-group" style="margin-bottom:12px;max-width:300px">
+        <label class="f-label" for="pref-fonte">Tamanho do texto</label>
+        <select class="f-select" id="pref-fonte" onchange="aplicarFonte()">
+          <option value="normal">Normal</option>
+          <option value="grande">Grande</option>
+          <option value="muito-grande">Muito grande</option>
+        </select>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="tg-title">Reduzir animações</div>
+          <div class="tg-sub">Minimiza transições e movimentos na interface</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="pref-reduz-anim" onchange="salvarPrefs()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="tg-title">Resumo no painel</div>
+          <div class="tg-sub">Exibe o quadro de humor dos últimos 7 dias no painel geral</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="pref-resumo" checked onchange="salvarPrefs()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- VÍNCULOS -->
+    <section class="set-card" aria-labelledby="t-vinc">
+      <div class="set-card-title" id="t-vinc"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i> Adolescentes vinculados</div>
+      <p class="set-card-sub">Os vínculos definem quais adolescentes você acompanha no painel.</p>
+      <div id="lista-vinculos"><p style="font-size:13px;color:var(--text-muted);">Carregando…</p></div>
+      <a class="btn-salvar" href="home-cuidador.html" style="text-decoration:none;margin-top:10px">
+        Gerenciar vínculos no painel
+      </a>
+    </section>
+
+    <!-- ZONA DE RISCO -->
+    <section class="danger-card" aria-labelledby="t-danger">
+      <div class="danger-title" id="t-danger"><i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i> Zona de risco</div>
+      <div class="danger-sub">Estas ações afetam o acesso à sua conta. Tenha certeza antes de continuar.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-danger-ghost" onclick="sairDaConta()"><i class="lt-i" data-lt-icon="log-out" aria-hidden="true"></i> Sair da conta</button>
+        <button class="btn-danger-ghost" onclick="excluirConta()"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Excluir minha conta</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const SB_URL = 'https://yuwdckenzpfdlyawkibn.supabase.co';
+    const SB_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
+    const { createClient } = supabase;
+    const sb = createClient(SB_URL, SB_KEY);
+
+    var _uid = null, _perfil = null, _email = null;
+
+    function _ic(nome) { return (window.LUMI && window.LUMI.icon) ? window.LUMI.icon(nome) : ''; }
+
+    function _flash(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('show');
+      setTimeout(function(){ el.classList.remove('show'); }, 3200);
+    }
+
+    /* INIT */
+    (async function(){
+      try {
+        var { data: { session } } = await sb.auth.getSession();
+        if (!session) { window.location.href = 'login.html'; return; }
+        _uid = session.user.id;
+        _email = session.user.email;
+
+        var { data: p, error } = await sb.from('profiles').select('nome,sobrenome,tipo,criado_em').eq('id', _uid).single();
+        if (error || !p) {
+          alert('Não foi possível carregar seu perfil. Faça login novamente.');
+          window.location.href = 'login.html';
+          return;
+        }
+        /* Esta página é exclusiva do cuidador */
+        if (p.tipo !== 'responsavel') { window.location.href = 'conta.html'; return; }
+
+        _perfil = { nome: p.nome || '', sobrenome: p.sobrenome || '', criado_em: p.criado_em };
+
+        renderPerfil();
+        preencherForm();
+        await carregarVinculos();
+        await carregarPrefs();
+      } catch(e) {
+        console.error('[Conta Cuidador] Erro inesperado:', e);
+      }
+    })();
+
+    function renderPerfil() {
+      var ini = (_perfil.nome || '?').charAt(0).toUpperCase();
+      document.getElementById('hero-avatar').textContent = ini;
+      document.getElementById('hero-nome').textContent = (_perfil.nome + ' ' + (_perfil.sobrenome || '')).trim() || 'Cuidador';
+      document.getElementById('hero-email').textContent = _email || '';
+      document.getElementById('nav-user-name').textContent = _perfil.nome || 'Cuidador';
+      if (_perfil.criado_em) {
+        var dt = new Date(_perfil.criado_em);
+        document.getElementById('hero-membro').innerHTML = _ic('calendar') + ' Membro desde ' + dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+      }
+    }
+
+    function preencherForm() {
+      document.getElementById('f-nome').value = _perfil.nome || '';
+      document.getElementById('f-sobrenome').value = _perfil.sobrenome || '';
+      document.getElementById('f-email').value = _email || '';
+    }
+
+    async function salvarPerfil() {
+      var btn = document.getElementById('btn-salvar');
+      btn.disabled = true; btn.textContent = 'Salvando…';
+      var nome = document.getElementById('f-nome').value.trim();
+      var sob  = document.getElementById('f-sobrenome').value.trim();
+      try {
+        var { error } = await sb.from('profiles').update({ nome: nome, sobrenome: sob }).eq('id', _uid);
+        if (error) throw error;
+        _perfil.nome = nome; _perfil.sobrenome = sob;
+        renderPerfil();
+        _flash('save-ok');
+      } catch(e) {
+        console.error('[Conta Cuidador] salvarPerfil:', e.message);
+        _flash('save-err');
+      }
+      btn.disabled = false; btn.textContent = 'Salvar alterações';
+    }
+
+    async function alterarSenha() {
+      var s1 = document.getElementById('f-nova-senha').value;
+      var s2 = document.getElementById('f-conf-senha').value;
+      var err = document.getElementById('senha-err');
+      err.classList.remove('show');
+      if (!s1 || s1.length < 8 || s1 !== s2) { err.textContent = 'As senhas não coincidem ou têm menos de 8 caracteres.'; _flash('senha-err'); return; }
+      try {
+        var { error } = await sb.auth.updateUser({ password: s1 });
+        if (error) throw error;
+        document.getElementById('f-nova-senha').value = '';
+        document.getElementById('f-conf-senha').value = '';
+        _flash('senha-ok');
+      } catch(e) {
+        err.textContent = 'Erro ao alterar a senha: ' + e.message;
+        _flash('senha-err');
+      }
+    }
+
+    /* VÍNCULOS */
+    async function carregarVinculos() {
+      var box = document.getElementById('lista-vinculos');
+      try {
+        var { data: teens } = await sb.from('neurodivergente').select('id, nivel, xp').eq('id_responsavel', _uid);
+        teens = teens || [];
+        document.getElementById('hero-vinculos').innerHTML = _ic('users') + ' ' + teens.length + ' vínculo' + (teens.length === 1 ? '' : 's');
+        if (!teens.length) {
+          box.innerHTML = '<div class="empty-state">' + _ic('users') + '<p>Nenhum adolescente vinculado.<br>Use o painel para conectar pelo código de vínculo.</p></div>';
+          return;
+        }
+        var html = '';
+        for (var i = 0; i < teens.length; i++) {
+          var t = teens[i];
+          var { data: p } = await sb.from('profiles').select('nome, sobrenome').eq('id', t.id).single();
+          var nome = (p && p.nome) ? (p.nome + ' ' + (p.sobrenome || '')).trim() : 'Sem nome';
+          html += '<div class="vinculo-teen-card"><div class="vinculo-teen-av">' + _ic('user') + '</div><div class="vinculo-teen-info"><div class="vinculo-teen-nome">' + nome + '</div><div class="vinculo-teen-meta">Nível ' + (t.nivel || 1) + ' • ' + (t.xp || 0) + ' XP</div></div><span class="vinculo-status">' + _ic('check') + ' Ativo</span></div>';
+        }
+        box.innerHTML = html;
+      } catch(e) {
+        box.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">Não foi possível carregar os vínculos.</p>';
+      }
+    }
+
+    /* PREFERÊNCIAS — Supabase (tabela preferencias_usuario, chave = uid) */
+    async function salvarPrefs() {
+      var prefs = {
+        fonte: document.getElementById('pref-fonte').value,
+        reduzAnim: document.getElementById('pref-reduz-anim').checked,
+        anim: document.getElementById('pref-resumo').checked,
+        updated_at: new Date().toISOString()
+      };
+      try {
+        await sb.from('preferencias_usuario').upsert(
+          Object.assign({ id_neurodivergente: _uid }, prefs),
+          { onConflict: 'id_neurodivergente' }
+        );
+      } catch(e) { console.warn('[Prefs] Erro ao salvar:', e.message); }
+    }
+
+    async function carregarPrefs() {
+      try {
+        var { data: p } = await sb.from('preferencias_usuario').select('*').eq('id_neurodivergente', _uid).single();
+        if (!p) return;
+        if (p.fonte) document.getElementById('pref-fonte').value = p.fonte;
+        if (p.reduzAnim !== undefined && p.reduzAnim !== null) document.getElementById('pref-reduz-anim').checked = p.reduzAnim;
+        if (p.anim !== undefined && p.anim !== null) document.getElementById('pref-resumo').checked = p.anim;
+        aplicarFonteLocal();
+      } catch(e) { /* primeira visita: ainda sem registro */ }
+    }
+
+    function aplicarFonteLocal() {
+      var v = document.getElementById('pref-fonte').value;
+      document.documentElement.style.fontSize = v === 'grande' ? '108%' : v === 'muito-grande' ? '116%' : '100%';
+    }
+    function aplicarFonte() { aplicarFonteLocal(); salvarPrefs(); }
+
+    function excluirConta() {
+      if (confirm('Você tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.')) {
+        if (confirm('Última confirmação: excluir a conta permanentemente?')) {
+          alert('Para excluir sua conta definitivamente, entre em contato com o suporte do LumiTEA.');
+        }
+      }
+    }
+
+    async function sairDaConta() {
+      await sb.auth.signOut();
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

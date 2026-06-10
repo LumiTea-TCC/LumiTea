@@ -284,6 +284,8 @@
       .ball-wrap { width: 200px; height: 200px; }
     }
   </style>
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="js/core/icons.js" defer></script>
 </head>
 <body>
 
@@ -324,9 +326,9 @@
     </div>
 
     <div class="controles">
-      <button class="ctrl-btn primary" id="btnGravar">🎙️ Falar com a Lumi</button>
+      <button class="ctrl-btn primary" id="btnGravar"><i class="lt-i" data-lt-icon="mic" aria-hidden="true"></i> Falar com a Lumi</button>
       <button class="ctrl-btn" id="btnParar" disabled>⏹ Parar</button>
-      <button class="ctrl-btn" id="btnMute" title="Cortar resposta de voz">🔇 Silenciar</button>
+      <button class="ctrl-btn" id="btnMute" title="Cortar resposta de voz"><i class="lt-i" data-lt-icon="x" aria-hidden="true"></i> Silenciar</button>
     </div>
 
     <div class="transcricao" id="transcricao"></div>
@@ -376,7 +378,7 @@
 
   btnMute.addEventListener('click', function () {
     muted = !muted;
-    btnMute.textContent = muted ? '🔊 Som ligado' : '🔇 Silenciar';
+    btnMute.innerHTML = (window.LUMI?LUMI.icon(muted?'play':'x'):'') + (muted ? ' Som ligado' : ' Silenciar');
     if (muted) { try { player.pause(); player.currentTime = 0; } catch(e) {} }
   });
 

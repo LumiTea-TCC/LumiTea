@@ -1,45 +1,170 @@
 /* ============================================================
-   LumiTEA — tokens.css (v1.0)
-   Carregue depois de lumitea.css e app.css. Adiciona o sistema
-   de tokens (glassmorphism, sombras, easings) sem reescrever
-   o legado. Não muda a paleta — só refina.
+   LumiTEA — tokens.css (v2.0)
+   FONTE DA VERDADE do sistema visual. Carregue DEPOIS de
+   lumitea.css / app.css em TODAS as páginas.
+
+   v2: unifica as três paletas que competiam (lumitea.css :root,
+   tokens v1 e os hex soltos do app.css), corrige contraste WCAG AA,
+   adiciona escalas de espaçamento/raio/sombra/z-index/motion e o
+   sistema de ícones SVG (js/core/icons.js).
+   Documentação: DESIGN.md na raiz.
    ============================================================ */
 
 :root {
-  --brand-primary: #4a7eb5;
-  --brand-primary-dark: #2e5fa3;
-  --brand-violeta: #7c5cbf;
-  --brand-violeta-dark: #5b3fa3;
-  --brand-ambar: #e08e30;
-  --brand-verde: #3aa39f;
-  --brand-rosa: #d95bb5;
-
-  --surface: #ffffff;
-  --surface-glass: rgba(255, 255, 255, 0.72);
+  /* ── Cor: superfícies ─────────────────────────────────────── */
+  --bg:          #eef7ff;   /* fundo geral da página            */
+  --bg-2:        #f4f8fd;   /* painéis, faixas, inputs          */
+  --surface:     #ffffff;   /* cards                            */
+  --surface-glass:        rgba(255, 255, 255, 0.72);
   --surface-glass-strong: rgba(255, 255, 255, 0.84);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-blur: 18px;
+  --glass-border:         rgba(255, 255, 255, 0.5);
+  --glass-blur:           18px;
 
-  --ink-strong: #1a2e4a;
-  --ink: #3d6080;
-  --ink-soft: #5a7fa8;
-  --ink-muted: #6b9ab8;
+  /* ── Cor: marca e ação ────────────────────────────────────── */
+  --brand:          #4a7eb5;  /* azul identidade (logo, acentos calmos) */
+  --brand-dark:     #2e5fa3;  /* gradientes de marca, hero cuidador     */
+  --primary:        #2196f3;  /* ícones, bordas ativas, links           */
+  --primary-action: #1976d2;  /* botões preenchidos (4.6:1 c/ branco)   */
+  --primary-dark:   #1565c0;  /* hover de botão                         */
+  --primary-light:  #64b5f6;
+  --primary-pale:   #e3f2fd;
+  --accent:         #42a5f5;
 
-  --shadow-1: 0 2px 8px rgba(74, 126, 181, 0.06);
-  --shadow-2: 0 6px 22px rgba(74, 126, 181, 0.10);
-  --shadow-3: 0 12px 32px rgba(74, 126, 181, 0.16);
-  --shadow-glow: 0 0 0 3px rgba(74, 126, 181, 0.18);
+  /* delight teen (usar com parcimônia; nunca na área do cuidador) */
+  --violeta:      #7c5cbf;
+  --violeta-dark: #5b3fa3;
+  --ambar:        #e08e30;
+  --verde:        #3aa39f;
+  --rosa:         #d95bb5;
 
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 20px;
-  --r-2xl: 24px;
+  /* ── Cor: texto (validado ≥ 4.5:1 sobre --bg/--bg-2/branco) ── */
+  --text-main:  #1a2e4a;   /* títulos                       */
+  --text-soft:  #3d6080;   /* corpo (6.6:1)                 */
+  --text-muted: #4e6f95;   /* labels, metadados (5.2:1)     */
+  /* decorativo, NUNCA texto: */
+  --ink-faint:  #9ab4cf;
 
-  --ease-soft: cubic-bezier(.22, .61, .36, 1);
-  --focus-ring: 0 0 0 3px rgba(74, 126, 181, 0.45);
+  /* ── Cor: estados semânticos (texto + fundo pareados) ─────── */
+  --success:     #2e7d32;  --success-bg: #ecf7ed;  --success-border: rgba(76,175,80,.25);
+  --warning:     #7a4f1a;  --warning-bg: #fcf1e3;  --warning-border: rgba(224,142,48,.30);
+  --danger:      #c62828;  --danger-bg:  #fdecec;  --danger-border:  rgba(244,67,54,.30);
+  --info:        #1565c0;  --info-bg:    #e8f1fc;  --info-border:    rgba(33,150,243,.28);
+
+  /* ── Bordas ───────────────────────────────────────────────── */
+  --border:        #b3d9f8;                  /* inputs, divisões fortes  */
+  --border-soft:   rgba(74,126,181,0.16);    /* cards                    */
+  --border-faint:  rgba(74,126,181,0.10);    /* divisores internos       */
+
+  /* ── Espaçamento (escala 4px) ─────────────────────────────── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-7: 28px; --sp-8: 32px; --sp-9: 40px; --sp-10: 48px;
+
+  /* ── Raio ─────────────────────────────────────────────────── */
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
+  /* legado (não usar em código novo): */
+  --r-2xl: 20px; --radius: var(--r-lg); --radius-lg: var(--r-xl);
+
+  /* ── Sombras (escolha sombra OU borda, nunca as duas) ─────── */
+  --shadow-1: 0 2px 8px  rgba(74, 126, 181, 0.08);
+  --shadow-2: 0 6px 18px rgba(74, 126, 181, 0.12);
+  --shadow-3: 0 12px 28px rgba(74, 126, 181, 0.18);
+  --shadow:   rgba(33, 150, 243, 0.15); /* legado lumitea.css */
+
+  /* ── Z-index semântico ────────────────────────────────────── */
+  --z-nav:    200;
+  --z-fab:    300;
+  --z-banner: 400;
+  --z-drawer: 500;
+  --z-modal:  600;
+  --z-toast:  700;
+
+  /* ── Motion ───────────────────────────────────────────────── */
+  --dur-fast: 150ms;   /* hover, foco, press                    */
+  --dur-base: 220ms;   /* entrada de conteúdo, toggles          */
+  --dur-slow: 400ms;   /* reveals de landing, barras de XP      */
+  --ease-out:      cubic-bezier(0.25, 1, 0.5, 1);   /* quart    */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft:     cubic-bezier(0.22, 0.61, 0.36, 1); /* legado */
+
+  --focus-ring: 0 0 0 3px rgba(25, 118, 210, 0.40);
+
+  /* ── Aliases legado tokens v1 (ink) ───────────────────────── */
+  --brand-primary: var(--brand);
+  --brand-primary-dark: var(--brand-dark);
+  --brand-violeta: var(--violeta);
+  --brand-violeta-dark: var(--violeta-dark);
+  --brand-ambar: var(--ambar);
+  --brand-verde: var(--verde);
+  --brand-rosa: var(--rosa);
+  --ink-strong: var(--text-main);
+  --ink:        var(--text-soft);
+  --ink-soft:   var(--text-soft);
+  --ink-muted:  var(--text-muted);
 }
 
-/* ==== Utilitário glass ==== */
+/* ============================================================
+   ÍCONES — par do js/core/icons.js
+   Uso estático:  <i class="lt-i" data-lt-icon="bell"></i>
+   Uso em JS:     LUMI.icon('bell')  →  string SVG
+   ============================================================ */
+.lt-i { display: inline-flex; width: 1.25em; height: 1.25em; flex-shrink: 0; }
+.lt-i svg, svg.lt-ic {
+  width: 100%; height: 100%;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
+}
+svg.lt-ic { width: 1.25em; height: 1.25em; vertical-align: -0.25em; flex-shrink: 0; }
+.lt-i--sm, svg.lt-ic--sm { width: 1em;   height: 1em; }
+.lt-i--lg, svg.lt-ic--lg { width: 1.6em; height: 1.6em; }
+
+/* ============================================================
+   ACESSIBILIDADE GLOBAL
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* reveals de landing: conteúdo visível imediatamente */
+  .reveal-section, .reveal-scale { opacity: 1 !important; transform: none !important; }
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--r-sm);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── Skeleton (loading de dados em telas de produto) ─────────── */
+.lt-skeleton {
+  background: linear-gradient(90deg, #e7f0fa 25%, #f2f8fe 50%, #e7f0fa 75%);
+  background-size: 200% 100%;
+  animation: lt-skel 1.4s ease infinite;
+  border-radius: var(--r-sm);
+  color: transparent !important;
+  pointer-events: none;
+}
+@keyframes lt-skel { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .lt-skeleton { animation: none; background: #e7f0fa; }
+}
+
+/* ── Entrada suave de conteúdo carregado (estado, não coreografia) */
+.lt-enter { animation: lt-enter var(--dur-base) var(--ease-out) both; }
+@keyframes lt-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ==== Utilitário glass (legado, manter raro) ==== */
 .lt-glass {
   background: var(--surface-glass);
   -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -49,26 +174,8 @@
   box-shadow: var(--shadow-2);
 }
 
-/* ==== Acessibilidade ==== */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
-  }
-}
-
-:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-/* ==== Modo sobrecarga (data attr no <html>) ==== */
-html[data-modo-calmo="true"] {
-  filter: brightness(.92);
-}
+/* ==== Modo sobrecarga / calmo (soberano sobre QUALQUER motion) ==== */
+html[data-modo-calmo="true"] { filter: brightness(.92); }
 html[data-modo-calmo="true"] *,
 html[data-modo-calmo="true"] *::before,
 html[data-modo-calmo="true"] *::after {
@@ -81,11 +188,11 @@ html[data-modo-calmo="true"] *::after {
   position: fixed;
   right: 18px;
   bottom: 18px;
-  z-index: 90;
+  z-index: var(--z-fab);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 18px;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 18px;
   min-height: 48px;
   border-radius: 99px;
   background: linear-gradient(135deg, #e08e30, #c2741d);
@@ -96,7 +203,7 @@ html[data-modo-calmo="true"] *::after {
   font-size: .88rem;
   font-weight: 800;
   box-shadow: 0 8px 24px rgba(224, 142, 48, .35);
-  transition: transform .18s var(--ease-soft);
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .lt-sobrecarga-fab:hover { transform: translateY(-2px); }
 .lt-sobrecarga-fab:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(224, 142, 48, .45), 0 8px 24px rgba(224, 142, 48, .35); }
@@ -107,7 +214,7 @@ html[data-modo-calmo="true"] *::after {
 
 /* ==== Chip de check-in de evento (canto inferior esquerdo) ==== */
 .lt-checkin {
-  position: fixed; bottom: 18px; left: 18px; z-index: 90;
+  position: fixed; bottom: 18px; left: 18px; z-index: var(--z-fab);
   width: min(320px, calc(100vw - 36px));
   background: var(--surface-glass-strong);
   -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -115,8 +222,8 @@ html[data-modo-calmo="true"] *::after {
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
   padding: 14px 16px;
-  box-shadow: 0 12px 32px rgba(74,126,181,.22);
-  animation: lt-checkin-in .3s var(--ease-soft);
+  box-shadow: var(--shadow-3);
+  animation: lt-checkin-in var(--dur-base) var(--ease-out);
 }
 @keyframes lt-checkin-in {
   from { opacity: 0; transform: translateY(8px); }
@@ -125,31 +232,31 @@ html[data-modo-calmo="true"] *::after {
 .lt-checkin-x {
   position: absolute; top: 8px; right: 10px;
   background: transparent; border: none; cursor: pointer;
-  font-size: 1.4rem; line-height: 1; color: #9ab4cf; padding: 4px;
+  font-size: 1.4rem; line-height: 1; color: var(--text-muted); padding: 4px;
 }
-.lt-checkin-x:hover { color: var(--ink-strong); }
+.lt-checkin-x:hover { color: var(--text-main); }
 .lt-checkin-head { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; padding-right: 18px; }
 .lt-checkin-emoji { font-size: 1.5rem; }
-.lt-checkin-titulo { font-family: 'Baloo 2', sans-serif; font-size: .95rem; font-weight: 800; color: var(--ink-strong); margin: 0; }
-.lt-checkin-quando { font-size: .78rem; color: var(--ink-soft); margin: 2px 0 0; }
+.lt-checkin-titulo { font-family: 'Baloo 2', sans-serif; font-size: .95rem; font-weight: 800; color: var(--text-main); margin: 0; }
+.lt-checkin-quando { font-size: .78rem; color: var(--text-muted); margin: 2px 0 0; }
 .lt-checkin-acoes { display: flex; gap: 6px; flex-wrap: wrap; }
 .lt-checkin-acoes a,
 .lt-checkin-acoes button {
-  flex: 1; min-width: 90px; min-height: 40px;
+  flex: 1; min-width: 90px; min-height: 44px;
   padding: 8px 10px;
   border: 1.5px solid rgba(74,126,181,.22);
   background: white; border-radius: 10px;
   font-family: 'Nunito', sans-serif; font-size: .78rem; font-weight: 800;
-  color: var(--ink-strong); cursor: pointer; text-decoration: none;
+  color: var(--text-main); cursor: pointer; text-decoration: none;
   text-align: center; display: inline-flex; align-items: center; justify-content: center;
-  transition: all .18s var(--ease-soft);
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
 }
 .lt-checkin-acoes a:hover,
-.lt-checkin-acoes button:hover { border-color: var(--brand-primary); background: #eaf1fb; }
+.lt-checkin-acoes button:hover { border-color: var(--brand); background: #eaf1fb; }
 
 /* ==== Banner modo calmo ==== */
 .lt-calmo-banner {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 95;
+  position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-banner);
   background: rgba(224,142,48,.95); color: white;
   padding: 8px 14px; text-align: center; font-weight: 800; font-size: .85rem;
   display: none;

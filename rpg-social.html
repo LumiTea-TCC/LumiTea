@@ -143,6 +143,7 @@
    .rpg-bar-fill { transition:none; }
  }
  </style>
+  <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -588,7 +589,7 @@
      const concluido = estado.capitulosConcluidos.includes(cap.id);
      const atual = idx === estado.capituloIdx && !concluido;
      const cls = 'rpg-cap ' + (liberado ? '' : 'bloq') + ' ' + (atual ? 'atual' : '') + ' ' + (concluido ? 'ok' : '');
-     const emoji = concluido ? '✓' : (liberado ? cap.emoji : '🔒');
+     const emoji = concluido ? ((window.LUMI&&LUMI.icon('check'))||'✓') : (liberado ? cap.emoji : ((window.LUMI&&LUMI.icon('lock'))||''));
      const acao = atual ? 'continuar()' : 'abrirCapitulo(' + idx + ')';
      const rotulo = concluido ? 'Revisitar' : (atual ? 'Continuar' : (liberado ? 'Começar' : 'Bloqueado'));
      h += '<li class="' + cls.trim() + '">' +

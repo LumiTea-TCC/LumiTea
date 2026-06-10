@@ -137,6 +137,7 @@
     @keyframes rtd{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
     .empty-rp{text-align:center;padding:16px;font-size:.76rem;color:var(--text-muted);font-weight:700}
   </style>
+  <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
   <div class="bg-layer">
@@ -191,7 +192,7 @@
 
       <!-- Hoje -->
       <div class="mini-today-box">
-        <span style="font-size:1.5rem">📅</span>
+        <i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i>
         <div>
           <div class="mtb-date" id="hoje-label">Hoje</div>
           <div class="mtb-sub">Selecione um dia para ver sua agenda</div>
@@ -213,7 +214,7 @@
       <!-- Form adicionar -->
       <div class="form-card">
         <div class="fc-title">
-          <div class="fc-icon" style="background:#e3f2fd">➕</div>
+          <div class="fc-icon" style="background:#e3f2fd;color:#1565c0"><i class="lt-i" data-lt-icon="plus" aria-hidden="true"></i></div>
           Adicionar Evento
         </div>
 
@@ -299,7 +300,7 @@
           </select>
         </div>
 
-        <button class="btn-add" id="btn-add" onclick="adicionarEvento()">✨ Salvar evento</button>
+        <button class="btn-add" id="btn-add" onclick="adicionarEvento()"><i class="lt-i" data-lt-icon="plus" aria-hidden="true"></i> Salvar evento</button>
       </div>
     </div>
 
@@ -317,7 +318,7 @@
 
       <!-- Aviso cuidador -->
       <div class="cuid-strip" id="cuid-strip">
-        <div class="cs-icon">👨‍👧</div>
+        <div class="cs-icon"><i class="lt-i lt-i--lg" data-lt-icon="users" aria-hidden="true"></i></div>
         <div>
           <div class="cs-txt" id="cs-txt">Novo evento do seu cuidador!</div>
           <div class="cs-sub" id="cs-sub">Confira na agenda</div>
@@ -327,12 +328,12 @@
       <!-- Eventos do dia -->
       <div class="eventos-box">
         <div class="eb-title">
-          <span style="font-size:1.1rem">📋</span>
+          <i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i>
           <span id="eb-day-label">Eventos de hoje</span>
         </div>
         <div id="ev-lista">
           <div class="empty-state">
-            <div class="es-icon">🗓️</div>
+            <div class="es-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>
             <div class="es-txt">Selecione um dia</div>
             <div class="es-sub">Clique no mini calendário para ver os eventos</div>
           </div>
@@ -341,7 +342,7 @@
 
       <!-- Roleplay pré-evento -->
       <div class="rp-prep">
-        <div class="rp-title">🎮 Preparar com Roleplay</div>
+        <div class="rp-title"><i class="lt-i" data-lt-icon="play" aria-hidden="true"></i> Preparar com Roleplay</div>
         <div class="rp-sub">Escolha um evento e pratique com a Lumi antes do grande dia!</div>
         <div class="rp-list" id="rp-list">
           <div class="empty-rp">Adicione um evento com roleplay ativado para começar!</div>
@@ -383,7 +384,7 @@
       document.getElementById('nav-user-name').textContent=_nome;
       var hoje=new Date();
       document.getElementById('ev-data').value=hoje.toISOString().slice(0,10);
-      document.getElementById('hoje-label').textContent='📅 '+hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+      document.getElementById('hoje-label').textContent=hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
       await carregarEvs();
       render();
       selDia(hoje.toISOString().slice(0,10));
@@ -431,7 +432,7 @@
       var evsDia=_evs.filter(function(e){return(e.data_evento||'').slice(0,10)===ds});
       document.getElementById('ah-count').textContent=evsDia.length+' evento'+(evsDia.length!==1?'s':'');
       var lista=document.getElementById('ev-lista');
-      if(!evsDia.length){lista.innerHTML='<div class="empty-state"><div class="es-icon">✨</div><div class="es-txt">Nenhum evento aqui</div><div class="es-sub">Que tal adicionar algo no formulário ao lado?</div></div>';return}
+      if(!evsDia.length){lista.innerHTML='<div class="empty-state"><div class="es-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div><div class="es-txt">Nenhum evento aqui</div><div class="es-sub">Que tal adicionar algo no formulário ao lado?</div></div>';return}
       lista.innerHTML=evsDia.map(function(ev){
         var hora=ev.hora_evento?ev.hora_evento.slice(0,5):'Sem hora';
         var cuid=ev.origem==='cuidador';
@@ -440,13 +441,13 @@
           '<div class="ev-body">'+
             '<div class="ev-tit">'+(ev.titulo||'Evento')+'</div>'+
             '<div class="ev-meta">'+
-              '<span class="ev-time">🕐 '+hora+'</span>'+
-              (cuid?'<span class="ev-tag cuid-tag">👨‍👧 Cuidador</span>':'')+
-              (ev.roleplay_prep?'<span class="ev-tag rp-tag">🎮 Roleplay</span>':'')+
+              '<span class="ev-time">'+(window.LUMI?LUMI.icon('clock'):'')+' '+hora+'</span>'+
+              (cuid?'<span class="ev-tag cuid-tag">'+(window.LUMI?LUMI.icon('users'):'')+' Cuidador</span>':'')+
+              (ev.roleplay_prep?'<span class="ev-tag rp-tag">'+(window.LUMI?LUMI.icon('play'):'')+' Roleplay</span>':'')+
             '</div>'+
             (ev.descricao?'<div class="ev-desc">'+ev.descricao+'</div>':'')+
           '</div>'+
-          (!cuid?'<button class="ev-del" onclick="delEv(\''+ev.id+'\')">🗑</button>':'')+
+          (!cuid?'<button class="ev-del" onclick="delEv(\''+ev.id+'\')">'+(window.LUMI?LUMI.icon('trash'):'')+'</button>':'')+
         '</div>'
       }).join('');
     }
@@ -483,7 +484,7 @@
         try{var {data:nd}=await sb.from('neurodivergente').select('xp').eq('id',_uid).single();if(nd)await sb.from('neurodivergente').update({xp:(nd.xp||0)+10}).eq('id',_uid)}catch(e){}
         await carregarEvs();render();if(_sel)selDia(_sel);
       }catch(e){alert('Erro ao salvar. Tente novamente.')}
-      btn.disabled=false;btn.textContent='✨ Salvar evento';
+      btn.disabled=false;btn.innerHTML=(window.LUMI?LUMI.icon('plus'):'')+' Salvar evento';
     }
 
     async function delEv(id){
@@ -498,7 +499,7 @@
       if(evsCuid.length>0){
         var strip=document.getElementById('cuid-strip');strip.classList.add('show');
         document.getElementById('cs-txt').textContent='Seu cuidador adicionou: '+evsCuid[0].titulo;
-        document.getElementById('cs-sub').textContent='📅 '+new Date(evsCuid[0].data_evento+'T12:00:00').toLocaleDateString('pt-BR');
+        document.getElementById('cs-sub').textContent=new Date(evsCuid[0].data_evento+'T12:00:00').toLocaleDateString('pt-BR');
         setTimeout(function(){strip.classList.remove('show')},8000);
       }
     }

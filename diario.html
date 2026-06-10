@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -109,15 +110,15 @@
     <!-- ── SIDEBAR ──────────────────────────────────────────── -->
     <div class="diario-sidebar">
       <div class="ds-header">
-        <h2>📓 Meu Diário</h2>
+        <h2><i class="lt-i" data-lt-icon="book-open" aria-hidden="true"></i> Meu Diário</h2>
         <p>Um espaço só seu para expressar sentimentos</p>
       </div>
 
-      <button class="ds-nova-btn" onclick="novaEntrada()">✏️ Nova Entrada</button>
+      <button class="ds-nova-btn" onclick="novaEntrada()"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Nova Entrada</button>
 
       <div class="ds-lista" id="ds-lista">
         <div class="ds-vazio">
-          <span class="dv-emoji">📝</span>
+          <span class="dv-emoji"><i class="lt-i lt-i--lg" data-lt-icon="edit" aria-hidden="true"></i></span>
           <p>Carregando suas entradas...</p>
         </div>
       </div>
@@ -128,7 +129,7 @@
 
       <!-- Tela de boas-vindas -->
       <div class="dm-boas-vindas" id="tela-inicio">
-        <div class="bv-emoji">📓</div>
+        <div class="bv-emoji"><i class="lt-i lt-i--lg" data-lt-icon="book-open" aria-hidden="true"></i></div>
         <h2>Seu Diário Pessoal</h2>
         <p>Aqui você pode escrever livremente sobre seus sentimentos, seu dia e tudo que quiser expressar. A Lumi vai te ajudar a compreender suas emoções com carinho.</p>
         <div class="dm-stats">
@@ -136,7 +137,7 @@
           <div class="dm-stat"><div class="dm-stat-val" id="stat-sequencia">0</div><div class="dm-stat-label">Dias seguidos</div></div>
           <div class="dm-stat"><div class="dm-stat-val" id="stat-humor">😊</div><div class="dm-stat-label">Humor hoje</div></div>
         </div>
-        <button class="btn-purple" onclick="novaEntrada()" style="margin-top:8px;padding:13px 28px;font-size:1rem;">✏️ Escrever agora</button>
+        <button class="btn-purple" onclick="novaEntrada()" style="margin-top:8px;padding:13px 28px;font-size:1rem;"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Escrever agora</button>
       </div>
 
       <!-- Tela de edição -->
@@ -155,7 +156,7 @@
         <input class="de-titulo-input" id="de-titulo" type="text" placeholder="Título desta entrada (opcional)..." maxlength="80">
 
         <div>
-          <div style="font-size:0.78rem;font-weight:800;color:var(--primary-dark);margin-bottom:8px;">💡 A Lumi pergunta:</div>
+          <div style="font-size:0.78rem;font-weight:800;color:var(--primary-dark);margin-bottom:8px;"><i class="lt-i" data-lt-icon="lightbulb" aria-hidden="true"></i> A Lumi pergunta:</div>
           <div class="de-perguntas" id="de-perguntas"></div>
         </div>
 
@@ -163,7 +164,7 @@
 
         <div class="de-acoes">
           <button class="btn-outline-gray" onclick="cancelarEdicao()">Cancelar</button>
-          <button class="btn-purple" onclick="salvarEntrada()">💾 Salvar e ver reflexão da Lumi</button>
+          <button class="btn-purple" onclick="salvarEntrada()"><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Salvar e ver reflexão da Lumi</button>
         </div>
 
       </div>
@@ -181,8 +182,8 @@
             </div>
           </div>
           <div class="dl-acoes">
-            <button class="btn-outline-gray" onclick="editarEntrada()" title="Editar">✏️ Editar</button>
-            <button class="btn-red" onclick="excluirEntrada()" title="Excluir">🗑️</button>
+            <button class="btn-outline-gray" onclick="editarEntrada()" title="Editar"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Editar</button>
+            <button class="btn-red" onclick="excluirEntrada()" title="Excluir" aria-label="Excluir"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i></button>
           </div>
         </div>
 
@@ -190,7 +191,7 @@
 
         <div class="lumi-reflexao">
           <div class="lr-header">
-            <div class="lr-avatar">🐻</div>
+            <div class="lr-avatar"><img src="img/urso-joia.png" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover"></div>
             <div>
               <div class="lr-titulo">Reflexão da Lumi</div>
               <div class="lr-sub">Análise e apoio emocional personalizado</div>
@@ -285,7 +286,7 @@
     function renderSidebar() {
       const lista = document.getElementById('ds-lista');
       if (_entradas.length === 0) {
-        lista.innerHTML = '<div class="ds-vazio"><span class="dv-emoji">📖</span><p>Nenhuma entrada ainda.<br>Que tal escrever a primeira?</p></div>';
+        lista.innerHTML = '<div class="ds-vazio"><span class="dv-emoji"><i class="lt-i lt-i--lg" data-lt-icon="book-open" aria-hidden="true"></i></span><p>Nenhuma entrada ainda.<br>Que tal escrever a primeira?</p></div>';
         return;
       }
       lista.innerHTML = _entradas.map(e => {
@@ -355,7 +356,7 @@
     async function salvarEntrada() {
       const titulo = document.getElementById('de-titulo').value.trim() || 'Entrada de ' + new Date().toLocaleDateString('pt-BR');
       const texto = document.getElementById('de-texto').value.trim();
-      if (!texto) { alert('Escreva algo antes de salvar! 📝'); return; }
+      if (!texto) { alert('Escreva algo antes de salvar.'); return; }
 
       const entrada = {
         id: _editandoId || 'e_' + Date.now(),

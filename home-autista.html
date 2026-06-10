@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -118,7 +119,7 @@
           <p>Este é seu espaço seguro. Aqui você encontra a Lumi para conversar, jogos de roleplay e ferramentas para tornar sua rotina mais leve e divertida.</p>
 
           <div class="xp-banner">
-            <div class="nivel-ball" id="nivel-icon">⭐</div>
+            <div class="nivel-ball" id="nivel-icon"><i class="lt-i" data-lt-icon="star" aria-hidden="true"></i></div>
             <div class="xp-details">
               <div class="xp-title">Nível <span id="xp-nivel">1</span> — Continue evoluindo!</div>
               <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
@@ -137,20 +138,20 @@
       <div class="humor-card">
         <h3>Como você está agora?</h3>
         <div class="humor-chips">
-          <button class="humor-chip" onclick="registrarHumor(this, 5)"> Ótimo</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 4)"> Bem</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 3)"> Mais ou menos</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 2)"> Triste</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 1)"> Ansioso</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 0)"> Com raiva</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 5)">😄 Ótimo</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 4)">🙂 Bem</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 3)">😐 Mais ou menos</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 2)">😔 Triste</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 1)">😰 Ansioso</button>
+          <button class="humor-chip" onclick="registrarHumor(this, 0)">😤 Com raiva</button>
         </div>
-        <div class="humor-saved" id="humor-saved">✅ Humor registrado! Obrigado por compartilhar.</div>
+        <div class="humor-saved" id="humor-saved"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Humor registrado! Obrigado por compartilhar.</div>
       </div>
 
       <!-- VÍNCULO -->
       <div id="vinculo-wrapper">
         <div class="vinculo-section" id="vinculo-card">
-          <div class="v-icon">🔗</div>
+          <div class="v-icon"><i class="lt-i lt-i--lg" data-lt-icon="link" aria-hidden="true"></i></div>
           <div class="v-info">
             <h4>Conecte-se com seu cuidador</h4>
             <p>Compartilhe este código com quem cuida de você para ficarem conectados no LumiTEA.</p>
@@ -158,7 +159,7 @@
           <div class="codigo-badge" id="meu-codigo" onclick="copiarCodigoVinculo()" title="Clique para copiar">------</div>
         </div>
         <div id="vinculo-ativo-teen">
-          <span style="font-size:1.3rem">💚</span>
+          <i class="lt-i lt-i--lg" data-lt-icon="heart" aria-hidden="true" style="color:#2e7d32"></i>
           Você está conectado com seu cuidador! Ele acompanha seu progresso com carinho.
         </div>
       </div>
@@ -172,15 +173,15 @@
         </div>
         <div class="features-grid">
           <div class="feature-card" style="--feature-color:#4a7eb5;--feature-bg:#eaf1fb;">
-            <div class="feature-icon-wrap">🐻‍❄️</div>
-            <h3>Conversar com o Lumi Theo 🐻‍❄️</h3>
+            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="message-circle" aria-hidden="true"></i></div>
+            <h3>Conversar com o Lumi Theo</h3>
             <p>O Lumi Theo é seu assistente virtual e parceiro de conversas. Fale sobre qualquer coisa: ansiedade, escola, amigos ou como foi o seu dia. Ele nunca julga e está sempre aqui.</p>
             <a class="feature-link" href="conversa.html" style="color:#4a7eb5;">
               Ir para o chat<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
             </a>
           </div>
           <div class="feature-card" style="--feature-color:#7c5cbf;--feature-bg:#f3eeff;">
-            <div class="feature-icon-wrap">🎮</div>
+            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="play" aria-hidden="true"></i></div>
             <h3>Praticar Roleplay</h3>
             <p>O Roleplay permite simular situações do cotidiano — como uma conversa difícil na escola ou pedir ajuda em uma loja — em um ambiente seguro, sem pressão e com feedbacks gentis da Lumi.</p>
             <a class="feature-link" href="roleplay.html" style="color:#7c5cbf;">
@@ -188,15 +189,15 @@
             </a>
           </div>
           <div class="feature-card" style="--feature-color:#2e5fa3;--feature-bg:#e9f0fb;">
-            <div class="feature-icon-wrap">🛡️</div>
-            <h3>A Jornada do Theo 🗺️</h3>
+            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="shield" aria-hidden="true"></i></div>
+            <h3>A Jornada do Theo</h3>
             <p>Um RPG calmo e previsível: escolha um capítulo do dia a dia e atravesse cada momento no seu ritmo, usando habilidades sociais e de regulação. Nenhuma escolha erra — só aprende.</p>
             <a class="feature-link" href="rpg-social.html" style="color:#2e5fa3;">
               Começar a jornada<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
             </a>
           </div>
           <div class="feature-card" style="--feature-color:#e08e30;--feature-bg:#fff8ee;">
-            <div class="feature-icon-wrap">📅</div>
+            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>
             <h3>Calendário de Rotina</h3>
             <p>Monte sua rotina semanal de forma visual e colorida. Defina lembretes para atividades, compromissos e momentos de autocuidado. A previsibilidade traz mais tranquilidade ao seu dia.</p>
             <a class="feature-link" href="calendario.html" style="color:#e08e30;">
@@ -204,7 +205,7 @@
             </a>
           </div>
           <div class="feature-card" style="--feature-color:#d95bb5;--feature-bg:#fdf0f9;">
-            <div class="feature-icon-wrap">🏆</div>
+            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="award" aria-hidden="true"></i></div>
             <h3>XP e Conquistas</h3>
             <p>A cada conversa, roleplay completo ou rotina cumprida, você ganha pontos de experiência (XP) e sobe de nível. Desbloqueie conquistas especiais e veja seu progresso!</p>
             <a class="feature-link" href="conta.html" style="color:#d95bb5;">
@@ -212,7 +213,7 @@
             </a>
           </div>
           <div class="feature-card" style="--feature-color:#5a8fa0;--feature-bg:#eef6f8;">
-            <div class="feature-icon-wrap">👤</div>
+            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="user" aria-hidden="true"></i></div>
             <h3>Meu Perfil</h3>
             <p>Gerencie suas preferências, informações de acesso e personalize como o LumiTEA se comporta para você. Tudo configurado no seu ritmo e do jeito que faz mais sentido.</p>
             <a class="feature-link" href="conta.html" style="color:#5a8fa0;">
@@ -246,7 +247,7 @@
     var _userId = null;
     var _perfil = null;
     var NIVEL_XP = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
-    var NIVEL_EMOJIS = ['⭐','⭐','🌟','🌟','💫','💫','🏅','🏅','🥇','🥇','🏆'];
+    var NIVEL_ICONES = ['star','star','star','star','sparkles','sparkles','sparkles','award','award','award','award'];
 
     async function iniciarPagina() {
       const { data: { session } } = await sb.auth.getSession();
@@ -298,7 +299,7 @@
       var el = document.getElementById('meu-codigo');
       if (!el || el.textContent === '------') return;
       navigator.clipboard.writeText(el.textContent).then(function() {
-        var old = el.textContent; el.textContent = 'Copiado! ✓';
+        var old = el.textContent; el.textContent = 'Copiado!';
         setTimeout(function() { el.textContent = old; }, 1800);
       });
     }
@@ -315,7 +316,7 @@
       setTimeout(function() { saved.classList.remove('show'); }, 3000);
       if (nivel <= 2) {
         setTimeout(function() {
-          if (confirm('Parece que você está se sentindo difícil agora. Quer conversar com a Lumi? Ela está aqui para ouvir você 🐻')) {
+          if (confirm('Parece que você está se sentindo difícil agora. Quer conversar com a Lumi? Ela está aqui para ouvir você.')) {
             window.location.href = 'conversa.html';
           }
         }, 500);

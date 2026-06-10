@@ -7,28 +7,32 @@
 
 
 /* =============================================================
-   1. VARIÁVEIS GLOBAIS (cores, sombras, bordas arredondadas)
+   1. VARIÁVEIS GLOBAIS
+   A fonte da verdade agora é css/tokens.css (v2), carregado por
+   último em todas as páginas. Este bloco mantém os mesmos nomes
+   como fallback (valores idênticos aos tokens) para o caso de
+   alguma página não carregar tokens.css.
    ============================================================= */
    :root {
     /* Cores principais */
     --bg:            #eef7ff;   /* Fundo geral da página */
     --surface:       #ffffff;   /* Fundo de cards e seções brancas */
-    --primary:       #2196f3;   /* Azul principal — botões, destaques */
+    --primary:       #2196f3;   /* Azul de acento — ícones, bordas, links */
     --primary-light: #64b5f6;   /* Azul claro — estrelas, detalhes */
     --primary-pale:  #e3f2fd;   /* Azul muito claro — fundos de ícones */
     --primary-dark:  #1565c0;   /* Azul escuro — hover de botões */
     --accent:        #42a5f5;   /* Azul médio — bordas pontilhadas */
     --accent2:       #90caf9;   /* Azul suave — blob de fundo */
-  
-    /* Cores de texto */
+
+    /* Cores de texto (≥ 4.5:1 sobre --bg/--surface — não clarear) */
     --text-main:  #1a2e4a;  /* Texto principal — títulos */
     --text-soft:  #3d6080;  /* Texto secundário — parágrafos */
-    --text-muted: #6b9ab8;  /* Texto apagado — labels, rodapé */
-  
+    --text-muted: #4e6f95;  /* Texto apagado — labels, rodapé */
+
     /* Bordas e sombras */
     --border: #b3d9f8;
     --shadow: rgba(33, 150, 243, 0.15);
-  
+
     /* Bordas arredondadas */
     --radius:    18px;  /* Cards e botões */
     --radius-lg: 28px;  /* Hero image e elementos grandes */
@@ -59,6 +63,10 @@
   }
   
   
+  /* Títulos equilibrados (linhas com larguras parecidas) */
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+
   /* =============================================================
      3. BACKGROUND — BLOBS DECORATIVOS
      Círculos desfocados fixos que criam profundidade visual

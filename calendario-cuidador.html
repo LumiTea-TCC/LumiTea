@@ -73,8 +73,10 @@
     .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #6b9ab8; }
     .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
   </style>
+  <link rel="stylesheet" href="css/tokens.css">
+  <script src="js/core/icons.js" defer></script>
 </head>
-<body class="app-body">
+<body class="app-body lt-pro">
 
   <div class="bg-layer">
     <div class="blob blob-1"></div>
@@ -120,17 +122,17 @@
       </div>
 
       <div class="event-box" style="margin-top:18px;">
-        <div class="event-box-title">📅 <span id="dia-sel-label">Selecione um dia</span></div>
-        <div id="eventos-do-dia"><div class="empty-ev"><div class="em-icon">📅</div>Selecione um dia para ver os eventos</div></div>
+        <div class="event-box-title"><i class="lt-i" data-lt-icon="calendar" aria-hidden="true"></i> <span id="dia-sel-label">Selecione um dia</span></div>
+        <div id="eventos-do-dia"><div class="empty-ev"><div class="em-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>Selecione um dia para ver os eventos</div></div>
       </div>
     </div>
 
     <div class="side-box">
       <div class="event-box">
-        <div class="event-box-title">👨‍👧 Adicionar Evento para o Adolescente</div>
+        <div class="event-box-title"><i class="lt-i" data-lt-icon="plus" aria-hidden="true"></i> Adicionar evento para o adolescente</div>
 
         <div class="sel-teen-box">
-          <span>👤</span>
+          <i class="lt-i" data-lt-icon="user" aria-hidden="true"></i>
           <select id="sel-teen">
             <option value="">Selecione o adolescente...</option>
           </select>
@@ -164,12 +166,12 @@
             <div class="color-btn" data-color="#7c5cbf" style="background:#7c5cbf" onclick="selColor(this)"></div>
           </div>
         </div>
-        <button class="btn-add-ev" onclick="adicionarEventoCuidador()">📅 Enviar para a agenda do adolescente</button>
-        <div id="ev-feedback" style="display:none;margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:#2e7d32;">✅ Evento adicionado com sucesso!</div>
+        <button class="btn-add-ev" onclick="adicionarEventoCuidador()"><i class="lt-i" data-lt-icon="send" aria-hidden="true"></i> Enviar para a agenda do adolescente</button>
+        <div id="ev-feedback" style="display:none;margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:#2e7d32;"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Evento adicionado com sucesso!</div>
       </div>
 
       <div class="event-box">
-        <div class="event-box-title">📊 Eventos desta semana</div>
+        <div class="event-box-title"><i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i> Eventos desta semana</div>
         <div id="semana-evs"></div>
       </div>
     </div>
@@ -282,20 +284,20 @@
       document.getElementById('dia-sel-label').textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
       var evs = _eventos.filter(function(e){ return (e.data_evento||'').slice(0,10) === dateStr; });
       var cont = document.getElementById('eventos-do-dia');
-      if (!evs.length) { cont.innerHTML = '<div class="empty-ev"><div class="em-icon">✨</div>Nenhum evento neste dia.</div>'; return; }
+      if (!evs.length) { cont.innerHTML = '<div class="empty-ev"><div class="em-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>Nenhum evento neste dia.</div>'; return; }
       cont.innerHTML = evs.map(function(ev) {
         var hora = ev.hora_evento ? ev.hora_evento.slice(0,5) : 'Sem hora';
         var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });
-        var origemTag = ev.origem === 'cuidador' ? '👨‍👧 Você adicionou' : '👤 '+(teen?teen.nome:'Adolescente');
+        var origemTag = ev.origem === 'cuidador' ? 'Você adicionou' : (teen?teen.nome:'Adolescente');
         return '<div class="event-item '+(ev.origem!=='cuidador'?'from-teen':'')+'">'
           +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
           +'<div class="ev-info">'
           +'<div class="ev-title">'+(ev.titulo||'Evento')+'</div>'
-          +'<div class="ev-time">🕐 '+hora+'</div>'
+          +'<div class="ev-time">'+(window.LUMI?LUMI.icon('clock'):'')+' '+hora+'</div>'
           +(ev.descricao?'<div class="ev-desc">'+ev.descricao+'</div>':'')
           +'<div class="teen-tag">'+origemTag+'</div>'
           +'</div>'
-          +(ev.origem==='cuidador'?'<button class="ev-del" onclick="deletarEvento(\''+ev.id+'\')">🗑</button>':'')
+          +(ev.origem==='cuidador'?'<button class="ev-del" onclick="deletarEvento(\''+ev.id+'\')">'+(window.LUMI?LUMI.icon('trash'):'')+'</button>':'')
           +'</div>';
       }).join('');
     }
@@ -331,9 +333,9 @@
       await sb.from('alertas').insert({
         id_neurodivergente: teenId,
         tipo: 'info',
-        titulo: '📅 Novo evento: ' + titulo,
+        titulo: 'Novo evento: ' + titulo,
         desc: 'Seu cuidador adicionou um evento para ' + new Date(data+'T12:00:00').toLocaleDateString('pt-BR'),
-        emoji: '👨‍👧',
+        emoji: '',
         lido: false,
         timestamp: new Date().toISOString()
       });
@@ -375,7 +377,7 @@
           +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
           +'<div class="ev-info"><div class="ev-title">'+(ev.titulo||'Evento')+'</div>'
           +'<div class="ev-time">'+new Date((ev.data_evento||'')+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})+'</div>'
-          +'<div class="teen-tag">'+(ev.origem==='cuidador'?'👨‍👧 Você':'👤 '+(teen?teen.nome:'Teen'))+'</div>'
+          +'<div class="teen-tag">'+(ev.origem==='cuidador'?'Você':(teen?teen.nome:'Adolescente'))+'</div>'
           +'</div></div>';
       }).join('');
     }
