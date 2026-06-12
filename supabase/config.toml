@@ -1,0 +1,6 @@
+project_id = "yuwdckenzpfdlyawkibn"
+
+[functions.groq-proxy]
+# Mantém a verificação de JWT da plataforma ligada (defesa em profundidade).
+# A própria função também valida a sessão do usuário via auth.getUser().
+verify_jwt = true

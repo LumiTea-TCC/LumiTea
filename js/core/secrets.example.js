@@ -6,9 +6,12 @@
    ============================================================ */
 (function (g) {
   g.LUMITEA_SECRETS = {
-    // Groq — https://console.groq.com/keys
-    GROQ_API_KEY:   '',
-    // ElevenLabs — https://elevenlabs.io (Profile → API Keys)
+    // ⚠️ A chave da Groq NÃO fica mais aqui (lado do cliente).
+    // Ela vive como secret no servidor (Supabase Edge Function "groq-proxy").
+    // Veja supabase/README-PROXY.md. Depois de publicar o proxy, REMOVA
+    // qualquer GROQ_API_KEY do seu secrets.js local e ROTACIONE a chave antiga.
+
+    // ElevenLabs (voz) — ainda client-side por enquanto (será movido depois).
     ELEVEN_API_KEY: ''
   };
 })(window);

@@ -13,6 +13,7 @@
  <link rel="stylesheet" href="lumitea.css">
  <link rel="stylesheet" href="app.css">
  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
  <script src="js/core/secrets.js"></script>
  <script src="js/core/config.js"></script>
@@ -234,17 +235,11 @@
  const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
  const { createClient } = supabase;
  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
- const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
- const GROQ_KEY = (window.LUMITEA && window.LUMITEA.GROQ_API_KEY) || '';
  const GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
  async function chamarGroq(systemPrompt, msgs, maxTokens) {
    async function tryModel(model) {
-     const r = await fetch(GROQ_API, {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-       body: JSON.stringify({ model: model, max_tokens: maxTokens || 700, temperature: 0.8,
-         messages: [{ role: 'system', content: systemPrompt }].concat(msgs) })
-     });
+     const r = await window.LUMITEA.groqFetch({ model: model, max_tokens: maxTokens || 700, temperature: 0.8,
+         messages: [{ role: 'system', content: systemPrompt }].concat(msgs) });
      if (!r.ok) throw new Error('HTTP ' + r.status);
      const d = await r.json();
      return d.choices?.[0]?.message?.content || '';
@@ -513,7 +508,7 @@
  if (m) {
  const sugs = JSON.parse(m[0]);
  const div = document.getElementById('rp-sugestoes');
- div.innerHTML = sugs.map(s => `<button class="rp-sug" onclick="usarSugestao(this)">${s}</button>`).join('');
+ div.innerHTML = sugs.map(s => `<button class="rp-sug" onclick="usarSugestao(this)">${window.LUMITEA.esc(s)}</button>`).join('');
  }
  } catch(e) {}
  }
@@ -537,7 +532,7 @@
  <div class="rp-av personagem">${_cenarioAtivo.emoji}</div>
  <div>
  <div class="rp-msg-name">${_cenarioAtivo.personagem.nome}</div>
- <div class="rp-bbl">${texto}</div>
+ <div class="rp-bbl">${window.LUMITEA.escBr(texto)}</div>
  </div>`;
  msgs.appendChild(div);
  msgs.scrollTop = msgs.scrollHeight;
@@ -550,7 +545,7 @@
  div.innerHTML = `
  <div>
  <div class="rp-msg-name">Você</div>
- <div class="rp-bbl">${texto}</div>
+ <div class="rp-bbl">${window.LUMITEA.escBr(texto)}</div>
  </div>
  <div class="rp-av user"></div>`;
  msgs.appendChild(div);
@@ -561,7 +556,7 @@
  const msgs = document.getElementById('rp-msgs');
  const div = document.createElement('div');
  div.className = 'rp-lumi-dica';
- div.innerHTML = ` <strong>Lumi diz:</strong> ${dica}`;
+ div.innerHTML = ` <strong>Lumi diz:</strong> ${window.LUMITEA.escBr(dica)}`;
  msgs.appendChild(div);
  msgs.scrollTop = msgs.scrollHeight;
  }

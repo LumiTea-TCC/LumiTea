@@ -4,11 +4,24 @@
    ================================================================ */
 
 var LumiIA = (function () {
-  var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+  // A chave da Groq vive NO SERVIDOR (Supabase Edge Function "groq-proxy").
+  // O cliente só conhece a URL do proxy e envia a sessão do usuário.
   function cfg() { return (window.LUMITEA || {}); }
-  function temChave() {
-    var k = cfg().GROQ_API_KEY;
-    return typeof k === 'string' && k.length > 10;
+  function proxyUrl() {
+    return (cfg().GROQ_PROXY_URL) ||
+           ((cfg().SUPABASE_URL || '').replace(/\/+$/, '') + '/functions/v1/groq-proxy');
+  }
+  function temChave() { return !!(cfg().SUPABASE_URL); }
+  async function authHeader() {
+    try {
+      var c = window.supabaseClient;
+      if (c && c.auth && c.auth.getSession) {
+        var r = await c.auth.getSession();
+        var tok = r && r.data && r.data.session && r.data.session.access_token;
+        if (tok) return 'Bearer ' + tok;
+      }
+    } catch (e) {}
+    return 'Bearer ' + (cfg().SUPABASE_ANON_KEY || '');
   }
 
   var PERSONALIDADE_BASE =
@@ -44,13 +57,15 @@ var LumiIA = (function () {
 
   async function chamarGroq(messages, opts) {
     opts = opts || {};
-    var apiKey = cfg().GROQ_API_KEY;
     var modelPrimary = cfg().GROQ_MODEL || 'llama-3.3-70b-versatile';
     var modelFallback = 'llama-3.1-8b-instant';
+    var url = proxyUrl();
+    var auth = await authHeader();
+    var anon = cfg().SUPABASE_ANON_KEY || '';
     async function tentar(model) {
-      var res = await fetch(GROQ_URL, {
+      var res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+        headers: { 'Content-Type': 'application/json', 'Authorization': auth, 'apikey': anon },
         body: JSON.stringify({ model: model, messages: messages,
           max_tokens: opts.maxTokens || 700, temperature: opts.temperature || 0.78 })
       });
@@ -76,7 +91,7 @@ var LumiIA = (function () {
   }
 
   async function responder(historico, opts, perfil) {
-    if (!temChave()) return { texto: 'A chave da IA não foi configurada. Edite js/core/config.js.' };
+    if (!temChave()) return { texto: 'A IA não está configurada (Supabase ausente).' };
     var systemPrompt = montarSystemPrompt(perfil || {}, opts && opts.contextoExtra);
     var messages = [{ role: 'system', content: systemPrompt }];
     var hist = (historico || []).slice(-20);

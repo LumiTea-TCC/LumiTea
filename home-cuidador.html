@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="lumitea.css">
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <script src="js/core/icons.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
@@ -323,8 +324,6 @@
   <script>
     const SUPABASE_URL      = 'https://yuwdckenzpfdlyawkibn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
-    const GROQ_KEY          = (window.LUMITEA && window.LUMITEA.GROQ_API_KEY) || '';
-    const GROQ_API          = 'https://api.groq.com/openai/v1/chat/completions';
     const GROQ_MODEL        = 'llama-3.3-70b-versatile';
 
     const { createClient } = supabase;
@@ -585,22 +584,22 @@
         var h = '<div class="relatorio-card" id="'+id+'">';
         h += '<div class="relatorio-header"><div class="relatorio-date">'+_ic('calendar')+' '+data+'</div>';
         h += '<span class="humor-badge '+hclass+'">'+(labels[rel.humor_geral]||'Neutro')+'</span></div>';
-        if (rel.resumo) h += '<div class="relatorio-resumo">'+rel.resumo+'</div>';
+        if (rel.resumo) h += '<div class="relatorio-resumo">'+window.LUMITEA.esc(rel.resumo)+'</div>';
         if (rel.pontos_atencao && rel.pontos_atencao.length) {
           h += '<div class="relatorio-section-title">'+_ic('eye')+' Pontos de atenção</div>';
-          h += '<ul class="relatorio-list">'+rel.pontos_atencao.map(function(p){return'<li>'+p+'</li>';}).join('')+'</ul>';
+          h += '<ul class="relatorio-list">'+rel.pontos_atencao.map(function(p){return'<li>'+window.LUMITEA.esc(p)+'</li>';}).join('')+'</ul>';
         }
         if (rel.dicas_cuidador && rel.dicas_cuidador.length) {
           h += '<div class="relatorio-section-title">'+_ic('lightbulb')+' Orientações para o cuidador</div>';
-          h += '<ul class="relatorio-list">'+rel.dicas_cuidador.map(function(d){return'<li><strong>'+(d.titulo||'')+':</strong> '+(d.descricao||d)+'</li>';}).join('')+'</ul>';
+          h += '<ul class="relatorio-list">'+rel.dicas_cuidador.map(function(d){return'<li><strong>'+window.LUMITEA.esc(d.titulo||'')+':</strong> '+window.LUMITEA.esc(d.descricao||d)+'</li>';}).join('')+'</ul>';
         }
         if (rel.sugestoes && rel.sugestoes.length) {
           h += '<div class="relatorio-section-title">'+_ic('edit')+' Sugestões</div>';
-          h += '<ul class="relatorio-list">'+rel.sugestoes.map(function(s){return'<li>'+s+'</li>';}).join('')+'</ul>';
+          h += '<ul class="relatorio-list">'+rel.sugestoes.map(function(s){return'<li>'+window.LUMITEA.esc(s)+'</li>';}).join('')+'</ul>';
         }
         if (rel.visao_psicologica) {
           h += '<div class="relatorio-section-title">'+_ic('shield')+' Visão psicológica (confidencial)</div>';
-          h += '<div class="relatorio-psi">'+rel.visao_psicologica+'</div>';
+          h += '<div class="relatorio-psi">'+window.LUMITEA.esc(rel.visao_psicologica)+'</div>';
         }
         h += '<button class="btn-pdf" onclick="baixarPDF(\''+id+'\',\''+data+'\')">'+_ic('download')+'Baixar PDF</button>';
         h += '</div>';
@@ -624,18 +623,14 @@
         var resumoMsgs = convs.map(function(m){ return (m.role||'').toUpperCase()+': '+(m.content||''); }).join('\n');
         if (!resumoMsgs) resumoMsgs = 'Sem conversas recentes. O adolescente está começando a usar a plataforma.';
 
-        var res = await fetch(GROQ_API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-          body: JSON.stringify({
+        var res = await window.LUMITEA.groqFetch({
             model: GROQ_MODEL,
             messages: [
               { role: 'system', content: 'Você é a Lumi, especialista em TEA. Gere um relatório para o cuidador. RESPONDA SOMENTE COM JSON VÁLIDO: {"resumo":"","humor_geral":"neutro","pontos_atencao":[],"dicas_cuidador":[],"sugestoes":[],"nivel_crise":false}. - resumo: 2-3 frases. - pontos_atencao: o que observar. - dicas_cuidador: [{titulo,descricao}]. - sugestoes: ações práticas. Português brasileiro. SOMENTE JSON.' },
               { role: 'user', content: 'Sessão de '+nomeTeen+':\n\n'+resumoMsgs }
             ],
             max_tokens: 700, temperature: 0.4
-          })
-        });
+          });
 
         var data = await res.json();
         var raw = (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'{}';
@@ -646,18 +641,14 @@
 
         // Visão psicológica
         try {
-          var res2 = await fetch(GROQ_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-            body: JSON.stringify({
+          var res2 = await window.LUMITEA.groqFetch({
               model: GROQ_MODEL,
               messages: [
                 { role: 'system', content: 'Você é psicóloga especialista em TEA. Com base neste relatório de sessão de um adolescente autista, escreva uma análise psicológica CONFIDENCIAL (apenas para o cuidador) de 3-4 frases. Foco em padrões emocionais, áreas de atenção e recursos internos do jovem. Português brasileiro. Sem markdown.' },
                 { role: 'user', content: JSON.stringify(rel) }
               ],
               max_tokens: 350, temperature: 0.5
-            })
-          });
+            });
           if (res2.ok) { var d2 = await res2.json(); rel.visao_psicologica = (d2.choices&&d2.choices[0]&&d2.choices[0].message&&d2.choices[0].message.content)||''; }
         } catch(e) {}
 
@@ -779,7 +770,7 @@
       wrap.className = 'cui-msg-wrap ' + role;
       var bbl = document.createElement('div');
       bbl.className = 'cui-msg-bbl';
-      bbl.innerHTML = texto.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+      bbl.innerHTML = window.LUMITEA.esc(texto).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
       var hora = document.createElement('div');
       hora.className = 'cui-msg-hora';
       var now = new Date(); hora.textContent = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
@@ -810,7 +801,7 @@
       _mostrarTypingCui();
       try {
         var msgs = [{ role: 'system', content: 'Você é a Lumi, consultora especializada em TEA que orienta cuidadores e familiares de adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos profissionais quando necessário.' }].concat(_histCuidador);
-        var res = await fetch(GROQ_API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer '+GROQ_KEY }, body: JSON.stringify({ model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 }) });
+        var res = await window.LUMITEA.groqFetch({ model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 });
         var data = await res.json();
         var resposta = (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
         _esconderTypingCui();

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="lumitea.css">
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
@@ -364,8 +365,6 @@
   <script>
     const SB_URL='https://yuwdckenzpfdlyawkibn.supabase.co';
     const SB_KEY='sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
-    const GROQ_KEY=(window.LUMITEA && window.LUMITEA.GROQ_API_KEY) || '';
-    const GROQ_API='https://api.groq.com/openai/v1/chat/completions';
     const GROQ_MODEL='llama-3.3-70b-versatile';
     const {createClient}=supabase;
     const sb=createClient(SB_URL,SB_KEY);
@@ -546,7 +545,7 @@
       document.getElementById('rp-msgs').scrollTop=99999;
       try{
         var msgs=[{role:'system',content:'Você é a Lumi, ajudando o adolescente autista a se preparar para o evento "'+(_rpEv?_rpEv.titulo:'evento')+'". Use roleplay para simular situações do evento. Seja gentil, encorajador e use linguagem simples. Máximo 3 frases. Português brasileiro.'}].concat(_rpHist);
-        var res=await fetch(GROQ_API,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:GROQ_MODEL,messages:msgs,max_tokens:280,temperature:.8})});
+        var res=await window.LUMITEA.groqFetch({model:GROQ_MODEL,messages:msgs,max_tokens:280,temperature:.8});
         var data=await res.json();
         var resp=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'Ótimo! Continue praticando!';
         var te=document.getElementById('rptyp');if(te)te.remove();

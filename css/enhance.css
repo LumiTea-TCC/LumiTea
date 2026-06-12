@@ -1,0 +1,138 @@
+/* ============================================================
+   LumiTEA — enhance.css
+   Camada de POLIMENTO e MOVIMENTO FLUIDO porém contido.
+   Carregar por ÚLTIMO (depois de tokens.css).
+
+   Regras de essência (DESIGN.md / PRODUCT.md):
+   • "Calma é função": todo motion é de ESTADO, 150–260ms, ease-out.
+   • Sem parallax, zoom de tela cheia, bounce/elastic, confete.
+   • TUDO desligado por prefers-reduced-motion e [data-modo-calmo].
+   • Delight de loop (float do mascote) é sutil (≤6px) e só na marca.
+   ============================================================ */
+
+/* O switcher de tema é sempre visível (é controle, não decoração) */
+
+/* ---- Controle de tema flutuante (montado por js/core/theme.js) ---- */
+.lt-theme-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 76px;                 /* acima do FAB de sobrecarga */
+  z-index: var(--z-fab);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 46px;
+  padding: 0 14px 0 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface-glass-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  color: var(--text-main);
+  font-family: 'Nunito', sans-serif;
+  font-size: .82rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out),
+              background var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+}
+.lt-theme-toggle:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); }
+.lt-theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.lt-theme-toggle .lt-theme-ic {
+  width: 22px; height: 22px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.lt-theme-toggle .lt-theme-ic svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.lt-theme-toggle .lt-theme-label { white-space: nowrap; }
+@media (max-width: 600px) {
+  .lt-theme-toggle .lt-theme-label { display: none; }
+  .lt-theme-toggle { padding: 0; width: 46px; justify-content: center; }
+}
+
+/* trocador de ícone: leve giro/fade ao mudar de tema */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-modo-calmo="true"]) .lt-theme-ic svg { animation: lt-ic-pop var(--dur-base) var(--ease-out); }
+}
+@keyframes lt-ic-pop {
+  from { opacity: 0; transform: rotate(-35deg) scale(.7); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   MICRO-INTERAÇÕES — só quando o usuário aceita movimento
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-modo-calmo="true"]) {
+
+    /* Botões: leve respiro ao pressionar (estado, não enfeite) */
+    .btn-primary, .btn-secondary, .btn-primary-lg,
+    .btn-nav-solid, .btn-nav-ghost,
+    .btn-primary-action, .btn-tonal {
+      transition: background var(--dur-base) var(--ease-out),
+                  color var(--dur-fast) var(--ease-out),
+                  border-color var(--dur-fast) var(--ease-out),
+                  transform var(--dur-fast) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out);
+    }
+    .btn-primary:active, .btn-secondary:active, .btn-primary-lg:active,
+    .btn-nav-solid:active, .btn-nav-ghost:active { transform: translateY(1px) scale(.985); }
+
+    /* Cards: elevação fluida no hover (sobe e ganha sombra) */
+    .c-card { transition: transform var(--dur-base) var(--ease-out),
+                          box-shadow var(--dur-base) var(--ease-out),
+                          border-color var(--dur-base) var(--ease-out); }
+    .c-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); }
+
+    /* Links de navegação: sublinhado que cresce do centro */
+    .nav-links a { position: relative; }
+    .nav-links a::after {
+      content: ''; position: absolute; left: 50%; right: 50%; bottom: -4px; height: 2px;
+      background: var(--primary); border-radius: 2px;
+      transition: left var(--dur-base) var(--ease-out), right var(--dur-base) var(--ease-out);
+    }
+    .nav-links a:hover::after { left: 0; right: 0; }
+
+    /* Imagem do hero: revela com leve subida + escala (uma vez) */
+    .hero-image-wrap img { animation: lt-hero-in 700ms var(--ease-out-expo) both; }
+
+    /* Float sutil e contínuo SÓ em mascotes marcados (.lumi-float) */
+    .lumi-float { animation: lt-float 6s var(--ease-soft) infinite; will-change: transform; }
+    .lumi-float--slow { animation-duration: 8s; }
+
+    /* Badge dot pulsa devagar (sinal de "ao vivo", bem sutil) */
+    .badge-dot { animation: lt-dot 2.6s ease-in-out infinite; }
+
+    /* Reveal padrão usável em qualquer página de produto */
+    .lt-reveal { opacity: 0; transform: translateY(16px);
+      transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out-expo); }
+    .lt-reveal.is-in { opacity: 1; transform: none; }
+  }
+}
+
+@keyframes lt-hero-in { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes lt-float  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes lt-dot    { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* Sombra que aparece no nav ao rolar (classe setada por theme.js) */
+.nav-scrolled, nav.nav-scrolled {
+  box-shadow: var(--shadow-2);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+
+/* Rolagem suave global, mas respeitando quem reduz movimento */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-modo-calmo="true"]) { scroll-behavior: smooth; }
+}
+
+/* Garantia: modo calmo / reduced-motion zera QUALQUER coisa daqui */
+html[data-modo-calmo="true"] .lumi-float,
+html[data-modo-calmo="true"] .badge-dot,
+html[data-modo-calmo="true"] .hero-image-wrap img,
+html[data-modo-calmo="true"] .lt-theme-ic svg { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .lt-reveal { opacity: 1 !important; transform: none !important; }
+  .lumi-float, .badge-dot { animation: none !important; }
+}

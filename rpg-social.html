@@ -13,6 +13,7 @@
  <link rel="stylesheet" href="lumitea.css">
  <link rel="stylesheet" href="app.css">
  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
  <script src="js/core/secrets.js"></script>
  <script src="js/core/config.js"></script>
@@ -231,18 +232,12 @@
  const SUPABASE_URL = (window.LUMITEA && window.LUMITEA.SUPABASE_URL) || '';
  const SUPABASE_ANON_KEY = (window.LUMITEA && window.LUMITEA.SUPABASE_ANON_KEY) || '';
  const sb = (window.supabase && SUPABASE_URL) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
- const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
- const GROQ_KEY = (window.LUMITEA && window.LUMITEA.GROQ_API_KEY) || '';
  const GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
 
  async function chamarGroq(systemPrompt, msgs, maxTokens) {
    async function tryModel(model) {
-     const r = await fetch(GROQ_API, {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-       body: JSON.stringify({ model: model, max_tokens: maxTokens || 220, temperature: 0.7,
-         messages: [{ role: 'system', content: systemPrompt }].concat(msgs) })
-     });
+     const r = await window.LUMITEA.groqFetch({ model: model, max_tokens: maxTokens || 220, temperature: 0.7,
+         messages: [{ role: 'system', content: systemPrompt }].concat(msgs) });
      if (!r.ok) throw new Error('HTTP ' + r.status);
      const d = await r.json();
      return (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '';
