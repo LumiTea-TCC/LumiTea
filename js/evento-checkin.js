@@ -34,23 +34,25 @@
     div.innerHTML =
       '<button class="lt-checkin-x" type="button" aria-label="Fechar">×</button>' +
       '<div class="lt-checkin-head">' +
-        '<span class="lt-checkin-emoji" aria-hidden>🐻</span>' +
+        '<img class="lt-checkin-emoji" src="img/icon-urso.png" alt="" style="width:34px;height:34px;object-fit:contain;">' +
         '<div>' +
           '<p class="lt-checkin-titulo"></p>' +
           '<p class="lt-checkin-quando"></p>' +
         '</div>' +
       '</div>' +
       '<div class="lt-checkin-acoes">' +
-        '<button data-acao="ok" type="button">Tô bem 👍</button>' +
-        '<a data-acao="conversar" href="conversa.html">Conversar 💬</a>' +
-        '<a data-acao="praticar" href="#"> Praticar 🎭</a>' +
+        '<button data-acao="ok" type="button"><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Tô bem</button>' +
+        '<a data-acao="conversar" href="conversa.html"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i> Conversar</a>' +
+        '<a data-acao="praticar" href="#"><i class="lt-i" data-lt-icon="play" aria-hidden="true"></i> Explorar</a>' +
       '</div>';
 
     div.querySelector('.lt-checkin-titulo').textContent = ev.titulo;
     div.querySelector('.lt-checkin-quando').textContent = format(minutos) + '. Como você está?';
 
     var praticarLink = div.querySelector('a[data-acao="praticar"]');
-    if (praticarLink) praticarLink.href = 'roleplay.html?evento=' + encodeURIComponent(ev.id);
+    if (praticarLink) praticarLink.href = 'games.html?evento=' + encodeURIComponent(ev.id);
+
+    if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(div);
 
     div.querySelector('.lt-checkin-x').addEventListener('click', function () { registrar(ev.id, 'dispensou'); div.remove(); });
     div.querySelectorAll('.lt-checkin-acoes [data-acao]').forEach(function (el) {

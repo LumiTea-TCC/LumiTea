@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Comunidade & Apoio</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/icons.js" defer></script>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="games.html">Mundo do Theo</a>
+      <a href="comunidade.html" class="active">Comunidade</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+    <label class="app-burger" for="burger-com">
+      <input type="checkbox" id="burger-com"><span></span><span></span><span></span>
+    </label>
+  </nav>
+  <div id="mm-com" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="games.html">Mundo do Theo</a>
+    <a href="comunidade.html" class="active">Comunidade</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+
+  <main class="cap-wrap">
+    <header class="cap-hero">
+      <div>
+        <h1>Comunidade & Apoio</h1>
+        <p>Um espaço seguro pra dividir o que você sente, ler outros adolescentes e pegar dicas
+           pra se ajudar — com a Lumi sempre por perto.</p>
+      </div>
+      <img src="img/urso-joia.png" alt="">
+    </header>
+
+    <div class="cap-tabs" role="tablist">
+      <button class="cap-tab active" data-tab="comunidade" role="tab"><i class="lt-i" data-lt-icon="users" aria-hidden="true"></i> Comunidade</button>
+      <button class="cap-tab" data-tab="apoio" role="tab"><i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i> Apoio</button>
+    </div>
+
+    <!-- TAB: COMUNIDADE -->
+    <section class="cap-panel active" id="panel-comunidade" role="tabpanel">
+      <div class="cm-compose">
+        <textarea class="cm-compose-area" id="cm-texto" maxlength="2000" placeholder="O que você quer dividir hoje? Aqui ninguém julga."></textarea>
+        <div class="cm-compose-row">
+          <select class="cm-select" id="cm-categoria"></select>
+          <span class="grow"></span>
+          <button class="cm-btn cm-btn-ghost" id="cm-ajuda-ia" type="button"><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Lumi me ajuda a escrever</button>
+          <button class="cm-btn cm-btn-primary" id="cm-publicar" type="button">Publicar</button>
+        </div>
+      </div>
+      <div class="cm-aviso" id="cm-aviso" hidden></div>
+      <div class="cm-feed" id="cm-feed"></div>
+    </section>
+
+    <!-- TAB: APOIO -->
+    <section class="cap-panel" id="panel-apoio" role="tabpanel">
+      <div class="ap-bloco">
+        <h2>Dicas pra hoje</h2>
+        <p class="ap-sub">A Lumi monta ideias rápidas pensadas pra você. Pode gerar quantas vezes quiser.</p>
+        <button class="cm-btn cm-btn-primary" id="ap-gerar" type="button"><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar dicas pra mim</button>
+        <div class="ap-dicas" id="ap-dicas"></div>
+      </div>
+
+      <div class="ap-bloco">
+        <h2>Conceitos que ajudam</h2>
+        <p class="ap-sub">Coisas simples que funcionam — vale guardar pros dias difíceis.</p>
+        <div class="ap-conceitos" id="ap-conceitos"></div>
+      </div>
+
+      <div class="ap-bloco">
+        <h2>Pergunta pra Lumi</h2>
+        <p class="ap-sub">Tá com uma dúvida sobre algo que você está vivendo? Pergunta aqui.</p>
+        <div class="ap-conversa" id="ap-conversa"></div>
+        <div class="ap-ask">
+          <input type="text" id="ap-pergunta" maxlength="500" placeholder="Ex: como peço ajuda sem ficar travado?">
+          <button id="ap-enviar" type="button" aria-label="Enviar"><i class="lt-i" data-lt-icon="send" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    var sb = window.LUMITEA.criarSupabase();
+    var _perfil = { nome: 'amigo', humorRecente: null };
+
+    async function iniciar() {
+      var r = await sb.auth.getSession();
+      if (!r.data.session) { location.href = 'login.html'; return; }
+      var uid = r.data.session.user.id;
+      var p = await sb.from('profiles').select('nome, tipo').eq('id', uid).single();
+      if (p.error || !p.data) { location.href = 'login.html'; return; }
+      if (p.data.tipo === 'responsavel' || p.data.tipo === 'terapeuta') { location.href = 'comunidade-cuidador.html'; return; }
+      _perfil.nome = p.data.nome || 'amigo';
+      document.getElementById('nav-user-name').textContent = _perfil.nome;
+      try {
+        var h = await sb.from('registros_humor').select('nivel').eq('id_neurodivergente', uid)
+          .order('created_at', { ascending: false }).limit(1);
+        if (h.data && h.data[0]) _perfil.humorRecente = h.data[0].nivel;
+      } catch (e) {}
+
+      Comunidade.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'teen' });
+      Apoio.iniciar({ publico: 'teen', nome: _perfil.nome, humor: _perfil.humorRecente });
+    }
+    iniciar();
+
+    function sairDaConta() { sb.auth.signOut().then(function () { location.href = 'login.html'; }); }
+
+    // tabs
+    document.querySelectorAll('.cap-tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        document.querySelectorAll('.cap-tab').forEach(function (x) { x.classList.remove('active'); });
+        document.querySelectorAll('.cap-panel').forEach(function (x) { x.classList.remove('active'); });
+        t.classList.add('active');
+        document.getElementById('panel-' + t.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+
+    // burger
+    (function () {
+      var cb = document.getElementById('burger-com'), menu = document.getElementById('mm-com');
+      cb.addEventListener('change', function () { menu.style.display = cb.checked ? 'flex' : 'none'; });
+      menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { cb.checked = false; menu.style.display = 'none'; }); });
+    })();
+  </script>
+  <script src="js/comunidade.js"></script>
+  <script src="js/apoio.js"></script>
+  <script src="js/evento-checkin.js"></script>
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>

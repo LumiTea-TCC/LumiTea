@@ -62,7 +62,9 @@
     .conq-item{background:var(--bg);border-radius:14px;padding:12px 8px;text-align:center;border:1.5px solid transparent;transition:all .18s;cursor:default}
     .conq-item.desbloqueado{background:linear-gradient(135deg,#eef4fb,#f0f5ff);border-color:rgba(74,126,181,0.25)}
     .conq-item.bloqueado{opacity:.45;filter:grayscale(.6)}
-    .conq-em{font-size:1.8rem;margin-bottom:5px}
+    .conq-em{font-size:1.8rem;margin-bottom:5px;color:var(--text-muted);display:flex;justify-content:center}
+    .conq-em .lt-ic{width:1.5rem;height:1.5rem}
+    .conq-item.desbloqueado .conq-em{color:var(--primary-dark)}
     .conq-name{font-size:.65rem;font-weight:800;color:var(--text-soft);line-height:1.3}
     .conq-desc{font-size:.58rem;color:var(--text-muted);margin-top:2px}
     /* Formulário editar */
@@ -135,7 +137,7 @@
 
   <!-- Loading -->
   <div class="loading-overlay" id="loadingOverlay">
-    <div class="loader-bear">🐻‍❄️</div>
+    <img class="loader-bear" src="img/urso-nogelo-pe.png" alt="" style="width:72px;height:72px;object-fit:contain;">
     <div class="loader-txt">Carregando sua conta...</div>
   </div>
 
@@ -148,8 +150,7 @@
     <div class="app-nav-links">
       <a href="home-autista.html">Início</a>
       <a href="conversa.html">Conversar com o Theo</a>
-      <a href="roleplay.html">Roleplay</a>
-      <a href="games.html">Games</a>
+      <a href="games.html">Mundo do Theo</a>
       <a href="calendario.html">Calendário</a>
       <a href="diario.html">Diário</a>
       <a href="conta.html" class="active">Conta</a>
@@ -168,8 +169,8 @@
   </nav>
   <div id="mm-ct" class="app-mobile-menu">
     <a href="home-autista.html">Início</a>
-    <a href="conversa.html">Conversar</a>
-    <a href="roleplay.html">Roleplay</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="games.html">Mundo do Theo</a>
     <a href="calendario.html">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html" class="active">Conta</a>
@@ -359,7 +360,7 @@
             <div class="tg-sub">Animações suaves na interface</div>
           </div>
           <label class="switch">
-            <input type="checkbox" id="pref-anim" checked onchange="salvarPrefs()">
+            <input type="checkbox" id="pref-anim" checked onchange="aplicarCalmo();salvarPrefs()">
             <span class="slider"></span>
           </label>
         </div>
@@ -407,7 +408,7 @@
             <div class="tg-sub">Para quem tem sensibilidade a movimento</div>
           </div>
           <label class="switch">
-            <input type="checkbox" id="pref-reduz-anim" onchange="salvarPrefs()">
+            <input type="checkbox" id="pref-reduz-anim" onchange="aplicarCalmo();salvarPrefs()">
             <span class="slider"></span>
           </label>
         </div>
@@ -459,14 +460,14 @@
 
     /* CONQUISTAS */
     var CONQUISTAS = [
-      {id:'primeira_conversa',em:'💬',nome:'Primeira Conversa',desc:'Conversou com a Lumi',xp:0},
-      {id:'5_conversas',em:'🗣️',nome:'5 Conversas',desc:'Falou 5 vezes com a Lumi',xp:50},
-      {id:'nivel2',em:'⭐',nome:'Nível 2',desc:'Subiu de nível!',xp:100},
-      {id:'humor_semana',em:'🌈',nome:'Semana Colorida',desc:'Registrou humor 7 dias',xp:70},
-      {id:'roleplay1',em:'🎭',nome:'Ator Iniciante',desc:'Completou 1 roleplay',xp:30},
-      {id:'calendario',em:'📅',nome:'Organizado',desc:'Criou um evento',xp:20},
-      {id:'diario',em:'📓',nome:'Escritor',desc:'Escreveu no diário',xp:25},
-      {id:'nivel5',em:'🌟',nome:'Nível 5',desc:'Grande conquista!',xp:500},
+      {id:'primeira_conversa',icon:'message-circle',nome:'Primeira Conversa',desc:'Conversou com a Lumi',xp:0},
+      {id:'5_conversas',icon:'send',nome:'5 Conversas',desc:'Falou 5 vezes com a Lumi',xp:50},
+      {id:'nivel2',icon:'star',nome:'Nível 2',desc:'Subiu de nível!',xp:100},
+      {id:'humor_semana',icon:'smile',nome:'Semana Colorida',desc:'Registrou humor 7 dias',xp:70},
+      {id:'roleplay1',icon:'play',nome:'Explorador Social',desc:'Conheceu o Mundo do Theo',xp:30},
+      {id:'calendario',icon:'calendar',nome:'Organizado',desc:'Criou um evento',xp:20},
+      {id:'diario',icon:'book-open',nome:'Escritor',desc:'Escreveu no diário',xp:25},
+      {id:'nivel5',icon:'award',nome:'Nível 5',desc:'Grande conquista!',xp:500},
     ];
 
     var NIVEL_XP = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
@@ -563,7 +564,7 @@
         var div=document.createElement('div');
         div.className='conq-item '+(on?'desbloqueado':'bloqueado');
         div.title=c.desc+(on?'':' (bloqueado)');
-        div.innerHTML='<div class="conq-em">'+(on?c.em:_icone('lock'))+'</div><div class="conq-name">'+c.nome+'</div><div class="conq-desc">'+(on?c.desc:'???')+'</div>';
+        div.innerHTML='<div class="conq-em">'+(on?_icone(c.icon):_icone('lock'))+'</div><div class="conq-name">'+c.nome+'</div><div class="conq-desc">'+(on?c.desc:'???')+'</div>';
         grid.appendChild(div);
       });
       // Vínculo
@@ -651,9 +652,25 @@
         if(p.tema)document.getElementById('pref-tema').value=p.tema;
         if(p.reduzAnim!==undefined)document.getElementById('pref-reduz-anim').checked=p.reduzAnim;
       }catch(e){console.warn('[Prefs] Erro ao carregar:',e.message);}
+      // aplica de fato as preferências que afetam a interface
+      aplicarFonteSilencioso();
+      aplicarCalmo();
     }
-    function aplicarFonte(){var v=document.getElementById('pref-fonte').value;document.documentElement.style.fontSize=v==='grande'?'108%':v==='muito-grande'?'116%':'100%';salvarPrefs()}
-    function aplicarTema(){salvarPrefs() /* tema aplicado nas próximas sessões */}
+    function aplicarFonteSilencioso(){var v=document.getElementById('pref-fonte').value;document.documentElement.style.fontSize=v==='grande'?'108%':v==='muito-grande'?'116%':'100%';}
+    function aplicarFonte(){aplicarFonteSilencioso();salvarPrefs()}
+    // "Reduzir animações" liga o modo calmo global (data-modo-calmo) que o jogo,
+    // a voz e os tokens de motion respeitam em todo o site.
+    function aplicarCalmo(){
+      var on=document.getElementById('pref-reduz-anim').checked || document.getElementById('pref-anim').checked===false;
+      document.documentElement.setAttribute('data-modo-calmo', on?'true':'false');
+      try{ localStorage.setItem('lt-modo-calmo', on?'1':'0'); localStorage.setItem('lt_modo_calmo', on?'1':'0'); }catch(e){}
+    }
+    function aplicarTema(){
+      var v=document.getElementById('pref-tema').value;
+      document.documentElement.setAttribute('data-tema', v||'default');
+      try{ localStorage.setItem('lt-tema', v||'default'); }catch(e){}
+      salvarPrefs();
+    }
 
     async function confirmarExcluirDados(){
       if(!confirm('Tem certeza que quer limpar seu histórico de conversas? Isso não pode ser desfeito.')) return;

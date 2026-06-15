@@ -50,10 +50,58 @@
     });
   };
 
-  // ElevenLabs (voz)
+  // ElevenLabs (voz) — a chave vive NO SERVIDOR (Edge Function "eleven-proxy").
+  // O navegador chama o proxy autenticado com a sessão do usuário.
+  g.LUMITEA.ELEVEN_PROXY_URL = g.LUMITEA.SUPABASE_URL.replace(/\/+$/, '') + '/functions/v1/eleven-proxy';
+  // (legado — mantido vazio; nenhuma chave deve voltar pro cliente)
   g.LUMITEA.ELEVEN_API_KEY  = SECRETS.ELEVEN_API_KEY || '';
-  g.LUMITEA.ELEVEN_VOICE_ID = '87325cfcb7a1c4ae06b8611b8118c0fae8d10569fdf7dcbf5090a44c3ad97055';
-  g.LUMITEA.ELEVEN_MODEL    = 'eleven_multilingual_v2';
+
+  // Transcreve um Blob de áudio via proxy. Devolve { text } ou lança.
+  g.LUMITEA.elevenSTT = async function (blob) {
+    var anon = g.LUMITEA.SUPABASE_ANON_KEY || '', auth = anon;
+    try {
+      if (g.supabaseClient && g.supabaseClient.auth) {
+        var r = await g.supabaseClient.auth.getSession();
+        var tok = r && r.data && r.data.session && r.data.session.access_token;
+        if (tok) auth = tok;
+      }
+    } catch (e) {}
+    var fd = new FormData();
+    fd.append('file', blob, 'audio.webm');
+    return fetch(g.LUMITEA.ELEVEN_PROXY_URL + '?op=stt', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + auth, 'apikey': anon },
+      body: fd
+    });
+  };
+
+  // Sintetiza voz a partir de texto via proxy. Devolve uma Response (audio/mpeg).
+  g.LUMITEA.elevenTTS = async function (texto) {
+    var anon = g.LUMITEA.SUPABASE_ANON_KEY || '', auth = anon;
+    try {
+      if (g.supabaseClient && g.supabaseClient.auth) {
+        var r = await g.supabaseClient.auth.getSession();
+        var tok = r && r.data && r.data.session && r.data.session.access_token;
+        if (tok) auth = tok;
+      }
+    } catch (e) {}
+    return fetch(g.LUMITEA.ELEVEN_PROXY_URL + '?op=tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth, 'apikey': anon },
+      body: JSON.stringify({ text: texto })
+    });
+  };
+
+  // Aplica preferências de acessibilidade salvas (modo calmo / tema) o mais cedo
+  // possível, em TODAS as páginas. A tela de Conta grava esses valores.
+  try {
+    // aceita as duas chaves usadas no app: conta.html ('lt-modo-calmo') e
+    // sobrecarga.js ('lt_modo_calmo').
+    var calmo = localStorage.getItem('lt-modo-calmo') || localStorage.getItem('lt_modo_calmo');
+    if (calmo === '1') document.documentElement.setAttribute('data-modo-calmo', 'true');
+    var tema = localStorage.getItem('lt-tema');
+    if (tema && tema !== 'default') document.documentElement.setAttribute('data-tema', tema);
+  } catch (e) {}
 
   g.LUMITEA.criarSupabase = function () {
     if (!g.supabase || !g.supabase.createClient) return null;

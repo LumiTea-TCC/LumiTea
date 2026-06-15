@@ -29,8 +29,9 @@
       btn.id = 'lt-sobrecarga';
       btn.className = 'lt-sobrecarga-fab';
       btn.type = 'button';
-      btn.innerHTML = '<span aria-hidden>🫂</span><span>Estou sobrecarregado</span>';
+      btn.innerHTML = '<span class="lt-i" data-lt-icon="heart" aria-hidden="true"></span><span>Estou sobrecarregado</span>';
       btn.setAttribute('aria-label', 'Ativar modo calmo');
+      if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(btn);
       btn.addEventListener('click', function () {
         aplicarModoCalmo(true);
         // Scroll suave pro topo

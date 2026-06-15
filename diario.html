@@ -35,8 +35,7 @@
     <div class="app-nav-links">
       <a href="home-autista.html">Início</a>
       <a href="conversa.html">Conversar com o Theo</a>
-      <a href="roleplay.html">Roleplay</a>
-      <a href="games.html">Games</a>
+      <a href="games.html">Mundo do Theo</a>
       <a href="calendario.html">Calendário</a>
       <a href="diario.html">Diário</a>
       <a href="conta.html">Conta</a>
@@ -62,8 +61,7 @@
   <div id="mm-diario" class="app-mobile-menu">
     <a href="home-autista.html">Início</a>
     <a href="conversa.html">Conversar com o Theo</a>
-    <a href="roleplay.html">Roleplay</a>
-    <a href="games.html">Games</a>
+    <a href="games.html">Mundo do Theo</a>
     <a href="calendario.html">Calendário</a>
     <a href="diario.html" class="active">Diário</a>
     <a href="conta.html">Conta</a>
@@ -199,7 +197,7 @@
             </div>
           </div>
           <div class="lr-texto" id="lr-texto">
-            <div class="lr-carregando">⏳ Carregando reflexão da Lumi...</div>
+            <div class="lr-carregando"><i class="lt-i" data-lt-icon="clock" aria-hidden="true"></i> Carregando reflexão da Lumi...</div>
           </div>
         </div>
 
@@ -306,7 +304,7 @@
       // Sequência simples
       const hoje = new Date().toDateString();
       const temHoje = _entradas.some(e => new Date(e.created_at || e.timestamp || Date.now()).toDateString() === hoje);
-      document.getElementById('stat-sequencia').textContent = temHoje ? '🔥' : '⭐';
+      document.getElementById('stat-sequencia').innerHTML = window.LUMI ? LUMI.icon(temHoje ? 'zap' : 'star') : (temHoje ? '🔥' : '⭐');
       // Humor de hoje
       const entradaHoje = _entradas.find(e => new Date(e.created_at || e.timestamp || Date.now()).toDateString() === hoje);
       const hc = entradaHoje ? HUMOR_CORES[entradaHoje.humor] : null;
@@ -411,7 +409,7 @@
       document.getElementById('dl-data').textContent = data.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
       document.getElementById('dl-humor-badge').innerHTML = `<span style="background:${hc.bg};color:${hc.color};padding:3px 10px;border-radius:20px;font-weight:800;font-size:0.78rem;">${hc.label}</span>`;
       document.getElementById('dl-texto').textContent = entrada.texto;
-      document.getElementById('lr-texto').innerHTML = '<div class="lr-carregando">⏳ Carregando reflexão da Lumi...</div>';
+      document.getElementById('lr-texto').innerHTML = '<div class="lr-carregando">' + (window.LUMI ? LUMI.icon('clock') : '') + ' Carregando reflexão da Lumi...</div>';
     }
 
     /* ── REFLEXÃO DA LUMI ─────────────────────────────────── */

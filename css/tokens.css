@@ -37,6 +37,13 @@
   --verde:        #3aa39f;
   --rosa:         #d95bb5;
 
+  /* ── Calor da marca (refresh v3): tons quentes suaves, calmos ── */
+  --cream:        #fff7ef;   /* creme quase branco — fundo acolhedor   */
+  --cream-2:      #fef0e2;   /* creme um tom mais quente               */
+  --peach:        #ffd9b8;   /* pêssego suave — blobs / acentos lúdicos */
+  --mint:         #cfeee6;   /* menta — blob frio quente, calma        */
+  --sky:          #c7e0f7;   /* azul-céu claro — blob de marca         */
+
   /* ── Cor: texto (validado ≥ 4.5:1 sobre --bg/--bg-2/branco) ── */
   --text-main:  #1a2e4a;   /* títulos                       */
   --text-soft:  #3d6080;   /* corpo (6.6:1)                 */
@@ -67,15 +74,16 @@
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
   --sp-6: 24px; --sp-7: 28px; --sp-8: 32px; --sp-9: 40px; --sp-10: 48px;
 
-  /* ── Raio ─────────────────────────────────────────────────── */
-  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
+  /* ── Raio (refresh v3: um pouco mais arredondado, amigável) ── */
+  --r-sm: 10px; --r-md: 14px; --r-lg: 18px; --r-xl: 24px;
+  --r-pill: 999px;
   /* legado (não usar em código novo): */
-  --r-2xl: 20px; --radius: var(--r-lg); --radius-lg: var(--r-xl);
+  --r-2xl: 24px; --radius: var(--r-lg); --radius-lg: var(--r-xl);
 
-  /* ── Sombras (escolha sombra OU borda, nunca as duas) ─────── */
-  --shadow-1: 0 2px 8px  rgba(74, 126, 181, 0.08);
-  --shadow-2: 0 6px 18px rgba(74, 126, 181, 0.12);
-  --shadow-3: 0 12px 28px rgba(74, 126, 181, 0.18);
+  /* ── Sombras (suaves; refresh v3 mais difusas e leves) ─────── */
+  --shadow-1: 0 3px 12px  rgba(74, 126, 181, 0.08);
+  --shadow-2: 0 10px 26px rgba(74, 126, 181, 0.12);
+  --shadow-3: 0 18px 40px rgba(74, 126, 181, 0.16);
   --shadow:   rgba(33, 150, 243, 0.15); /* legado lumitea.css */
 
   /* ── Z-index semântico ────────────────────────────────────── */
