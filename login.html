@@ -100,26 +100,27 @@
  ---------------------------------------------------------- -->
  <form class="account-form" id="form-login" novalidate>
 
- <!-- Campo: E-mail -->
+ <!-- Campo: Celular (ou e-mail) -->
  <div class="field-group">
- <label for="email">E-mail</label>
+ <label for="identificador">Celular</label>
  <div class="input-wrap">
- <!-- Ícone de envelope -->
+ <!-- Ícone de celular -->
  <svg class="input-icon" viewBox="0 0 24 24">
- <rect x="2" y="4" width="20" height="16" rx="2"/>
- <polyline points="2,4 12,13 22,4"/>
+ <rect x="5" y="2" width="14" height="20" rx="2"/>
+ <line x1="12" y1="18" x2="12" y2="18"/>
  </svg>
  <input
- type="email"
- id="email"
- name="email"
- placeholder="seu@email.com"
- autocomplete="email"
+ type="text"
+ id="identificador"
+ name="identificador"
+ placeholder="(11) 90000-0000"
+ autocomplete="username"
+ inputmode="tel"
  required
  >
  </div>
  <!-- Mensagem de erro (exibida via JS quando necessário) -->
- <span class="field-error" id="email-error">Por favor, insira um e-mail válido.</span>
+ <span class="field-error" id="identificador-error">Informe seu celular ou e-mail.</span>
  </div>
 
  <!-- Campo: Senha -->

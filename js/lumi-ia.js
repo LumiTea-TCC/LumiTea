@@ -63,12 +63,18 @@ var LumiIA = (function () {
     var auth = await authHeader();
     var anon = cfg().SUPABASE_ANON_KEY || '';
     async function tentar(model) {
-      var res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': auth, 'apikey': anon },
-        body: JSON.stringify({ model: model, messages: messages,
-          max_tokens: opts.maxTokens || 700, temperature: opts.temperature || 0.78 })
-      });
+      var body = { model: model, messages: messages,
+        max_tokens: opts.maxTokens || 700, temperature: opts.temperature || 0.78 };
+      var res;
+      if (cfg().groqFetch) {
+        res = await cfg().groqFetch(body);
+      } else {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': auth, 'apikey': anon },
+          body: JSON.stringify(body)
+        });
+      }
       if (!res.ok) {
         var detail = await res.text().catch(function () { return ''; });
         throw new Error('Groq HTTP ' + res.status + ': ' + detail.slice(0, 200));

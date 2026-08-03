@@ -72,11 +72,11 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
   ocultarErroGeral();
 
-  const email = document.getElementById('email').value.trim();
+  const identificador = document.getElementById('identificador').value.trim();
   const senha = senhaInput.value;
 
   let valido = true;
-  if (!validarCampo('email', 'email-error', !email || !email.includes('@'))) valido = false;
+  if (!validarCampo('identificador', 'identificador-error', !identificador)) valido = false;
   if (!validarCampo('senha', 'senha-error', !senha))                         valido = false;
   if (!valido) return;
 
@@ -84,14 +84,40 @@ form.addEventListener('submit', async (e) => {
   btnSubmit.textContent = 'Entrando...';
 
   try {
-    /* 1. Autentica via Supabase Auth */
+    /* 1. Descobre o e-mail de login.
+       - Se digitou um e-mail (tem "@"), usa direto.
+       - Se digitou um celular, troca o número pelo e-mail via RPC. */
+    let email = identificador;
+    if (!identificador.includes('@')) {
+      const celular = identificador.replace(/\D/g, '');
+      if (celular.length < 10) {
+        mostrarErroGeral('Informe um celular válido (com DDD) ou seu e-mail.');
+        btnSubmit.disabled = false; btnSubmit.textContent = 'Entrar na minha conta';
+        return;
+      }
+      try {
+        const { data: emailDoTel, error: errTel } = await supabaseClient.rpc('email_por_telefone', { tel: celular });
+        if (errTel || !emailDoTel) {
+          mostrarErroGeral('Não encontramos uma conta com esse celular. Verifique o número ou entre com o e-mail.');
+          btnSubmit.disabled = false; btnSubmit.textContent = 'Entrar na minha conta';
+          return;
+        }
+        email = emailDoTel;
+      } catch (e) {
+        mostrarErroGeral('Não foi possível verificar o celular agora. Tente com o e-mail.');
+        btnSubmit.disabled = false; btnSubmit.textContent = 'Entrar na minha conta';
+        return;
+      }
+    }
+
+    /* 2. Autentica via Supabase Auth */
     const { data, error } = await supabaseClient.auth.signInWithPassword({
       email,
       password: senha,
     });
 
     if (error) {
-      mostrarErroGeral('E-mail ou senha incorretos.');
+      mostrarErroGeral('Celular/e-mail ou senha incorretos.');
       btnSubmit.disabled    = false;
       btnSubmit.textContent = 'Entrar na minha conta';
       return;

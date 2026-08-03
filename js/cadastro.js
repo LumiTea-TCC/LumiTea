@@ -43,9 +43,11 @@
  const nome = document.getElementById('nome').value.trim();
  const sobrenome = document.getElementById('sobrenome').value.trim();
  const email = document.getElementById('email').value.trim();
+ const celular = soDigitos(document.getElementById('celular').value);
  if (!validarCampo('nome', 'nome-error', !nome)) ok = false;
  if (!validarCampo('sobrenome', 'sobrenome-error', !sobrenome)) ok = false;
  if (!validarCampo('email', 'email-error', !email || !email.includes('@'))) ok = false;
+ if (!validarCampo('celular', 'celular-error', celular.length < 10 || celular.length > 13)) ok = false;
  } else if (etapa === 2) {
  const nascimento = document.getElementById('nascimento').value;
  const tipo = document.getElementById('tipo').value;
@@ -143,6 +145,9 @@
  /* =============================================================
  HELPERS
  ============================================================= */
+ /* Normaliza telefone: mantém só dígitos */
+ function soDigitos(v) { return String(v || '').replace(/\D/g, ''); }
+
  function validarCampo(campoId, erroId, invalido) {
  const campo = document.getElementById(campoId);
  const erro = document.getElementById(erroId);
@@ -183,18 +188,20 @@
  const nome = document.getElementById('nome').value.trim();
  const sobrenome = document.getElementById('sobrenome').value.trim();
  const email = document.getElementById('email').value.trim();
+ const celular = soDigitos(document.getElementById('celular').value);
  const nascimento = document.getElementById('nascimento').value;
  const tipo = document.getElementById('tipo').value;
  const senha = senhaInput.value;
  const confirma = confirmarInput.value;
  const termos = document.getElementById('termos');
  const termosErr = document.getElementById('termos-error');
- 
+
  /* Validação */
  let valido = true;
  if (!validarCampo('nome', 'nome-error', !nome)) valido = false;
  if (!validarCampo('sobrenome', 'sobrenome-error', !sobrenome)) valido = false;
  if (!validarCampo('email', 'email-error', !email || !email.includes('@'))) valido = false;
+ if (!validarCampo('celular', 'celular-error', celular.length < 10 || celular.length > 13)) valido = false;
  if (!validarCampo('nascimento', 'nascimento-error', !nascimento)) valido = false;
  if (!validarCampo('tipo', 'tipo-error', !tipo)) valido = false;
  if (!validarCampo('senha', 'senha-error', senha.length < 6)) valido = false;
@@ -215,7 +222,19 @@
  try {
  /* Normaliza: só 'neurodivergente' ou 'responsavel' são aceitos pelo banco */
  const tipoNormalizado = tipo === 'neurodivergente' ? 'neurodivergente' : 'responsavel';
- 
+
+ /* 0. Checa se o celular já está em uso (evita conta duplicada).
+ Se a função ainda não existir no banco, ignora e segue. */
+ try {
+ const { data: jaExiste } = await supabaseClient.rpc('telefone_existe', { tel: celular });
+ if (jaExiste === true) {
+ mostrarErroGeral('Este celular já está cadastrado. Tente entrar com ele.');
+ btnSubmit.disabled = false;
+ btnSubmit.textContent = 'Criar minha conta gratuita';
+ return;
+ }
+ } catch (e) { /* função opcional — segue sem bloquear */ }
+
  /* 1. Cria o usuário no Supabase Auth
  Os metadados são lidos pelo trigger handle_new_user() */
  const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
@@ -227,6 +246,7 @@
  sobrenome,
  tipo: tipoNormalizado,
  nascimento,
+ telefone: celular,
  perfil: tipoNormalizado === 'neurodivergente' ? 'Adolescente' : 'Responsável',
  },
  },
@@ -269,8 +289,8 @@
  /* Confirmação de email está ATIVADA e o usuário precisa confirmar antes.
  Orienta o usuário em vez de redirecionar para página protegida. */
  mostrarErroGeral(
- ' Conta criada! Verifique seu e-mail para confirmar o cadastro e depois faça login. ' +
- '(Dica: para não precisar confirmar, desative "Confirm email" no Supabase → Authentication → Email)'
+ 'Conta criada! Enviamos um e-mail de confirmação para ' + email + '. ' +
+ 'Confirme o cadastro pelo link e depois entre com o seu celular.'
  );
  btnSubmit.disabled = false;
  btnSubmit.textContent = 'Criar minha conta gratuita';

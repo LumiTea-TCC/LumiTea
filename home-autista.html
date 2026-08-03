@@ -18,6 +18,7 @@
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -36,20 +37,21 @@
       <a href="home-autista.html">Início</a>
       <a href="conversa.html">Conversar com o Theo</a>
       <a href="games.html">Mundo do Theo</a>
+      <a href="comunidade.html">Comunidade</a>
       <a href="calendario.html">Calendário</a>
       <a href="diario.html">Diário</a>
       <a href="conta.html">Conta</a>
     </div>
     <div class="app-nav-right">
       <div class="user-badge">
-        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <div class="user-badge-av"><img src="img/icon-urso.png" alt="" id="nav-avatar"></div>
         <span id="nav-user-name">Carregando...</span>
       </div>
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
 
     <!-- Burger menu (mobile) -->
-    <label class="app-burger" for="burger-home">
+    <label class="app-burger" for="burger-home" aria-controls="mm-home" aria-expanded="false" aria-label="Abrir menu">
       <input type="checkbox" id="burger-home">
       <span></span>
       <span></span>
@@ -62,6 +64,7 @@
     <a href="home-autista.html" class="active">Início</a>
     <a href="conversa.html">Conversar com o Theo</a>
     <a href="games.html">Mundo do Theo</a>
+    <a href="comunidade.html">Comunidade</a>
     <a href="calendario.html">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html">Conta</a>
@@ -73,9 +76,17 @@
   (function(){
     var cb = document.getElementById('burger-home');
     var menu = document.getElementById('mm-home');
-    cb.addEventListener('change', function(){ menu.style.display = cb.checked ? 'flex' : 'none'; });
+    var label = document.querySelector('label[for="burger-home"]');
+    function refletir(){
+      menu.style.display = cb.checked ? 'flex' : 'none';
+      if (label) {
+        label.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+        label.setAttribute('aria-label', cb.checked ? 'Fechar menu' : 'Abrir menu');
+      }
+    }
+    cb.addEventListener('change', refletir);
     menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', function(){ cb.checked=false; menu.style.display='none'; });
+      a.addEventListener('click', function(){ cb.checked=false; refletir(); });
     });
   })();
   </script>
@@ -109,7 +120,7 @@
       <!-- HERO -->
       <section class="teen-hero">
         <div class="teen-hero-bear">
-          <img src="img/urso-aponta-lado.png" alt="Urso mascote Lumi">
+          <img class="lumi-float" src="img/urso-aponta-lado.png" alt="Urso mascote Lumi">
         </div>
         <div class="teen-hero-text">
           <h1>Olá, <span id="greeting-name">amigo</span>! <br>Bem-vindo ao <span>LumiTEA</span></h1>
@@ -119,20 +130,20 @@
             <div class="nivel-ball" id="nivel-icon"><i class="lt-i" data-lt-icon="star" aria-hidden="true"></i></div>
             <div class="xp-details">
               <div class="xp-title">Nível <span id="xp-nivel">1</span> — Continue evoluindo!</div>
-              <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+              <div class="xp-bar-bg" id="xp-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de XP para o próximo nível"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
               <div class="xp-nums"><span id="xp-info">0 / 100 XP</span> para o próximo nível</div>
             </div>
           </div>
 
           <div class="hero-btns">
-            <a class="btn-hero-primary" href="conversa.html"> Falar com a Lumi</a>
-            <a class="btn-hero-secondary" href="games.html"> Entrar no Mundo do Theo</a>
+            <a class="btn-hero-primary" href="conversa.html">Falar com a Lumi</a>
+            <a class="btn-hero-secondary" href="games.html">Entrar no Mundo do Theo</a>
           </div>
         </div>
       </section>
 
       <!-- HUMOR RÁPIDO -->
-      <div class="humor-card">
+      <div class="humor-card lt-reveal">
         <h3>Como você está agora?</h3>
         <div class="humor-chips">
           <button class="humor-chip" onclick="registrarHumor(this, 5)">😄 Ótimo</button>
@@ -146,7 +157,7 @@
       </div>
 
       <!-- VÍNCULO -->
-      <div id="vinculo-wrapper">
+      <div id="vinculo-wrapper" class="lt-reveal">
         <div class="vinculo-section" id="vinculo-card">
           <div class="v-icon"><i class="lt-i lt-i--lg" data-lt-icon="link" aria-hidden="true"></i></div>
           <div class="v-info">
@@ -162,7 +173,7 @@
       </div>
 
       <!-- FUNCIONALIDADES -->
-      <section>
+      <section class="lt-reveal">
         <div class="section-heading">
           <div class="tag">FUNCIONALIDADES</div>
           <h2>Tudo que o LumiTEA oferece para você</h2>
@@ -173,7 +184,7 @@
             <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="message-circle" aria-hidden="true"></i></div>
             <h3>Conversar com o Lumi Theo</h3>
             <p>O Lumi Theo é seu assistente virtual e parceiro de conversas. Fale sobre qualquer coisa: ansiedade, escola, amigos ou como foi o seu dia. Ele nunca julga e está sempre aqui.</p>
-            <a class="feature-link" href="conversa.html" style="color:#4a7eb5;">
+            <a class="feature-link" href="conversa.html">
               Ir para o chat<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
             </a>
           </div>
@@ -181,7 +192,7 @@
             <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="play" aria-hidden="true"></i></div>
             <h3>O Mundo do Theo</h3>
             <p>Um mundo aberto que muda toda vez que você entra: explore a vila gelada, converse com os moradores e treine situações sociais reais no seu ritmo. Nenhuma escolha erra — só aprende, e o urso reage com você.</p>
-            <a class="feature-link" href="games.html" style="color:#2e5fa3;">
+            <a class="feature-link" href="games.html">
               Entrar no mundo<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
             </a>
           </div>
@@ -189,7 +200,7 @@
             <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>
             <h3>Calendário de Rotina</h3>
             <p>Monte sua rotina semanal de forma visual e colorida. Defina lembretes para atividades, compromissos e momentos de autocuidado. A previsibilidade traz mais tranquilidade ao seu dia.</p>
-            <a class="feature-link" href="calendario.html" style="color:#e08e30;">
+            <a class="feature-link" href="calendario.html">
               Organizar minha rotina<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
             </a>
           </div>
@@ -197,7 +208,7 @@
             <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="award" aria-hidden="true"></i></div>
             <h3>XP e Conquistas</h3>
             <p>A cada conversa, roleplay completo ou rotina cumprida, você ganha pontos de experiência (XP) e sobe de nível. Desbloqueie conquistas especiais e veja seu progresso!</p>
-            <a class="feature-link" href="conta.html" style="color:#d95bb5;">
+            <a class="feature-link" href="conta.html">
               Ver minhas conquistas<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
             </a>
           </div>
@@ -205,7 +216,7 @@
             <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="user" aria-hidden="true"></i></div>
             <h3>Meu Perfil</h3>
             <p>Gerencie suas preferências, informações de acesso e personalize como o LumiTEA se comporta para você. Tudo configurado no seu ritmo e do jeito que faz mais sentido.</p>
-            <a class="feature-link" href="conta.html" style="color:#5a8fa0;">
+            <a class="feature-link" href="conta.html">
               Acessar minha conta<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
             </a>
           </div>
@@ -214,15 +225,31 @@
 
 
       <!-- CTA FINAL -->
-      <section class="cta-section">
+      <section class="cta-section lt-reveal">
         <h2>Pronto para começar? </h2>
         <p>Escolha por onde quer começar hoje. O Lumi Theo já está esperando por você com um grande abraço de urso!</p>
         <div class="cta-buttons">
-          <a class="btn-cta-white" href="conversa.html"> Falar com a Lumi agora</a>
-          <a class="btn-cta-outline" href="games.html"> Entrar no Mundo do Theo</a>
+          <a class="btn-cta-white" href="conversa.html">Falar com a Lumi agora</a>
+          <a class="btn-cta-outline" href="games.html">Entrar no Mundo do Theo</a>
         </div>
       </section>
 
+    </div>
+  </div>
+
+  <!-- Modal acolhedor para humor difícil (substitui confirm() nativo) -->
+  <div id="mascote-modal" role="dialog" aria-modal="true" aria-labelledby="humor-modal-titulo">
+    <div class="mascote-modal-box">
+      <button class="mascote-close-btn" type="button" aria-label="Fechar" onclick="fecharHumorModal()">
+        <i class="lt-i" data-lt-icon="x" aria-hidden="true"></i>
+      </button>
+      <div class="mascote-img-big"><img src="img/urso-aponta-lado.png" alt=""></div>
+      <h2 id="humor-modal-titulo">Tô aqui com você</h2>
+      <p>Parece que hoje está sendo um dia difícil. Quer conversar com a Lumi? Ela está aqui pra te ouvir, no seu tempo.</p>
+      <div class="mascote-modal-actions">
+        <a class="btn-hero-primary" href="conversa.html">Conversar com a Lumi</a>
+        <button class="btn-hero-secondary" type="button" onclick="fecharHumorModal()">Agora não</button>
+      </div>
     </div>
   </div>
 
@@ -253,8 +280,8 @@
       const { data: nd } = await sb.from('neurodivergente').select('xp, nivel, codigo_vinculo, id_responsavel').eq('id', _userId).single();
       _perfil = { nome, xp: nd?.xp ?? 0, nivel: nd?.nivel ?? 1, codigoVinculo: nd?.codigo_vinculo ?? null, idResponsavel: nd?.id_responsavel ?? null };
 
-      _atualizarXP();
-      _atualizarVinculo();
+      try { _atualizarXP(); } catch(e) { console.warn('Falha ao atualizar XP:', e); }
+      try { _atualizarVinculo(); } catch(e) { console.warn('Falha ao atualizar vínculo:', e); }
     }
 
     function _atualizarXP() {
@@ -267,8 +294,14 @@
       document.getElementById('xp-nivel').textContent = _perfil.nivel || 1;
       document.getElementById('xp-info').textContent = (xp - base) + ' / ' + (next - base) + ' XP';
       document.getElementById('xp-bar').style.width = pct + '%';
+      var track = document.getElementById('xp-bar-track');
+      if (track) track.setAttribute('aria-valuenow', pct);
       var ni = document.getElementById('nivel-icon');
-      if (ni) ni.textContent = NIVEL_EMOJIS[Math.min((_perfil.nivel||1) - 1, NIVEL_EMOJIS.length - 1)];
+      if (ni) {
+        var icone = NIVEL_ICONES[Math.min((_perfil.nivel||1) - 1, NIVEL_ICONES.length - 1)] || 'star';
+        ni.innerHTML = '<i class="lt-i" data-lt-icon="' + icone + '" aria-hidden="true"></i>';
+        if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(ni);
+      }
     }
 
     function _atualizarVinculo() {
@@ -303,13 +336,28 @@
       saved.classList.add('show');
       setTimeout(function() { saved.classList.remove('show'); }, 3000);
       if (nivel <= 2) {
-        setTimeout(function() {
-          if (confirm('Parece que você está se sentindo difícil agora. Quer conversar com a Lumi? Ela está aqui para ouvir você.')) {
-            window.location.href = 'conversa.html';
-          }
-        }, 500);
+        setTimeout(abrirHumorModal, 500);
       }
     }
+
+    var _humorModalAntesFoco = null;
+    function abrirHumorModal() {
+      var m = document.getElementById('mascote-modal');
+      if (!m) return;
+      if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(m);
+      _humorModalAntesFoco = document.activeElement;
+      m.style.display = 'flex';
+      var foco = m.querySelector('.btn-hero-primary');
+      if (foco) foco.focus();
+      document.addEventListener('keydown', _humorModalEsc);
+    }
+    function fecharHumorModal() {
+      var m = document.getElementById('mascote-modal');
+      if (m) m.style.display = 'none';
+      document.removeEventListener('keydown', _humorModalEsc);
+      if (_humorModalAntesFoco && _humorModalAntesFoco.focus) _humorModalAntesFoco.focus();
+    }
+    function _humorModalEsc(e) { if (e.key === 'Escape') fecharHumorModal(); }
 
     async function sairDaConta() {
       await sb.auth.signOut();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LumiTEA — Comunidade & Apoio</title>
+  <title>LumiTEA — Comunidade dos Cuidadores</title>
   <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
@@ -30,38 +30,28 @@
   </div>
 
   <nav class="app-nav">
-    <a class="logo" href="home-autista.html">
+    <a class="logo" href="home-cuidador.html">
       <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
       LumiTEA
     </a>
     <div class="app-nav-links">
-      <a href="home-autista.html">Início</a>
-      <a href="conversa.html">Conversar com o Theo</a>
-      <a href="games.html">Mundo do Theo</a>
-      <a href="comunidade.html" class="active">Comunidade</a>
-      <a href="calendario.html">Calendário</a>
-      <a href="diario.html">Diário</a>
-      <a href="conta.html">Conta</a>
+      <a href="home-cuidador.html">Painel</a>
+      <a href="comunidade-cuidador.html" class="active">Comunidade</a>
+      <a href="conta-cuidador.html">Conta</a>
     </div>
     <div class="app-nav-right">
-      <div class="user-badge">
-        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+      <a class="user-badge" href="conta-cuidador.html" style="text-decoration:none;color:inherit;">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt=""></div>
         <span id="nav-user-name">Carregando...</span>
-      </div>
+      </a>
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
-    <label class="app-burger" for="burger-com">
-      <input type="checkbox" id="burger-com"><span></span><span></span><span></span>
-    </label>
+    <label class="app-burger" for="burger-cc"><input type="checkbox" id="burger-cc"><span></span><span></span><span></span></label>
   </nav>
-  <div id="mm-com" class="app-mobile-menu">
-    <a href="home-autista.html">Início</a>
-    <a href="conversa.html">Conversar com o Theo</a>
-    <a href="games.html">Mundo do Theo</a>
-    <a href="comunidade.html" class="active">Comunidade</a>
-    <a href="calendario.html">Calendário</a>
-    <a href="diario.html">Diário</a>
-    <a href="conta.html">Conta</a>
+  <div id="mm-cc" class="app-mobile-menu">
+    <a href="home-cuidador.html">Painel</a>
+    <a href="comunidade-cuidador.html" class="active">Comunidade</a>
+    <a href="conta-cuidador.html">Conta</a>
     <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
@@ -70,9 +60,9 @@
   <main class="cap-wrap">
     <header class="cap-hero">
       <div>
-        <h1>Comunidade & Apoio</h1>
-        <p>Um espaço seguro pra dividir o que você sente, ler outros adolescentes e pegar dicas
-           pra se ajudar — com a Lumi sempre por perto.</p>
+        <h1>Comunidade dos Cuidadores</h1>
+        <p>Um espaço entre quem cuida: converse em tempo real, troque experiências e dúvidas, e conte com a Lumi
+           para orientar com base na prática.</p>
       </div>
       <img src="img/urso-joia.png" alt="">
     </header>
@@ -88,10 +78,10 @@
       <div id="chat-root"><!-- chat renderizado por js/chat.js --></div>
     </section>
 
-    <!-- TAB: COMUNIDADE -->
+    <!-- TAB: MURAL (feed) -->
     <section class="cap-panel" id="panel-comunidade" role="tabpanel">
       <div class="cm-compose">
-        <textarea class="cm-compose-area" id="cm-texto" maxlength="2000" placeholder="O que você quer dividir hoje? Aqui ninguém julga."></textarea>
+        <textarea class="cm-compose-area" id="cm-texto" maxlength="2000" placeholder="Compartilhe uma experiência, dúvida ou recurso com outros cuidadores."></textarea>
         <div class="cm-compose-row">
           <select class="cm-select" id="cm-categoria"></select>
           <span class="grow"></span>
@@ -106,30 +96,30 @@
     <!-- TAB: APOIO -->
     <section class="cap-panel" id="panel-apoio" role="tabpanel">
       <div class="ap-bloco">
-        <h2>Ferramentas pra você</h2>
-        <p class="ap-sub">Coisas simples pra te ajudar a se acalmar, organizar o que é difícil e seguir no seu ritmo. A Lumi monta tudo com você.</p>
+        <h2>Ferramentas ABA</h2>
+        <p class="ap-sub">Recursos práticos da Análise do Comportamento Aplicada para apoiar o aprendizado e a regulação do seu adolescente — com a Lumi ajudando em cada um.</p>
         <div id="aba-tools-com"><!-- ferramentas renderizadas por js/aba.js --></div>
       </div>
 
       <div class="ap-bloco">
         <h2>Dicas pra hoje</h2>
-        <p class="ap-sub">A Lumi monta ideias rápidas pensadas pra você. Pode gerar quantas vezes quiser.</p>
+        <p class="ap-sub">A Lumi monta orientações rápidas pensadas para você. Pode gerar quantas vezes quiser.</p>
         <button class="cm-btn cm-btn-primary" id="ap-gerar" type="button"><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar dicas pra mim</button>
         <div class="ap-dicas" id="ap-dicas"></div>
       </div>
 
       <div class="ap-bloco">
         <h2>Conceitos que ajudam</h2>
-        <p class="ap-sub">Coisas simples que funcionam — vale guardar pros dias difíceis.</p>
+        <p class="ap-sub">Boas práticas simples e eficazes — vale guardar para os dias difíceis.</p>
         <div class="ap-conceitos" id="ap-conceitos"></div>
       </div>
 
       <div class="ap-bloco">
         <h2>Pergunta pra Lumi</h2>
-        <p class="ap-sub">Tá com uma dúvida sobre algo que você está vivendo? Pergunta aqui.</p>
+        <p class="ap-sub">Está com uma dúvida sobre algo que está vivendo com seu adolescente? Pergunte aqui.</p>
         <div class="ap-conversa" id="ap-conversa"></div>
         <div class="ap-ask">
-          <input type="text" id="ap-pergunta" maxlength="500" placeholder="Ex: como peço ajuda sem ficar travado?">
+          <input type="text" id="ap-pergunta" maxlength="500" placeholder="Ex: como lidar com a recusa de escovar os dentes?">
           <button id="ap-enviar" type="button" aria-label="Enviar"><i class="lt-i" data-lt-icon="send" aria-hidden="true"></i></button>
         </div>
       </div>
@@ -138,7 +128,7 @@
 
   <script>
     var sb = window.LUMITEA.criarSupabase();
-    var _perfil = { nome: 'amigo', humorRecente: null };
+    var _perfil = { nome: 'você' };
 
     async function iniciar() {
       var r = await sb.auth.getSession();
@@ -146,19 +136,14 @@
       var uid = r.data.session.user.id;
       var p = await sb.from('profiles').select('nome, tipo').eq('id', uid).single();
       if (p.error || !p.data) { location.href = 'login.html'; return; }
-      if (p.data.tipo === 'responsavel' || p.data.tipo === 'terapeuta') { location.href = 'comunidade-cuidador.html'; return; }
-      _perfil.nome = p.data.nome || 'amigo';
+      if (p.data.tipo !== 'responsavel' && p.data.tipo !== 'terapeuta') { location.href = 'comunidade.html'; return; }
+      _perfil.nome = p.data.nome || 'você';
       document.getElementById('nav-user-name').textContent = _perfil.nome;
-      try {
-        var h = await sb.from('humores').select('nivel').eq('id_neurodivergente', uid)
-          .order('timestamp', { ascending: false }).limit(1);
-        if (h.data && h.data[0]) _perfil.humorRecente = h.data[0].nivel;
-      } catch (e) {}
 
-      Chat.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'teen', container: 'chat-root' });
-      Comunidade.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'teen' });
-      Apoio.iniciar({ publico: 'teen', nome: _perfil.nome, humor: _perfil.humorRecente });
-      Aba.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'teen', humor: _perfil.humorRecente, container: 'aba-tools-com' });
+      Chat.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador', container: 'chat-root' });
+      Comunidade.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador' });
+      Apoio.iniciar({ publico: 'cuidador', nome: _perfil.nome });
+      Aba.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador', container: 'aba-tools-com' });
     }
     iniciar();
 
@@ -176,7 +161,7 @@
 
     // burger
     (function () {
-      var cb = document.getElementById('burger-com'), menu = document.getElementById('mm-com');
+      var cb = document.getElementById('burger-cc'), menu = document.getElementById('mm-cc');
       cb.addEventListener('change', function () { menu.style.display = cb.checked ? 'flex' : 'none'; });
       menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { cb.checked = false; menu.style.display = 'none'; }); });
     })();
@@ -185,7 +170,5 @@
   <script src="js/comunidade.js"></script>
   <script src="js/apoio.js"></script>
   <script src="js/aba.js"></script>
-  <script src="js/evento-checkin.js"></script>
-  <script src="js/sobrecarga.js"></script>
 </body>
 </html>

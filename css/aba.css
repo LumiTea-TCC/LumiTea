@@ -1,0 +1,170 @@
+/* ============================================================
+   LumiTEA — aba.css
+   Estilos da página de Ferramentas ABA (ferramentas-aba.html).
+   Análise do Comportamento Aplicada — ferramentas calmas, com IA,
+   para o adolescente (autorregulação) e para o cuidador (ABC,
+   reforço, histórias sociais). Consome css/tokens.css; não
+   redefine cores/raios/sombras fora dos tokens.
+   ============================================================ */
+
+/* ---- aviso/disclaimer científico ---- */
+.aba-aviso {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--info-bg, #e7f0fb); color: var(--text-soft);
+  border: 1px solid var(--border-soft); border-radius: var(--r-lg);
+  padding: 12px 14px; margin-bottom: 18px; font-size: .85rem; line-height: 1.5;
+}
+.aba-aviso .lt-i { color: var(--info, #1565c0); flex-shrink: 0; margin-top: 1px; }
+
+/* ---- bloco de ferramenta (cartão) ---- */
+.aba-tool {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: var(--r-xl); padding: 20px; margin-bottom: 16px;
+  box-shadow: var(--shadow-1);
+}
+.aba-tool-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+.aba-tool-ic {
+  width: 42px; height: 42px; flex-shrink: 0; border-radius: var(--r-md);
+  display: grid; place-items: center; background: var(--primary-pale, #eaf1fb); color: var(--primary-dark);
+}
+.aba-tool-ic .lt-i { width: 22px; height: 22px; }
+.aba-tool-head h2 { font-family: 'Baloo 2', sans-serif; color: var(--text-main); font-size: 1.1rem; margin: 0 0 2px; }
+.aba-tool-head p { color: var(--text-muted); font-size: .85rem; margin: 0; line-height: 1.45; }
+
+/* ---- campos ---- */
+.aba-field { margin-bottom: 12px; }
+.aba-field label { display: block; font-size: .82rem; font-weight: 700; color: var(--text-soft); margin-bottom: 5px; }
+.aba-input, .aba-textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-2); padding: 11px 13px; font: inherit; color: var(--text-main);
+  box-sizing: border-box;
+}
+.aba-textarea { min-height: 70px; resize: vertical; line-height: 1.5; }
+.aba-input:focus-visible, .aba-textarea:focus-visible { outline: none; border-color: var(--primary); background: #fff; }
+
+.aba-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+.aba-row .grow { flex: 1; }
+
+/* ---- chips de seleção (intensidade, sentidos) ---- */
+.aba-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.aba-chip {
+  border: 1px solid var(--border); background: var(--bg-2); color: var(--text-soft);
+  border-radius: var(--r-pill); padding: 9px 15px; min-height: 44px; cursor: pointer;
+  font: inherit; font-weight: 600; font-size: .85rem; transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.aba-chip:hover { background: var(--primary-pale, #eaf1fb); }
+.aba-chip.on { background: var(--primary-action); color: #fff; border-color: var(--primary-action); }
+
+/* ---- resultado da IA ---- */
+.aba-result {
+  margin-top: 14px; background: var(--bg-2); border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg); padding: 14px 16px; color: var(--text-soft);
+  font-size: .92rem; line-height: 1.55; animation: lt-enter var(--dur-base) var(--ease-out) both;
+}
+.aba-result.lumi::before {
+  content: ''; display: inline-flex;
+}
+.aba-result b { color: var(--text-main); }
+.aba-result h4 { font-family: 'Baloo 2', sans-serif; color: var(--text-main); font-size: .98rem; margin: 12px 0 4px; }
+.aba-result h4:first-child { margin-top: 0; }
+.aba-result p { margin: 0 0 8px; }
+.aba-result .aba-lumi-tag {
+  display: inline-flex; align-items: center; gap: 6px; font-size: .76rem; font-weight: 800;
+  color: var(--primary-dark); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px;
+}
+.aba-result .aba-lumi-tag .lt-i { width: 1.05em; height: 1.05em; }
+
+.aba-load { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: .88rem; padding: 6px 0; }
+.aba-load .lt-i { width: 1.1em; height: 1.1em; }
+
+/* ---- checklist (análise de tarefa, passo-a-passo) ---- */
+.aba-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.aba-step {
+  display: flex; gap: 10px; align-items: flex-start; background: var(--surface);
+  border: 1px solid var(--border-soft); border-radius: var(--r-md); padding: 11px 13px; cursor: pointer;
+}
+.aba-step .aba-step-box {
+  width: 22px; height: 22px; flex-shrink: 0; border-radius: 6px; border: 2px solid var(--border);
+  display: grid; place-items: center; margin-top: 1px; color: #fff; transition: background var(--dur-fast) var(--ease-out);
+}
+.aba-step .aba-step-box .lt-i { width: 14px; height: 14px; opacity: 0; }
+.aba-step.done .aba-step-box { background: var(--success, #2e7d32); border-color: var(--success, #2e7d32); }
+.aba-step.done .aba-step-box .lt-i { opacity: 1; }
+.aba-step.done .aba-step-txt { color: var(--text-muted); text-decoration: line-through; }
+.aba-step-txt { font-size: .9rem; color: var(--text-soft); line-height: 1.45; }
+.aba-step-num { font-weight: 800; color: var(--primary-dark); margin-right: 4px; }
+
+.aba-progress { margin-top: 12px; height: 8px; border-radius: var(--r-pill); background: var(--bg-2); overflow: hidden; }
+.aba-progress > span { display: block; height: 100%; width: 0; background: var(--success, #2e7d32); transition: width var(--dur-base) var(--ease-out); }
+.aba-progress-txt { font-size: .8rem; color: var(--text-muted); margin-top: 6px; }
+
+/* ---- primeiro / depois ---- */
+.aba-firstthen { display: flex; align-items: stretch; gap: 10px; margin-top: 12px; }
+.aba-ft-card { flex: 1; background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: var(--r-lg); padding: 14px; text-align: center; }
+.aba-ft-card .aba-ft-label { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+.aba-ft-card .aba-ft-val { font-family: 'Baloo 2', sans-serif; color: var(--text-main); font-size: 1rem; margin-top: 6px; line-height: 1.3; }
+.aba-ft-arrow { display: grid; place-items: center; color: var(--primary); }
+.aba-ft-arrow .lt-i { width: 26px; height: 26px; }
+.aba-ft-card.depois { background: var(--primary-pale, #eaf1fb); border-color: var(--border); }
+@media (max-width: 520px) {
+  .aba-firstthen { flex-direction: column; }
+  .aba-ft-arrow { transform: rotate(90deg); }
+}
+
+/* ---- respiração ---- */
+.aba-breath { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 0 4px; }
+.aba-breath-circle {
+  width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 40%, var(--primary-pale, #eaf1fb), var(--bg-2));
+  border: 3px solid var(--primary); color: var(--primary-dark); text-align: center;
+  font-family: 'Baloo 2', sans-serif; font-size: 1rem; transition: transform 4s ease-in-out;
+}
+.aba-breath-circle.inspira { transform: scale(1.35); }
+.aba-breath-circle.expira  { transform: scale(0.85); }
+.aba-breath-phase { font-size: 1.05rem; font-weight: 700; color: var(--text-main); min-height: 1.4em; }
+.aba-breath-count { font-family: 'Baloo 2', sans-serif; font-size: 2rem; color: var(--primary-dark); }
+/* modo calmo / reduced-motion: sem escala, só o texto guia o ritmo */
+html[data-modo-calmo="true"] .aba-breath-circle { transition: none; transform: none !important; }
+@media (prefers-reduced-motion: reduce) { .aba-breath-circle { transition: none; transform: none !important; } }
+
+/* ---- quadro de fichas (token board) ---- */
+.aba-tokens { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.aba-token {
+  width: 46px; height: 46px; border-radius: 50%; border: 2px dashed var(--border);
+  display: grid; place-items: center; color: var(--border); background: var(--bg-2);
+  cursor: pointer; transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.aba-token .lt-i { width: 22px; height: 22px; }
+.aba-token.on { background: var(--ambar-pale, #fff3e0); border-style: solid; border-color: var(--ambar, #e08e30); color: var(--ambar, #e08e30); }
+.aba-token.on:not(.no-motion):active { transform: scale(.9); }
+.aba-token-goal {
+  display: flex; gap: 8px; align-items: center; background: var(--success-bg, #e6f4ea);
+  border: 1px solid var(--border-soft); border-radius: var(--r-md); padding: 11px 13px;
+  color: var(--success, #2e7d32); font-weight: 700; font-size: .9rem; margin-top: 10px;
+}
+
+/* ---- histórico (ABC) ---- */
+.aba-hist { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.aba-hist-item { background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: var(--r-md); padding: 12px 14px; }
+.aba-hist-item .aba-hist-when { font-size: .76rem; color: var(--text-muted); margin-bottom: 4px; }
+.aba-hist-item .aba-hist-abc { font-size: .85rem; color: var(--text-soft); line-height: 1.5; }
+.aba-hist-item .aba-hist-abc b { color: var(--text-main); }
+
+/* ---- mini-chat (consultor / pergunta) ---- */
+.aba-chat { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; padding: 4px; margin-bottom: 10px; }
+.aba-bolha { max-width: 88%; padding: 10px 13px; border-radius: var(--r-lg); font-size: .9rem; line-height: 1.5; }
+.aba-bolha.eu { align-self: flex-end; background: var(--primary-action); color: #fff; border-bottom-right-radius: 4px; }
+.aba-bolha.lumi { align-self: flex-start; background: var(--bg-2); color: var(--text-soft); border: 1px solid var(--border-soft); border-bottom-left-radius: 4px; }
+.aba-bolha.lumi b { color: var(--text-main); }
+.aba-ask { display: flex; gap: 8px; }
+.aba-ask input { flex: 1; border: 1px solid var(--border); border-radius: var(--r-pill); background: var(--bg-2); padding: 11px 16px; font: inherit; color: var(--text-main); }
+.aba-ask input:focus-visible { outline: none; border-color: var(--primary); background: #fff; }
+.aba-ask button {
+  width: 46px; height: 46px; flex-shrink: 0; border: none; border-radius: 50%; cursor: pointer;
+  background: var(--primary-action); color: #fff; display: grid; place-items: center;
+}
+.aba-ask button:hover { background: var(--primary-dark); }
+
+/* botões reaproveitam .cm-btn do enhance.css; estes são utilitários locais */
+.aba-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.aba-erro { color: var(--danger, #c62828); font-size: .85rem; margin-top: 8px; }

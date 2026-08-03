@@ -10,10 +10,25 @@
   // Chaves de API vêm de secrets.js (não versionado). Veja secrets.example.js.
   var SECRETS = g.LUMITEA_SECRETS || {};
 
-  // ⚠️ A chave da Groq NÃO é mais exposta no navegador. Ela vive como
-  // secret na Supabase Edge Function "groq-proxy" (ver supabase/README-PROXY.md).
-  // O cliente chama o proxy: ${SUPABASE_URL}/functions/v1/groq-proxy
+  // ── Origem de desenvolvimento? ──────────────────────────────────────────
+  // As chaves de API SÓ podem tocar o navegador em DEV (localhost / arquivo
+  // local). Em QUALQUER origem pública, as chaves são ignoradas e a IA/voz
+  // passam OBRIGATORIAMENTE pelos proxies (Edge Functions), que guardam a chave
+  // no servidor. Assim a chave nunca é exposta no site publicado.
+  var _host = (g.location && g.location.hostname) || '';
+  g.LUMITEA.IS_DEV = (g.location && g.location.protocol === 'file:') ||
+    _host === 'localhost' || _host === '0.0.0.0' || _host === '[::1]' ||
+    /\.local$/.test(_host) ||
+    // IPs privados / loopback (teste em rede local, ex.: celular no mesmo Wi-Fi)
+    /^127\./.test(_host) || /^10\./.test(_host) || /^192\.168\./.test(_host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(_host) || /^169\.254\./.test(_host);
+  function _devKey(v) { return g.LUMITEA.IS_DEV ? (v || '') : ''; }
+
+  // IA (Groq). Em DEV usa a chave de secrets.js (direto, sem deploy).
+  // Em produção: sem chave no cliente → usa o proxy "groq-proxy".
   g.LUMITEA.GROQ_MODEL     = 'llama-3.3-70b-versatile';
+  g.LUMITEA.GROQ_API_KEY   = _devKey(SECRETS.GROQ_API_KEY);
+  g.LUMITEA.GROQ_DIRECT_URL = 'https://api.groq.com/openai/v1/chat/completions';
   g.LUMITEA.GROQ_PROXY_URL = g.LUMITEA.SUPABASE_URL.replace(/\/+$/, '') + '/functions/v1/groq-proxy';
 
   // Escape de HTML (defesa contra XSS ao injetar texto de IA/usuário via innerHTML).
@@ -30,6 +45,19 @@
   // Devolve uma Response com o MESMO formato da Groq (d.choices[0].message...),
   // então o código existente das páginas continua funcionando.
   g.LUMITEA.groqFetch = async function (body) {
+    // Caminho direto (chave no navegador) — funciona sem deploy.
+    if (g.LUMITEA.GROQ_API_KEY) {
+      return fetch(g.LUMITEA.GROQ_DIRECT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + g.LUMITEA.GROQ_API_KEY
+        },
+        body: JSON.stringify(body)
+      });
+    }
+    // Sem chave no cliente (produção): usa o proxy (Edge Function "groq-proxy"),
+    // que guarda a GROQ_API_KEY no servidor e autentica pela sessão do usuário.
     var anon = g.LUMITEA.SUPABASE_ANON_KEY || '';
     var auth = anon;
     try {
@@ -53,11 +81,21 @@
   // ElevenLabs (voz) — a chave vive NO SERVIDOR (Edge Function "eleven-proxy").
   // O navegador chama o proxy autenticado com a sessão do usuário.
   g.LUMITEA.ELEVEN_PROXY_URL = g.LUMITEA.SUPABASE_URL.replace(/\/+$/, '') + '/functions/v1/eleven-proxy';
-  // (legado — mantido vazio; nenhuma chave deve voltar pro cliente)
-  g.LUMITEA.ELEVEN_API_KEY  = SECRETS.ELEVEN_API_KEY || '';
+  g.LUMITEA.ELEVEN_API_KEY  = _devKey(SECRETS.ELEVEN_API_KEY);
+  g.LUMITEA.ELEVEN_VOICE_ID = SECRETS.ELEVEN_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
 
-  // Transcreve um Blob de áudio via proxy. Devolve { text } ou lança.
+  // Transcreve um Blob de áudio. Direto na ElevenLabs se houver chave; senão proxy.
   g.LUMITEA.elevenSTT = async function (blob) {
+    if (g.LUMITEA.ELEVEN_API_KEY) {
+      var fdd = new FormData();
+      fdd.append('file', blob, 'audio.webm');
+      fdd.append('model_id', 'scribe_v1');
+      return fetch('https://api.elevenlabs.io/v1/speech-to-text', {
+        method: 'POST',
+        headers: { 'xi-api-key': g.LUMITEA.ELEVEN_API_KEY },
+        body: fdd
+      });
+    }
     var anon = g.LUMITEA.SUPABASE_ANON_KEY || '', auth = anon;
     try {
       if (g.supabaseClient && g.supabaseClient.auth) {
@@ -75,8 +113,19 @@
     });
   };
 
-  // Sintetiza voz a partir de texto via proxy. Devolve uma Response (audio/mpeg).
+  // Sintetiza voz a partir de texto. Direto na ElevenLabs se houver chave; senão proxy.
   g.LUMITEA.elevenTTS = async function (texto) {
+    if (g.LUMITEA.ELEVEN_API_KEY) {
+      return fetch('https://api.elevenlabs.io/v1/text-to-speech/' + g.LUMITEA.ELEVEN_VOICE_ID, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': g.LUMITEA.ELEVEN_API_KEY,
+          'Accept': 'audio/mpeg'
+        },
+        body: JSON.stringify({ text: texto, model_id: 'eleven_multilingual_v2' })
+      });
+    }
     var anon = g.LUMITEA.SUPABASE_ANON_KEY || '', auth = anon;
     try {
       if (g.supabaseClient && g.supabaseClient.auth) {

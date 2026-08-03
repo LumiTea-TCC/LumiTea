@@ -1,0 +1,67 @@
+#!/bin/sh
+# ============================================================================
+# LumiTEA — hook pre-commit: barra chaves de API antes de virarem commit.
+#
+# Instale com:  powershell -ExecutionPolicy Bypass -File tools/instalar-hooks.ps1
+#
+# Por que existe: uma chave que entra no histórico do git fica pública para
+# sempre, mesmo que você a apague depois. A única correção real é revogar a
+# chave. Este hook impede que isso aconteça de novo.
+#
+# Emergência (use só se tiver CERTEZA que é falso positivo):
+#   git commit --no-verify
+# ============================================================================
+
+erros=0
+
+aviso() {
+  echo ""
+  echo "  ⛔ COMMIT BLOQUEADO — possível chave de API detectada"
+  echo "  ---------------------------------------------------"
+  echo "  $1"
+  echo ""
+}
+
+# ── 1) Arquivos que nunca devem ser versionados ────────────────────────────
+proibidos=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '(^|/)secrets\.js$|(^|/)\.env($|\.)' || true)
+
+if [ -n "$proibidos" ]; then
+  aviso "Estes arquivos guardam chaves e estão fora do .gitignore:"
+  echo "$proibidos" | sed 's/^/      /'
+  echo ""
+  echo "      Tire-os do commit:  git rm --cached <arquivo>"
+  echo "      E confirme que o .gitignore cobre o caminho."
+  erros=1
+fi
+
+# ── 2) Padrões de chave dentro do conteúdo adicionado ──────────────────────
+# Só olha as linhas ADICIONADAS (+), para não reclamar de código antigo.
+adicionadas=$(git diff --cached -U0 --diff-filter=ACM | grep '^+' | grep -v '^+++' || true)
+
+checar() {
+  padrao="$1"; nome="$2"
+  achado=$(printf '%s\n' "$adicionadas" | grep -E "$padrao" || true)
+  if [ -n "$achado" ]; then
+    aviso "Parece uma chave da $nome nas linhas que você está commitando:"
+    printf '%s\n' "$achado" | head -3 | cut -c1-110 | sed 's/^/      /'
+    echo ""
+    echo "      Mova a chave para js/core/secrets.js (gitignored) ou para um"
+    echo "      secret do servidor (supabase secrets set ...)."
+    erros=1
+  fi
+}
+
+checar 'gsk_[A-Za-z0-9]{30,}'                 "Groq"
+checar 'sk_[a-f0-9]{40,}'                     "ElevenLabs"
+checar 'sk-[A-Za-z0-9_-]{20,}'                "OpenAI/Anthropic"
+checar 'eyJhbGciOi[A-Za-z0-9_-]{20,}'         "Supabase (JWT — cuidado: service_role ignora RLS)"
+checar 'xi-api-key["'\''[:space:]]*:[[:space:]]*["'\''][A-Za-z0-9_-]{20,}' "ElevenLabs (header)"
+
+if [ "$erros" -ne 0 ]; then
+  echo "  Se for MESMO um falso positivo: git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+exit 0

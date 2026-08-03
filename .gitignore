@@ -1,0 +1,22 @@
+
+# ── Chaves de API — NUNCA versionar ────────────────────────────────────────
+# O arquivo real de chaves fica só na máquina local. O modelo versionado é o
+# js/core/secrets.example.js (sem chaves de verdade).
+js/core/secrets.js
+**/secrets.js
+
+# Variáveis de ambiente / segredos de servidor
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Supabase (CLI local)
+supabase/.temp/
+supabase/.branches/
+
+# Sistema / editor
+Thumbs.db
+desktop.ini
+.DS_Store

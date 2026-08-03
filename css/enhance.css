@@ -138,6 +138,88 @@ html[data-modo-calmo="true"] .lt-theme-ic svg { animation: none !important; }
 }
 
 /* ============================================================
+   HOME DO ADOLESCENTE — micro-interações de ESTADO (gated)
+   Tudo sutil (≤4px), 150–260ms, ease-out. Desligado em modo
+   calmo / reduced-motion pelo media query e pelos guards acima.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-modo-calmo="true"]) {
+
+    /* Barra de XP: preenche suavemente do 0 até o valor (progresso = função). */
+    .xp-bar-fill { transition: width var(--dur-slow) var(--ease-out-expo); }
+
+    /* Chips de humor: respiro ao tocar e leve realce quando escolhido. */
+    .humor-chip {
+      transition: transform var(--dur-fast) var(--ease-out),
+                  background var(--dur-base) var(--ease-out),
+                  border-color var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out);
+    }
+    .humor-chip:hover { transform: translateY(-2px); }
+    .humor-chip:active { transform: scale(.96); }
+    .humor-chip.selected { transform: translateY(-2px); }
+
+    /* Cards de funcionalidade: elevam de leve no hover. */
+    .feature-card {
+      transition: transform var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out),
+                  border-color var(--dur-base) var(--ease-out);
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); }
+
+    /* Seta do link "ir para…" desliza ao passar o mouse (reforça direção). */
+    .feature-link svg { transition: transform var(--dur-fast) var(--ease-out); }
+    .feature-link:hover svg { transform: translateX(3px); }
+
+    /* Card de humor e CTA: elevação macia no hover. */
+    .humor-card, .cta-section {
+      transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+    }
+
+    /* Confirmação "humor registrado": entra com leve fade/subida. */
+    .humor-saved { transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+  }
+}
+
+/* ============================================================
+   PAINEL DO CUIDADOR — micro-interações de ESTADO (gated, sóbrias)
+   Mesma linguagem da home do teen, mais contida (área sóbria).
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-modo-calmo="true"]) {
+
+    /* Cards de estatística: leve elevação no hover. */
+    .cui-stat {
+      transition: transform var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out),
+                  border-color var(--dur-base) var(--ease-out);
+    }
+    .cui-stat:hover { transform: translateY(-3px); }
+
+    /* Cards do painel: elevação macia no hover. */
+    .cui-alertas-card, .cui-humor-chart, .prog-card {
+      transition: transform var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out);
+    }
+    .cui-alertas-card:hover, .cui-humor-chart:hover, .prog-card:hover {
+      transform: translateY(-2px); box-shadow: var(--shadow-2);
+    }
+
+    /* Itens do menu lateral: deslizam de leve ao passar o mouse. */
+    .cui-nav-btn {
+      transition: background var(--dur-base) var(--ease-out),
+                  color var(--dur-fast) var(--ease-out),
+                  transform var(--dur-fast) var(--ease-out);
+    }
+    .cui-nav-btn:hover { transform: translateX(2px); }
+  }
+}
+
+/* Modo calmo / reduced-motion: zera também a entrada de painel do cuidador. */
+html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .cui-tela.ativa { animation: none !important; } }
+
+/* ============================================================
    REFRESH VISUAL v3 — mais quente e amigável, ainda calmo
    ------------------------------------------------------------
    Carrega depois de app.css/lumitea.css, então rebaixa os
@@ -334,3 +416,61 @@ html[data-modo-calmo="true"] .lt-theme-ic svg { animation: none !important; }
 .ap-ask button { border: none; cursor: pointer; background: var(--primary-action); color: #fff; border-radius: var(--r-md);
   padding: 0 16px; min-width: 52px; display: inline-flex; align-items: center; justify-content: center; }
 .ap-ask button:hover { background: var(--primary-dark); }
+
+/* ============================================================
+   TOAST & DIÁLOGO (LumiUI) — substitui alert()/confirm() nativos
+   Acessível e calmo. Entrada animada só com movimento permitido.
+   ============================================================ */
+.lt-toast-wrap {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  z-index: 1200; display: flex; flex-direction: column; gap: 10px;
+  width: min(92vw, 440px); pointer-events: none;
+}
+.lt-toast {
+  pointer-events: auto; display: flex; align-items: flex-start; gap: 10px;
+  background: var(--surface); color: var(--text-main);
+  border: 1px solid var(--border-soft); border-left: 4px solid var(--primary);
+  border-radius: var(--r-lg); padding: 12px 16px; box-shadow: var(--shadow-3);
+  font-family: 'Nunito', sans-serif; font-size: .9rem; font-weight: 700; line-height: 1.45;
+  cursor: pointer; opacity: 0; transform: translateY(8px);
+}
+.lt-toast.is-in { opacity: 1; transform: none; }
+.lt-toast--error   { border-left-color: var(--danger); }
+.lt-toast--success { border-left-color: var(--success); }
+.lt-toast-ic { flex-shrink: 0; display: inline-flex; color: var(--primary); margin-top: 1px; }
+.lt-toast--error .lt-toast-ic   { color: var(--danger); }
+.lt-toast--success .lt-toast-ic { color: var(--success); }
+.lt-toast-ic .lt-ic, .lt-toast-ic svg { width: 1.15em; height: 1.15em; }
+.lt-toast-msg { flex: 1; }
+
+.lt-dialog-ov {
+  position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center;
+  padding: 20px; background: rgba(20, 38, 66, .42); opacity: 0;
+}
+.lt-dialog-ov.is-in { opacity: 1; }
+.lt-dialog-ov.is-out { opacity: 0; }
+.lt-dialog-box {
+  background: var(--surface); border-radius: var(--r-xl); padding: 28px 26px; max-width: 400px; width: 100%;
+  text-align: center; box-shadow: var(--shadow-3); border: 1px solid var(--border-soft);
+}
+.lt-dialog-mascote img { width: 76px; height: auto; margin-bottom: 6px; }
+.lt-dialog-tit { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--text-main); margin: 0 0 8px; }
+.lt-dialog-msg { color: var(--text-soft); font-size: .92rem; line-height: 1.6; margin: 0 0 20px; }
+.lt-dialog-acoes { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.lt-dialog-btn {
+  border: none; cursor: pointer; border-radius: 14px; padding: 11px 20px; min-height: 44px;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .9rem;
+}
+.lt-dialog-btn--primary { color: #fff; background: linear-gradient(135deg, var(--primary-action, var(--primary)), var(--primary-dark)); }
+.lt-dialog-btn--ghost { background: var(--bg-2); color: var(--text-soft); border: 1px solid var(--border-soft); }
+.lt-dialog-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Entrada/saída animada SÓ quando o movimento é permitido. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-modo-calmo="true"]) {
+    .lt-toast { transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+    .lt-dialog-ov.lt-anim { transition: opacity var(--dur-base) var(--ease-out); }
+    .lt-dialog-ov.lt-anim .lt-dialog-box { transform: translateY(10px) scale(.98); transition: transform var(--dur-base) var(--ease-out-expo); }
+    .lt-dialog-ov.lt-anim.is-in .lt-dialog-box { transform: none; }
+  }
+}

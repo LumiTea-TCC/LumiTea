@@ -1097,6 +1097,13 @@
  line-height: 1.6;
  margin: 14px 0 20px;
  }
+
+ .mascote-modal-actions {
+ display: flex;
+ gap: 10px;
+ justify-content: center;
+ flex-wrap: wrap;
+ }
  
  .dev-badge {
  background: var(--primary-pale);
@@ -2387,6 +2394,7 @@
  .feature-link {
  display: inline-flex; align-items: center; gap: 4px;
  font-size: 0.82rem; font-weight: 800; text-decoration: none; transition: gap .2s;
+ color: var(--feature-color, var(--primary));
  }
  .feature-link:hover { gap: 8px; }
  .feature-link svg { width: 16px; height: 16px; fill: currentColor; }
