@@ -181,8 +181,53 @@
     align-items: center;
     justify-content: center;
     padding: 48px 24px 64px;
+
+    /* Fundo azul — mesmo gradiente do card "Pronto para começar?" das homes
+       (ver .cta-section em app.css). A nav e o rodapé seguem claros. */
+    background: linear-gradient(135deg, var(--primary) 0%, #5a9fd4 100%);
+    overflow: hidden;          /* Recorta os círculos decorativos abaixo */
   }
-  
+
+  /* Círculos brancos translúcidos — mesmo detalhe do CTA das homes.
+     Puramente decorativos: sem conteúdo e sem captura de clique. */
+  .account-page::before,
+  .account-page::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .account-page::before {
+    top: -130px; right: -110px;
+    width: 440px; height: 440px;
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .account-page::after {
+    bottom: -100px; left: -90px;
+    width: 330px; height: 330px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Modo calmo / movimento reduzido: azul bem mais suave e sem os círculos,
+     para baixar a carga sensorial (regra do CLAUDE.md). */
+  html[data-modo-calmo="true"] .account-page {
+    background: linear-gradient(135deg, var(--accent2) 0%, var(--primary-pale) 100%);
+  }
+  html[data-modo-calmo="true"] .account-page::before,
+  html[data-modo-calmo="true"] .account-page::after {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .account-page {
+      background: linear-gradient(135deg, var(--accent2) 0%, var(--primary-pale) 100%);
+    }
+    .account-page::before,
+    .account-page::after { display: none; }
+  }
+
   
   /* =============================================================
      6. CARD DO FORMULÁRIO
@@ -200,6 +245,7 @@
     flex-direction: column;
     gap: 32px;
     position: relative;
+    z-index: 2;               /* Acima dos círculos decorativos da .account-page */
     overflow: hidden;
   }
   

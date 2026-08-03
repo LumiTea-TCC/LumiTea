@@ -131,31 +131,6 @@
     @media (prefers-reduced-motion: reduce) {
       .bear-mascot { animation: none; }
     }
-
-    /* ===== CAMPO CELULAR — destaque de "vira seu login" ===== */
-    #celular-hint {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 2px;
-      padding: 8px 12px;
-      background: var(--primary-pale, rgba(74,126,181,0.10));
-      border: 1px solid rgba(74,126,181,0.18);
-      border-radius: var(--radius);
-      color: var(--text-soft);
-      font-size: 0.76rem;
-      font-weight: 700;
-      line-height: 1.35;
-    }
-    #celular-hint::before {
-      content: '';
-      flex-shrink: 0;
-      width: 16px;
-      height: 16px;
-      background: var(--primary);
-      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='2' width='14' height='20' rx='2' ry='2'/%3E%3Cline x1='12' y1='18' x2='12' y2='18'/%3E%3C/svg%3E") center/contain no-repeat;
-      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='2' width='14' height='20' rx='2' ry='2'/%3E%3Cline x1='12' y1='18' x2='12' y2='18'/%3E%3C/svg%3E") center/contain no-repeat;
-    }
 </style>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
@@ -274,10 +249,9 @@
             <label for="celular">Celular</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-              <input type="tel" id="celular" name="celular" placeholder="(11) 90000-0000" autocomplete="tel" inputmode="tel" aria-required="true" aria-describedby="celular-error celular-hint" />
+              <input type="tel" id="celular" name="celular" placeholder="(11) 90000-0000" autocomplete="tel" inputmode="tel" aria-required="true" aria-describedby="celular-error" />
             </div>
             <span class="field-error" id="celular-error" role="alert">Informe um celular válido (com DDD).</span>
-            <span class="field-hint" id="celular-hint">Você vai usar esse número para entrar no LumiTEA.</span>
           </div>
 
           <div class="step-nav">

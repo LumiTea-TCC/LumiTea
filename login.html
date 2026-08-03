@@ -100,27 +100,29 @@
  ---------------------------------------------------------- -->
  <form class="account-form" id="form-login" novalidate>
 
- <!-- Campo: Celular (ou e-mail) -->
+ <!-- Campo: Celular ou e-mail (o login aceita os dois) -->
  <div class="field-group">
- <label for="identificador">Celular</label>
+ <label for="identificador">Celular ou e-mail</label>
  <div class="input-wrap">
- <!-- Ícone de celular -->
- <svg class="input-icon" viewBox="0 0 24 24">
- <rect x="5" y="2" width="14" height="20" rx="2"/>
- <line x1="12" y1="18" x2="12" y2="18"/>
+ <!-- Ícone de pessoa (identificador genérico: celular ou e-mail) -->
+ <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+ <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+ <circle cx="12" cy="7" r="4"/>
  </svg>
  <input
  type="text"
  id="identificador"
  name="identificador"
- placeholder="(11) 90000-0000"
+ placeholder="(11) 90000-0000 ou seu@email.com"
  autocomplete="username"
- inputmode="tel"
+ aria-required="true"
+ aria-describedby="identificador-error identificador-hint"
  required
  >
  </div>
  <!-- Mensagem de erro (exibida via JS quando necessário) -->
- <span class="field-error" id="identificador-error">Informe seu celular ou e-mail.</span>
+ <span class="field-error" id="identificador-error" role="alert">Informe seu celular ou e-mail.</span>
+ <span class="field-hint" id="identificador-hint">Você pode entrar com o celular ou com o e-mail que cadastrou.</span>
  </div>
 
  <!-- Campo: Senha -->
