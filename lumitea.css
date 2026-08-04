@@ -510,7 +510,8 @@
   border-radius: 22px;
   color: #f4f7fb;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(58, 61, 66, 0.98), rgba(82, 88, 97, 0.995));
+  /* Mesmo azul do card "Pronto para começar?" e do fundo das páginas de conta */
+  background: linear-gradient(135deg, var(--primary) 0%, #5a9fd4 100%);
   width: 100%;
   position: relative;
   transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
@@ -539,7 +540,8 @@
   width: 80px;
   height: 80px;
   transform: translateX(-50%);
-  background: linear-gradient(180deg, #3a3d42 0%, #525861 100%);
+  /* Camada girada no hover — azul mais fundo para dar profundidade */
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
   z-index: -2;
   transform-origin: bottom;
   border-radius: inherit;
@@ -557,7 +559,7 @@
     z-index: 1;
     opacity: 1;
     font-size: 0.95rem;
-    color: var(--primary-pale);
+    color: #ffffff;                          /* sobre o azul, branco puro */
     margin: 0;
     transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
   }
@@ -573,17 +575,17 @@
 
   .feat-content .feat-link {
     z-index: 1;
-    color: var(--primary-light);             /* azul claro do site */
+    color: #000000;                          /* preto sobre o azul (contraste AA) */
     text-decoration: none;
     font-family: inherit;
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 800;
     transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   .feat-content .feat-link:hover {
     text-decoration: underline;
-    color: #ffffff;
+    color: #000000;
   }
 
   .feat-card-wrap:hover {
@@ -854,20 +856,21 @@ footer.lumi-footer {
   position: relative;
   z-index: 5;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(58, 61, 66, 0.98), rgba(82, 88, 97, 0.995));
-  border-top: 1px solid rgba(179, 217, 248, 0.18);
-  box-shadow: 0 -18px 44px rgba(10, 16, 24, 0.26);
+  /* Mesmo azul dos cards e do card "Pronto para começar?" */
+  background: linear-gradient(135deg, var(--primary) 0%, #5a9fd4 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: 0 -18px 44px rgba(10, 16, 24, 0.18);
 }
 
 footer.lumi-footer::before {
   content: "";
   position: absolute;
   inset: 0;
+  /* Brilhos brancos suaves — mesmo detalhe dos círculos do CTA */
   background:
-    radial-gradient(circle at 20% 10%, rgba(33, 150, 243, 0.12), transparent 28%),
-    radial-gradient(circle at 85% 20%, rgba(144, 202, 249, 0.08), transparent 24%),
-    radial-gradient(circle at 30% 90%, rgba(114, 129, 147, 0.10), transparent 26%);
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.10), transparent 28%),
+    radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.07), transparent 24%),
+    radial-gradient(circle at 30% 90%, rgba(255, 255, 255, 0.06), transparent 26%);
   pointer-events: none;
 }
 
@@ -899,7 +902,7 @@ footer.lumi-footer .footer-brand h3 {
 }
 
 footer.lumi-footer .footer-brand p {
-  color: #a6b3c2;
+  color: #ffffff;
   line-height: 1.8;
   max-width: 320px;
   font-size: 0.95rem;
@@ -910,7 +913,7 @@ footer.lumi-footer .footer-title {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #d6dde7;
+  color: #ffffff;
   margin-bottom: 16px;
 }
 
@@ -921,7 +924,7 @@ footer.lumi-footer .footer-links-grid {
 }
 
 footer.lumi-footer .footer-links-grid a {
-  color: #a6b3c2;
+  color: #ffffff;
   text-decoration: none;
   font-weight: 700;
   font-size: 0.92rem;
@@ -929,9 +932,10 @@ footer.lumi-footer .footer-links-grid a {
 }
 
 footer.lumi-footer .footer-links-grid a:hover {
-  color: var(--primary-light);
+  color: #ffffff;
+  text-decoration: underline;
   transform: translateX(4px);
-  text-shadow: 0 0 14px rgba(33, 150, 243, 0.25);
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.35);
 }
 
 footer.lumi-footer .footer-bottom {
@@ -954,7 +958,7 @@ footer.lumi-footer .footer-policy {
 }
 
 footer.lumi-footer .footer-policy a {
-  color: #a6b3c2;
+  color: #ffffff;
   text-decoration: none;
   font-size: 0.82rem;
   font-weight: 700;
@@ -962,14 +966,25 @@ footer.lumi-footer .footer-policy a {
 }
 
 footer.lumi-footer .footer-policy a:hover {
-  color: var(--primary-light);
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 footer.lumi-footer .footer-copy {
-  color: #7f8d9d;
+  color: rgba(255, 255, 255, 0.88);
   font-size: 0.78rem;
   line-height: 1.6;
   max-width: 560px;
+}
+
+/* Linha final de copyright, dentro do rodapé azul */
+footer.lumi-footer .footer-copy-final {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 56px 26px;
+  text-align: center;
 }
 
 footer.lumi-footer .footer-social {
@@ -985,17 +1000,17 @@ footer.lumi-footer .footer-social a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #dbe5ef;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  color: #ffffff;
   text-decoration: none;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 footer.lumi-footer .footer-social a:hover {
   transform: translateY(-2px);
-  background: rgba(33, 150, 243, 0.12);
-  border-color: rgba(33, 150, 243, 0.35);
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.55);
   color: #ffffff;
 }
 
