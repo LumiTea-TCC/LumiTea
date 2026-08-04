@@ -881,9 +881,29 @@
       }
     }
 
+    /* Apaga a sessão guardada no navegador (chave sb-<projeto>-auth-token).
+       Garante que o logout vale mesmo se o signOut() do servidor falhar. */
+    function _limparSessaoLocal() {
+      try {
+        Object.keys(localStorage).forEach(function(k) {
+          if (k.indexOf('sb-') === 0 && k.indexOf('auth-token') > -1) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+    }
+
     async function sairCui() {
-      await sb.auth.signOut();
-      window.location.href = 'login.html';
+      document.querySelectorAll('.btn-logout, .cui-sair').forEach(function(b) { b.disabled = true; });
+      try {
+        // signOut() pode falhar ou travar (sessão expirada, sem rede, ou mais de
+        // um cliente Supabase disputando o lock de auth na mesma página).
+        // Sair da conta não pode depender disso: seguimos após 2,5s.
+        await Promise.race([
+          sb.auth.signOut(),
+          new Promise(function(segue) { setTimeout(segue, 2500); })
+        ]);
+      } catch (e) { /* segue para a limpeza local mesmo assim */ }
+      _limparSessaoLocal();
+      window.location.replace('login.html');
     }
   </script>
   <script src="js/lumi-ia.js"></script>

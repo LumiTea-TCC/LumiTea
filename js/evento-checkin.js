@@ -43,14 +43,11 @@
       '<div class="lt-checkin-acoes">' +
         '<button data-acao="ok" type="button"><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Tô bem</button>' +
         '<a data-acao="conversar" href="conversa.html"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i> Conversar</a>' +
-        '<a data-acao="praticar" href="#"><i class="lt-i" data-lt-icon="play" aria-hidden="true"></i> Explorar</a>' +
+        '<a data-acao="praticar" href="games.html"><i class="lt-i" data-lt-icon="play" aria-hidden="true"></i> Jogar</a>' +
       '</div>';
 
     div.querySelector('.lt-checkin-titulo').textContent = ev.titulo;
     div.querySelector('.lt-checkin-quando').textContent = format(minutos) + '. Como você está?';
-
-    var praticarLink = div.querySelector('a[data-acao="praticar"]');
-    if (praticarLink) praticarLink.href = 'games.html?evento=' + encodeURIComponent(ev.id);
 
     if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(div);
 

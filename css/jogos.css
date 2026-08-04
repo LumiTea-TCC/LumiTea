@@ -1,0 +1,761 @@
+/* ============================================================
+   LumiTEA — jogos.css
+   Estilo comum do hub (games.html) e dos 4 jogos:
+   memória, classificar, encaixe e imagem-palavra.
+
+   Carregar SEMPRE depois de lumitea.css / app.css / tokens.css.
+   Regras do projeto respeitadas aqui:
+   · zero cor solta — tudo vem de css/tokens.css;
+   · motion só de ESTADO (≤6px, 150–260ms, ease-out), desligado
+     em prefers-reduced-motion e em html[data-modo-calmo="true"];
+   · alvos de toque ≥ 44px, foco visível em tudo que é clicável.
+   ============================================================ */
+
+/* ── Escopo de cor por jogo ──────────────────────────────────
+   Cada página define --jg-cor / --jg-cor-ink / --jg-cor-bg no
+   elemento raiz do jogo (classe .jg-tema-*). */
+.jg-tema-memoria   { --jg-cor: var(--brand);   --jg-cor-ink: var(--brand-dark); --jg-cor-bg: var(--panel-1); }
+.jg-tema-classificar { --jg-cor: var(--verde); --jg-cor-ink: #1f7570;           --jg-cor-bg: var(--tint-green); }
+.jg-tema-encaixe   { --jg-cor: var(--violeta); --jg-cor-ink: var(--violeta-dark); --jg-cor-bg: var(--tint-violet); }
+.jg-tema-palavra   { --jg-cor: var(--ambar);   --jg-cor-ink: var(--warning);    --jg-cor-bg: var(--warning-bg); }
+
+/* ============================================================
+   LAYOUT BASE
+   ============================================================ */
+.jg-wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-4) 96px;
+  position: relative;
+  z-index: 1;
+}
+
+.jg-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-2);
+  margin-bottom: var(--sp-3);
+  border-radius: var(--r-pill);
+  color: var(--text-soft);
+  font-weight: 800;
+  font-size: .88rem;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.jg-voltar:hover { background: var(--bg-2); color: var(--text-main); }
+
+/* ── Cabeçalho de uma página de jogo ──────────────────────── */
+.jg-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  padding: var(--sp-5) var(--sp-6);
+  margin-bottom: var(--sp-5);
+  box-shadow: var(--shadow-1);
+}
+.jg-cabecalho .jg-card-icone { margin-bottom: 0; flex-shrink: 0; }
+.jg-cabecalho h1 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.5rem;
+  color: var(--text-main);
+  margin: 0 0 4px;
+}
+.jg-cabecalho p {
+  color: var(--text-soft);
+  font-size: .9rem;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 62ch;
+}
+@media (max-width: 620px) {
+  .jg-cabecalho { flex-direction: column; align-items: flex-start; padding: var(--sp-4); }
+  .jg-cabecalho h1 { font-size: 1.3rem; }
+}
+
+/* ── Cabeçalho do hub e dos jogos ─────────────────────────── */
+.jg-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color: white;
+  border-radius: var(--r-xl);
+  padding: var(--sp-7) var(--sp-7);
+  margin-bottom: var(--sp-6);
+  box-shadow: var(--shadow-2);
+}
+.jg-hero-tag {
+  display: inline-block;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .16em;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: var(--r-pill);
+}
+.jg-hero h1 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin: var(--sp-3) 0 var(--sp-2);
+}
+.jg-hero p {
+  font-size: .95rem;
+  line-height: 1.6;
+  opacity: .94;
+  max-width: 58ch;
+  margin: 0;
+}
+.jg-hero-urso img {
+  display: block;
+  width: 148px;
+  height: auto;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .jg-hero { flex-direction: column-reverse; align-items: flex-start; gap: var(--sp-4); padding: var(--sp-5); }
+  .jg-hero-urso img { width: 104px; }
+  .jg-hero h1 { font-size: 1.45rem; }
+}
+
+/* Rodapé do menu mobile (mesma marcação em todas as páginas de jogo) */
+.app-mobile-menu-sair {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--sp-3) var(--sp-2) var(--sp-1);
+  margin-top: 6px;
+  border-top: 1px solid var(--border-faint);
+}
+
+/* ============================================================
+   HUB — cards dos jogos
+   ============================================================ */
+.jg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: var(--sp-5);
+}
+
+.jg-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--ease-out);
+}
+.jg-card:hover {
+  border-color: var(--jg-cor, var(--brand));
+  box-shadow: var(--shadow-2);
+  transform: translateY(-3px);
+}
+.jg-card-icone {
+  width: 62px;
+  height: 62px;
+  border-radius: var(--r-lg);
+  background: var(--jg-cor-bg, var(--panel-1));
+  color: var(--jg-cor-ink, var(--brand-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--sp-4);
+}
+.jg-card-icone svg { width: 34px; height: 34px; }
+.jg-card h2 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.18rem;
+  color: var(--text-main);
+  margin: 0 0 var(--sp-2);
+}
+.jg-card p {
+  color: var(--text-soft);
+  font-size: .9rem;
+  line-height: 1.6;
+  margin: 0 0 var(--sp-4);
+  flex: 1;
+}
+.jg-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-5); }
+.jg-tag {
+  background: var(--jg-cor-bg, var(--panel-1));
+  color: var(--jg-cor-ink, var(--brand-dark));
+  border-radius: var(--r-pill);
+  padding: 5px 11px;
+  font-size: .73rem;
+  font-weight: 800;
+}
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
+.jg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 48px;
+  padding: 13px 22px;
+  border: none;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-size: .95rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.jg-btn-primario { background: var(--primary-action); color: white; }
+.jg-btn-primario:hover { background: var(--primary-dark); }
+.jg-btn-secundario {
+  background: var(--surface);
+  color: var(--jg-cor-ink, var(--brand-dark));
+  border: 1.5px solid var(--jg-cor, var(--brand));
+}
+.jg-btn-secundario:hover { background: var(--jg-cor-bg, var(--panel-1)); }
+.jg-btn-suave { background: var(--bg-2); color: var(--text-soft); }
+.jg-btn-suave:hover { background: var(--panel-1); color: var(--text-main); }
+.jg-btn:disabled { opacity: .5; cursor: default; }
+.jg-btn svg { width: 20px; height: 20px; }
+
+/* ============================================================
+   BARRA DE CONTROLE DO JOGO
+   ============================================================ */
+.jg-barra {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.jg-progresso { flex: 1; min-width: 160px; }
+.jg-progresso .rotulo {
+  display: block;
+  color: var(--text-muted);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  margin-bottom: 5px;
+}
+.jg-trilha {
+  height: 10px;
+  background: var(--panel-3);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.jg-trilha .preenche {
+  height: 100%;
+  width: 0%;
+  background: var(--jg-cor, var(--brand));
+  border-radius: var(--r-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+.jg-acoes { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.jg-icone-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  color: var(--text-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.jg-icone-btn:hover { background: var(--panel-1); color: var(--jg-cor-ink, var(--brand-dark)); }
+.jg-icone-btn[aria-pressed="true"] {
+  background: var(--jg-cor-bg, var(--panel-1));
+  border-color: var(--jg-cor, var(--brand));
+  color: var(--jg-cor-ink, var(--brand-dark));
+}
+.jg-icone-btn svg { width: 20px; height: 20px; }
+
+/* ============================================================
+   PAINEL DE AJUSTES
+   ============================================================ */
+.jg-ajustes {
+  display: none;
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-4);
+}
+.jg-ajustes.aberto { display: block; }
+.jg-ajustes h2 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  margin: 0 0 var(--sp-4);
+}
+.jg-campo { margin-bottom: var(--sp-5); }
+.jg-campo:last-child { margin-bottom: 0; }
+.jg-campo > .titulo {
+  display: block;
+  color: var(--text-main);
+  font-size: .88rem;
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+.jg-campo > .dica {
+  display: block;
+  color: var(--text-muted);
+  font-size: .78rem;
+  line-height: 1.5;
+  margin-bottom: var(--sp-3);
+}
+.jg-opcoes { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.jg-opcao {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+  border: 1.5px solid var(--border-soft);
+  color: var(--text-soft);
+  font-family: 'Nunito', sans-serif;
+  font-size: .86rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.jg-opcao:hover { border-color: var(--jg-cor, var(--brand)); }
+.jg-opcao[aria-pressed="true"] {
+  background: var(--jg-cor-bg, var(--panel-1));
+  border-color: var(--jg-cor, var(--brand));
+  color: var(--jg-cor-ink, var(--brand-dark));
+}
+
+/* ============================================================
+   PALCO / INSTRUÇÃO
+   ============================================================ */
+.jg-instrucao {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  background: var(--jg-cor-bg, var(--panel-1));
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  color: var(--text-soft);
+  font-size: .92rem;
+  line-height: 1.6;
+}
+.jg-instrucao b { color: var(--text-main); }
+.jg-instrucao.solta { margin-top: var(--sp-6); margin-bottom: 0; }
+.jg-instrucao svg { width: 22px; height: 22px; color: var(--jg-cor-ink, var(--brand-dark)); flex-shrink: 0; margin-top: 2px; }
+
+.jg-palco {
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  box-shadow: var(--shadow-1);
+}
+
+/* Aviso discreto de estado (ex.: "Escolhi o gato — agora toque na caixa") */
+.jg-aviso {
+  min-height: 26px;
+  margin-top: var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+/* ============================================================
+   FIGURAS (SVG desenhado em js/jogos/sprites.js)
+   ============================================================ */
+.jg-fig { display: block; width: 100%; height: 100%; }
+.jg-fig-cx { display: flex; align-items: center; justify-content: center; }
+.jg-peca .jg-fig-cx,
+.jg-guardada .jg-fig-cx,
+.jg-molde .jg-fig-cx,
+.jg-fantasma .jg-fig-cx { width: 100%; height: 100%; }
+.jg-alvo-amostra { padding: 3px; }
+
+.escondido { display: none !important; }
+
+/* ============================================================
+   JOGO 1 — MEMÓRIA
+   ============================================================ */
+.jg-cartas {
+  display: grid;
+  grid-template-columns: repeat(var(--jg-cols, 4), minmax(0, 1fr));
+  gap: var(--sp-3);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.jg-carta {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  perspective: 700px;
+}
+.jg-carta-face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.jg-carta-verso {
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  border: 1.5px solid var(--brand-dark);
+  color: rgba(255, 255, 255, .85);
+}
+.jg-carta-verso svg { width: 42%; height: 42%; }
+.jg-carta-frente {
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  padding: 12%;
+  transform: rotateY(180deg);
+}
+.jg-carta-frente .jg-fig-cx { width: 100%; height: 100%; }
+.jg-carta.virada .jg-carta-verso,
+.jg-carta.resolvida .jg-carta-verso { transform: rotateY(-180deg); }
+.jg-carta.virada .jg-carta-frente,
+.jg-carta.resolvida .jg-carta-frente { transform: rotateY(0deg); }
+.jg-carta.resolvida { cursor: default; }
+.jg-carta.resolvida .jg-carta-frente {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+}
+.jg-carta:not(.resolvida):hover .jg-carta-verso { border-color: var(--primary-light); }
+
+/* Modo calmo / reduced-motion: troca instantânea, sem giro. */
+@media (prefers-reduced-motion: reduce) {
+  .jg-carta { perspective: none; }
+  .jg-carta-face { transition: none; }
+}
+html[data-modo-calmo="true"] .jg-carta { perspective: none; }
+
+/* ============================================================
+   JOGO 2 e 4 — PEÇAS ARRASTÁVEIS E ALVOS
+   (são <button> de verdade, para funcionarem no teclado)
+   ============================================================ */
+.jg-peca, .jg-alvo, .jg-molde, .jg-item-img, .jg-item-palavra {
+  font-family: 'Nunito', sans-serif;
+  text-align: left;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.jg-pecas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  justify-content: center;
+  min-height: 92px;
+  padding: var(--sp-3);
+  background: var(--bg-2);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-5);
+}
+.jg-peca {
+  width: 78px;
+  height: 78px;
+  padding: 9px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  cursor: grab;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+.jg-peca:hover { border-color: var(--jg-cor, var(--brand)); }
+.jg-peca.escolhida {
+  border-color: var(--jg-cor, var(--brand));
+  border-width: 2.5px;
+  box-shadow: var(--shadow-2);
+}
+.jg-peca.arrastando { opacity: .35; cursor: grabbing; }
+.jg-peca.colocada { display: none; }
+
+/* Cópia que segue o dedo/ponteiro durante o arraste */
+.jg-fantasma {
+  position: fixed;
+  z-index: var(--z-modal);
+  width: 78px;
+  height: 78px;
+  padding: 9px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 2px solid var(--jg-cor, var(--brand));
+  box-shadow: var(--shadow-3);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jg-alvos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-4);
+}
+.jg-alvo {
+  min-height: 148px;
+  border-radius: var(--r-lg);
+  border: 2px dashed var(--border);
+  background: var(--bg-2);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
+}
+.jg-alvo:hover, .jg-alvo.perto {
+  border-color: var(--jg-cor, var(--brand));
+  border-style: solid;
+  background: var(--jg-cor-bg, var(--panel-1));
+}
+.jg-alvo-topo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text-main);
+  font-size: .88rem;
+  font-weight: 800;
+}
+.jg-alvo-amostra {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-soft);
+}
+.jg-alvo-conteudo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+.jg-alvo-conteudo .jg-guardada {
+  width: 44px;
+  height: 44px;
+  padding: 5px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--success-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   JOGO 3 — ENCAIXE (molde + peça)
+   ============================================================ */
+.jg-moldes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: var(--sp-4);
+}
+.jg-molde {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-lg);
+  border: 2px dashed var(--border);
+  background: var(--bg-2);
+  padding: var(--sp-4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
+}
+.jg-molde:hover, .jg-molde.perto {
+  border-color: var(--jg-cor, var(--brand));
+  border-style: solid;
+  background: var(--jg-cor-bg, var(--panel-1));
+}
+.jg-molde.encaixado {
+  border-style: solid;
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  cursor: default;
+}
+.jg-molde .jg-fig-cx { width: 100%; height: 100%; }
+
+/* Quebra-cabeça de duas peças: o corte irregular é o mesmo dos
+   dois lados, então as metades se completam exatamente. */
+.jg-peca-meio { padding: 4px; }
+.jg-meio-cx { position: relative; width: 100%; height: 100%; }
+.jg-meio-esq, .jg-meio-dir, .jg-meio-vazio { position: absolute; inset: 0; }
+.jg-meio-esq {
+  -webkit-clip-path: polygon(0 0, 52% 0, 46% 22%, 56% 38%, 46% 56%, 54% 78%, 50% 100%, 0 100%);
+  clip-path: polygon(0 0, 52% 0, 46% 22%, 56% 38%, 46% 56%, 54% 78%, 50% 100%, 0 100%);
+}
+.jg-meio-dir, .jg-meio-vazio {
+  -webkit-clip-path: polygon(52% 0, 100% 0, 100% 100%, 50% 100%, 54% 78%, 46% 56%, 56% 38%, 46% 22%);
+  clip-path: polygon(52% 0, 100% 0, 100% 100%, 50% 100%, 54% 78%, 46% 56%, 56% 38%, 46% 22%);
+}
+.jg-meio-vazio { background: var(--panel-3); }
+.jg-meio-esq .jg-fig, .jg-meio-dir .jg-fig { width: 100%; height: 100%; }
+
+/* "clique" de encaixe: 4px de assentamento, gated */
+.jg-encaixou { animation: jg-assenta var(--dur-base) var(--ease-out); }
+@keyframes jg-assenta {
+  from { transform: translateY(-4px); }
+  to   { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .jg-encaixou { animation: none; } }
+
+/* ============================================================
+   JOGO 4 — IMAGEM ↔ PALAVRA
+   ============================================================ */
+.jg-ligacao {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--sp-4);
+  align-items: start;
+  position: relative;
+}
+.jg-coluna { display: flex; flex-direction: column; gap: var(--sp-3); }
+.jg-coluna-rotulo {
+  color: var(--text-muted);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 2px;
+}
+.jg-linha-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  color: var(--success);
+}
+/* Modo "ouvir a palavra": o texto some e o botão vira um convite a escutar. */
+.jg-ouvir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: 'Nunito', sans-serif;
+  font-size: .9rem;
+  font-weight: 800;
+  color: var(--jg-cor-ink, var(--brand-dark));
+}
+.jg-ouvir svg { width: 20px; height: 20px; }
+.jg-item-img, .jg-item-palavra {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 66px;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  cursor: pointer;
+  touch-action: none;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
+}
+.jg-item-img:hover, .jg-item-palavra:hover { border-color: var(--jg-cor, var(--brand)); }
+.jg-item-img .jg-fig-cx { width: 46px; height: 46px; flex-shrink: 0; }
+.jg-item-palavra {
+  justify-content: center;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: .01em;
+}
+.jg-item-img.escolhida, .jg-item-palavra.escolhida {
+  border-color: var(--jg-cor, var(--brand));
+  border-width: 2.5px;
+  background: var(--jg-cor-bg, var(--panel-1));
+}
+.jg-item-img.ligado, .jg-item-palavra.ligado {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  cursor: default;
+}
+.jg-item-img.ligado .jg-fig-cx { opacity: .85; }
+.jg-meio { width: 1px; }
+@media (max-width: 620px) {
+  .jg-ligacao { grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  .jg-meio { display: none; }
+  .jg-item-palavra { font-size: .98rem; }
+}
+
+/* ============================================================
+   FIM DE RODADA
+   ============================================================ */
+.jg-fim {
+  display: none;
+  text-align: center;
+  padding: var(--sp-7) var(--sp-4);
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-1);
+}
+.jg-fim.aberto { display: block; }
+.jg-fim img { width: 138px; height: auto; }
+.jg-fim h2 {
+  font-family: 'Baloo 2', sans-serif;
+  color: var(--text-main);
+  font-size: 1.3rem;
+  margin: var(--sp-3) 0 var(--sp-2);
+}
+.jg-fim p { color: var(--text-soft); font-size: .95rem; line-height: 1.6; margin: 0 auto var(--sp-2); max-width: 46ch; }
+.jg-fim-btns { display: flex; gap: var(--sp-3); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-5); }
+
+/* ============================================================
+   ACESSIBILIDADE
+   ============================================================ */
+.jg-carta:focus-visible,
+.jg-peca:focus-visible,
+.jg-alvo:focus-visible,
+.jg-molde:focus-visible,
+.jg-item-img:focus-visible,
+.jg-item-palavra:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 520px) {
+  .jg-wrap { padding: var(--sp-4) var(--sp-3) 96px; }
+  .jg-palco { padding: var(--sp-4); }
+  .jg-peca, .jg-fantasma { width: 66px; height: 66px; }
+}

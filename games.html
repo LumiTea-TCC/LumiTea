@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>LumiTEA — O Mundo Gelado do Theo</title>
+  <title>LumiTEA — Jogos do Theo</title>
   <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
@@ -13,178 +13,11 @@
   <link rel="stylesheet" href="lumitea.css">
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/jogos.css">
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
-  <style>
-    /* ===================== MUNDO DO THEO ===================== */
-    :root{
-      --gm-brand:#4a7eb5; --gm-brand-dark:#2e5fa3;
-      --gm-ink:#1a2e4a; --gm-soft:#3d6080; --gm-muted:#4e6f95;
-      --gm-line:rgba(74,126,181,.16);
-      --gm-boa:#2e7d32; --gm-boa-bg:#e6f4ea;
-      --gm-neutra:#1565c0; --gm-neutra-bg:#e7f0fb;
-      --gm-ruim:#7a4f1a; --gm-ruim-bg:#fbf0e2;
-    }
-    .mw{ max-width:1180px; margin:0 auto; padding:22px 18px 90px; position:relative; z-index:1; }
-
-    /* ---- HERO / capa ---- */
-    .mw-hero{
-      display:flex; align-items:center; justify-content:space-between; gap:22px;
-      background:linear-gradient(135deg,var(--gm-brand),var(--gm-brand-dark));
-      color:#fff; border-radius:22px; padding:24px 28px; margin-bottom:18px;
-      box-shadow:0 10px 30px rgba(46,95,163,.22);
-    }
-    .mw-hero-tag{ display:inline-block; font-size:.62rem; font-weight:900; letter-spacing:.16em;
-      padding:5px 12px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.26); border-radius:99px; }
-    .mw-hero h1{ font-family:'Baloo 2',sans-serif; font-size:1.7rem; margin:10px 0 6px; }
-    .mw-hero p{ font-size:.93rem; line-height:1.55; opacity:.93; max-width:560px; }
-    .mw-hero-bear img{ display:block; width:140px; height:auto; border-radius:18px; background:rgba(255,255,255,.1); padding:8px; }
-    @media(max-width:740px){ .mw-hero{ flex-direction:column-reverse; align-items:flex-start } .mw-hero-bear img{ width:104px } }
-
-    /* ---- Tela inicial (briefing) ---- */
-    .mw-start{ background:#fff; border:1.5px solid var(--gm-line); border-radius:20px; padding:26px; box-shadow:0 6px 20px rgba(74,126,181,.08); }
-    .mw-start h2{ font-family:'Baloo 2',sans-serif; color:var(--gm-ink); margin:0 0 4px; font-size:1.25rem; }
-    .mw-start p{ color:var(--gm-soft); line-height:1.6; font-size:.92rem; margin:0 0 6px; }
-    .mw-howto{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin:18px 0; }
-    .mw-howto .it{ display:flex; gap:10px; align-items:flex-start; background:var(--bg-2,#f4f8fd); border:1px solid var(--gm-line); border-radius:14px; padding:12px 14px; }
-    .mw-howto .it i{ color:var(--gm-brand); flex-shrink:0; margin-top:1px; }
-    .mw-howto .it b{ display:block; color:var(--gm-ink); font-size:.86rem; }
-    .mw-howto .it span{ color:var(--gm-muted); font-size:.8rem; line-height:1.4; }
-
-    .mw-btn{ padding:13px 22px; min-height:48px; border-radius:14px; cursor:pointer; border:none;
-      font-family:'Nunito',sans-serif; font-size:.96rem; font-weight:800; display:inline-flex; gap:8px; align-items:center;
-      transition:background .18s ease, transform .18s ease; }
-    .mw-btn-primary{ background:var(--primary-action,#1976d2); color:#fff; }
-    .mw-btn-primary:hover:not(:disabled){ background:var(--primary-dark,#1565c0); }
-    .mw-btn-primary:disabled{ opacity:.55; cursor:progress; }
-    .mw-btn-ghost{ background:#fff; color:var(--gm-brand); border:1.5px solid var(--gm-brand); }
-    .mw-btn-ghost:hover{ background:#eaf1fb; }
-    .mw-btn-soft{ background:var(--bg-2,#f4f8fd); color:var(--gm-soft); }
-    .mw-btn-soft:hover{ background:#e7effa; }
-
-    /* ---- Palco do jogo ---- */
-    .mw-stage{ display:none; }
-    .mw-stage.on{ display:block; }
-
-    .mw-hud{ display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-      background:#fff; border:1.5px solid var(--gm-line); border-radius:16px 16px 0 0;
-      border-bottom:none; padding:12px 16px; }
-    .mw-hud .lvl{ display:flex; align-items:center; gap:9px; }
-    .mw-hud .lvl .badge{ width:36px; height:36px; border-radius:11px; background:linear-gradient(135deg,var(--gm-brand),var(--gm-brand-dark));
-      color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1rem; }
-    .mw-hud .lvl small{ display:block; color:var(--gm-muted); font-size:.66rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-    .mw-hud .lvl b{ color:var(--gm-ink); font-size:.92rem; font-family:'Baloo 2',sans-serif; }
-    .mw-xp{ flex:1; min-width:140px; }
-    .mw-xp .track{ height:9px; background:#e7eefa; border-radius:99px; overflow:hidden; }
-    .mw-xp .fill{ height:100%; width:0%; background:linear-gradient(90deg,#3aa39f,var(--gm-brand)); border-radius:99px; transition:width .4s ease; }
-    .mw-xp .meta{ display:flex; justify-content:space-between; margin-top:5px; color:var(--gm-muted); font-size:.72rem; font-weight:700; }
-    .mw-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--gm-neutra-bg); color:var(--gm-neutra);
-      border-radius:99px; padding:6px 12px; font-size:.78rem; font-weight:800; }
-    .mw-hud .hbtn{ background:var(--bg-2,#f4f8fd); border:1px solid var(--gm-line); color:var(--gm-soft);
-      border-radius:11px; width:40px; height:40px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-    .mw-hud .hbtn:hover{ background:#e7effa; color:var(--gm-brand); }
-
-    .mw-canvas-wrap{ position:relative; border:1.5px solid var(--gm-line); border-radius:0 0 18px 18px; overflow:hidden;
-      background:#dcebfb; box-shadow:0 8px 26px rgba(74,126,181,.12); }
-    #mw-canvas{ display:block; width:100%; height:auto; touch-action:none; }
-    .mw-tema{ position:absolute; top:10px; left:10px; z-index:3; background:rgba(26,46,74,.55); color:#fff;
-      backdrop-filter:blur(4px); border-radius:99px; padding:6px 14px; font-size:.78rem; font-weight:800; letter-spacing:.02em; }
-    .mw-hint{ position:absolute; left:50%; bottom:14px; transform:translateX(-50%); z-index:3;
-      background:rgba(26,46,74,.72); color:#fff; border-radius:12px; padding:9px 16px; font-size:.82rem; font-weight:700;
-      display:none; align-items:center; gap:8px; max-width:88%; text-align:center; }
-    .mw-hint.on{ display:inline-flex; }
-
-    /* controles touch */
-    .mw-pad{ position:absolute; z-index:4; bottom:16px; left:14px; display:grid; grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,46px); gap:5px; opacity:.92; }
-    .mw-pad button{ background:rgba(255,255,255,.86); border:1px solid var(--gm-line); border-radius:12px; color:var(--gm-brand);
-      display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:none; -webkit-user-select:none; user-select:none; }
-    .mw-pad button:active{ background:#dcebfb; }
-    .mw-pad .pu{ grid-area:1/2 } .mw-pad .pl{ grid-area:2/1 } .mw-pad .pr{ grid-area:2/3 } .mw-pad .pd{ grid-area:3/2 }
-    .mw-act{ position:absolute; z-index:4; bottom:18px; right:16px; }
-    .mw-act button{ width:74px; height:74px; border-radius:50%; border:none; cursor:pointer;
-      background:linear-gradient(135deg,var(--primary-action,#1976d2),var(--gm-brand-dark)); color:#fff;
-      font-family:'Baloo 2',sans-serif; font-weight:800; font-size:.82rem; box-shadow:0 6px 18px rgba(46,95,163,.4);
-      display:none; align-items:center; justify-content:center; flex-direction:column; gap:2px; }
-    .mw-act button.on{ display:flex; }
-    @media(hover:hover) and (pointer:fine){ .mw-pad{ opacity:.35; } .mw-pad:hover{ opacity:.92; } }
-
-    /* ---- Diálogo / encontro social ---- */
-    .mw-modal{ position:fixed; inset:0; z-index:600; display:none; align-items:center; justify-content:center;
-      background:rgba(20,38,66,.5); backdrop-filter:blur(3px); padding:18px; }
-    .mw-modal.on{ display:flex; }
-    .mw-dialog{ background:#fff; border-radius:20px; max-width:560px; width:100%; max-height:92vh; overflow:auto;
-      box-shadow:0 20px 60px rgba(20,38,66,.35); animation:mwpop .22s ease-out; }
-    @keyframes mwpop{ from{ opacity:0; transform:translateY(10px) scale(.98) } to{ opacity:1; transform:none } }
-    .mw-dialog-top{ padding:18px 22px; border-bottom:1px solid var(--gm-line); display:flex; align-items:center; gap:12px; }
-    .mw-npc-av{ width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center;
-      font-family:'Baloo 2',sans-serif; font-weight:800; color:#fff; font-size:1.2rem; flex-shrink:0; }
-    .mw-dialog-top b{ display:block; color:var(--gm-ink); font-family:'Baloo 2',sans-serif; font-size:1.05rem; }
-    .mw-dialog-top span{ color:var(--gm-muted); font-size:.78rem; font-weight:700; }
-    .mw-dialog-body{ padding:18px 22px; }
-    .mw-situacao{ background:var(--bg-2,#f4f8fd); border:1px solid var(--gm-line); border-radius:13px; padding:12px 14px;
-      color:var(--gm-soft); font-size:.86rem; line-height:1.55; margin-bottom:14px; }
-    .mw-fala{ color:var(--gm-ink); font-size:1rem; line-height:1.55; margin:0 0 16px; font-weight:600; }
-    .mw-fala::before{ content:"“"; color:var(--gm-brand); font-family:'Baloo 2'; font-size:1.4em; vertical-align:-.2em; margin-right:2px; }
-    .mw-opcoes{ display:flex; flex-direction:column; gap:10px; }
-    .mw-op{ text-align:left; padding:14px 16px; min-height:48px; border-radius:13px; cursor:pointer;
-      background:#fff; border:1.5px solid var(--gm-line); color:var(--gm-ink);
-      font-family:'Nunito',sans-serif; font-size:.92rem; font-weight:700; line-height:1.45; transition:border-color .15s, background .15s; }
-    .mw-op:hover:not(:disabled){ border-color:var(--gm-brand); background:#f3f8fe; }
-    .mw-op:disabled{ cursor:default; opacity:.5; }
-    .mw-op.sel-boa{ border-color:var(--gm-boa); background:var(--gm-boa-bg); opacity:1; }
-    .mw-op.sel-neutra{ border-color:var(--gm-neutra); background:var(--gm-neutra-bg); opacity:1; }
-    .mw-op.sel-ruim{ border-color:var(--gm-ruim); background:var(--gm-ruim-bg); opacity:1; }
-
-    /* reação do urso */
-    .mw-reacao{ display:none; text-align:center; padding:6px 4px 4px; }
-    .mw-reacao.on{ display:block; animation:mwpop .24s ease-out; }
-    .mw-reacao img{ width:120px; height:auto; display:block; margin:0 auto 10px; }
-    .mw-reacao .tag{ display:inline-block; font-size:.7rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
-      padding:4px 12px; border-radius:99px; margin-bottom:10px; }
-    .mw-reacao .tag.boa{ background:var(--gm-boa-bg); color:var(--gm-boa); }
-    .mw-reacao .tag.neutra{ background:var(--gm-neutra-bg); color:var(--gm-neutra); }
-    .mw-reacao .tag.ruim{ background:var(--gm-ruim-bg); color:var(--gm-ruim); }
-    .mw-reacao p{ color:var(--gm-soft); font-size:.92rem; line-height:1.6; max-width:420px; margin:0 auto 14px; }
-    .mw-reacao .xp{ color:var(--gm-boa); font-weight:800; font-family:'Baloo 2',sans-serif; }
-
-    /* quest log (drawer) */
-    .mw-log{ position:fixed; top:0; right:0; bottom:0; width:340px; max-width:88vw; z-index:560; background:#fff;
-      box-shadow:-12px 0 36px rgba(20,38,66,.18); transform:translateX(102%); transition:transform .25s ease; overflow:auto; }
-    .mw-log.on{ transform:none; }
-    .mw-log-top{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--gm-line); position:sticky; top:0; background:#fff; }
-    .mw-log-top h3{ margin:0; font-family:'Baloo 2',sans-serif; color:var(--gm-ink); font-size:1.05rem; }
-    .mw-log-list{ padding:10px 14px 24px; display:flex; flex-direction:column; gap:8px; }
-    .mw-log-it{ display:flex; gap:10px; align-items:center; padding:11px 12px; border:1px solid var(--gm-line); border-radius:12px; }
-    .mw-log-it .ld{ width:30px; height:30px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-family:'Baloo 2'; font-size:.85rem; }
-    .mw-log-it b{ display:block; color:var(--gm-ink); font-size:.86rem; }
-    .mw-log-it span{ color:var(--gm-muted); font-size:.76rem; }
-    .mw-log-it.feito{ background:var(--gm-boa-bg); border-color:#bfe2c7; }
-    .mw-log-it.feito span{ color:var(--gm-boa); font-weight:800; }
-
-    /* loading IA */
-    .mw-load{ display:none; flex-direction:column; align-items:center; gap:14px; padding:46px 20px; text-align:center; }
-    .mw-load.on{ display:flex; }
-    .mw-load img{ width:120px; height:auto; }
-    .mw-load b{ font-family:'Baloo 2',sans-serif; color:var(--gm-ink); font-size:1.05rem; }
-    .mw-load span{ color:var(--gm-muted); font-size:.85rem; }
-    .mw-load .dots span{ animation:mwblink 1.2s infinite; }
-    .mw-load .dots span:nth-child(2){ animation-delay:.2s } .mw-load .dots span:nth-child(3){ animation-delay:.4s }
-    @keyframes mwblink{ 0%,100%{ opacity:.25 } 50%{ opacity:1 } }
-
-    .mw-fim{ text-align:center; padding:26px 16px; }
-    .mw-fim img{ width:140px; height:auto; }
-    .mw-fim h3{ font-family:'Baloo 2',sans-serif; color:var(--gm-ink); margin:10px 0 4px; font-size:1.3rem; }
-    .mw-fim p{ color:var(--gm-soft); margin:4px 0; }
-    .mw-fim .btns{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
-
-    @media (prefers-reduced-motion: reduce){
-      .mw-dialog,.mw-reacao,.mw-xp .fill,.mw-log{ animation:none !important; transition:none !important; }
-    }
-    html[data-modo-calmo="true"] .mw-dialog,
-    html[data-modo-calmo="true"] .mw-reacao{ animation:none !important; }
-  </style>
   <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
@@ -203,7 +36,7 @@
     <div class="app-nav-links">
       <a href="home-autista.html">Início</a>
       <a href="conversa.html">Conversar com o Theo</a>
-      <a href="games.html" class="active">Mundo do Theo</a>
+      <a href="games.html" class="active">Jogos do Theo</a>
       <a href="comunidade.html">Comunidade</a>
       <a href="calendario.html">Calendário</a>
       <a href="diario.html">Diário</a>
@@ -225,826 +58,133 @@
   <div id="mm-home" class="app-mobile-menu">
     <a href="home-autista.html">Início</a>
     <a href="conversa.html">Conversar com o Theo</a>
-    <a href="games.html" class="active">Mundo do Theo</a>
+    <a href="games.html" class="active">Jogos do Theo</a>
     <a href="comunidade.html">Comunidade</a>
     <a href="calendario.html">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html">Conta</a>
-    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+    <div class="app-mobile-menu-sair">
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
   </div>
 
-  <main class="mw">
-    <header class="mw-hero">
+  <main class="jg-wrap">
+    <header class="jg-hero">
       <div>
-        <span class="mw-hero-tag">MUNDO ABERTO</span>
-        <h1>O Mundo Gelado do Theo</h1>
-        <p>Um mundo que nunca é igual. Cada vez que você entra, o Theo encontra
-           pessoas novas, em lugares novos, com situações diferentes pra resolver
-           — do seu jeito, no seu tempo. Sem perder, sem relógio. Só conexões.</p>
+        <span class="jg-hero-tag">JOGAR COM CALMA</span>
+        <h1>Jogos do Theo</h1>
+        <p>Quatro jogos para treinar memória, atenção, lógica e vocabulário — no seu ritmo.
+           Não tem relógio correndo, não tem placar negativo e não tem como perder.
+           Errar aqui é só tentar de novo.</p>
       </div>
-      <div class="mw-hero-bear"><img src="img/urso-skate.png" alt=""></div>
+      <div class="jg-hero-urso"><img src="img/urso-jogando.png" alt=""></div>
     </header>
 
-    <!-- BRIEFING / TELA INICIAL -->
-    <section class="mw-start" id="mw-start">
-      <h2>Como funciona</h2>
-      <p>Você explora a vila gelada e encontra moradores. Cada um vive uma situação
-         social real. Você escolhe como o Theo responde — e o urso reage à sua escolha.
-         Não existe resposta que "queima o jogo": toda escolha ensina algo.</p>
+    <div class="jg-grid">
 
-      <div class="mw-howto">
-        <div class="it"><i data-lt-icon="move" aria-hidden="true"></i><div><b>Explore</b><span>Setas/WASD no computador, ou o direcional na tela no celular.</span></div></div>
-        <div class="it"><i data-lt-icon="message-circle" aria-hidden="true"></i><div><b>Converse</b><span>Chegue perto de um morador e aperte E (ou o botão Falar).</span></div></div>
-        <div class="it"><i data-lt-icon="heart" aria-hidden="true"></i><div><b>Conecte</b><span>Boas escolhas viram elos de amizade e pontos de experiência.</span></div></div>
-        <div class="it"><i data-lt-icon="refresh-cw" aria-hidden="true"></i><div><b>Sempre novo</b><span>A IA monta um mundo diferente a cada vez que você entra.</span></div></div>
-      </div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="mw-btn mw-btn-primary" id="mw-jogar">
-          <i data-lt-icon="play" aria-hidden="true"></i> Entrar no mundo
-        </button>
-        <a class="mw-btn mw-btn-ghost" href="conversa.html">
-          <i data-lt-icon="message-circle" aria-hidden="true"></i> Falar com o Theo
-        </a>
-      </div>
-    </section>
-
-    <!-- PALCO DO JOGO -->
-    <section class="mw-stage" id="mw-stage">
-      <!-- loading -->
-      <div class="mw-load" id="mw-load">
-        <img src="img/urso-aponta-lado.png" alt="">
-        <b>O Theo está preparando um mundo só pra você</b>
-        <span class="dots">montando a vila<span>.</span><span>.</span><span>.</span></span>
-      </div>
-
-      <div id="mw-game" style="display:none;">
-        <div class="mw-hud">
-          <div class="lvl">
-            <div class="badge" id="mw-lvl-badge">1</div>
-            <div><small>Nível</small><b id="mw-lvl-nome">Explorador</b></div>
-          </div>
-          <div class="mw-xp">
-            <div class="track"><div class="fill" id="mw-xp-fill"></div></div>
-            <div class="meta"><span id="mw-xp-txt">0 / 100 XP</span><span id="mw-elos-txt">0 elos</span></div>
-          </div>
-          <button class="hbtn" id="mw-log-btn" title="Quem já conheci" aria-label="Diário de conexões"><i data-lt-icon="list" aria-hidden="true"></i></button>
-          <button class="hbtn" id="mw-sair-btn" title="Sair do mundo" aria-label="Sair do mundo"><i data-lt-icon="log-out" aria-hidden="true"></i></button>
+      <!-- 1. MEMÓRIA -->
+      <article class="jg-card jg-tema-memoria lt-reveal">
+        <div class="jg-card-icone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="4" width="9" height="13" rx="2"/>
+            <rect x="12.5" y="7" width="9" height="13" rx="2"/>
+            <path d="M6 9.5h2.5M6 12h2.5"/>
+          </svg>
         </div>
-
-        <div class="mw-canvas-wrap">
-          <div class="mw-tema" id="mw-tema">—</div>
-          <canvas id="mw-canvas" width="896" height="560"></canvas>
-          <div class="mw-hint" id="mw-hint"></div>
-
-          <div class="mw-pad" aria-hidden="true">
-            <button class="pu" data-dir="up"><i data-lt-icon="chevron-up"></i></button>
-            <button class="pl" data-dir="left"><i data-lt-icon="chevron-left"></i></button>
-            <button class="pr" data-dir="right"><i data-lt-icon="chevron-right"></i></button>
-            <button class="pd" data-dir="down"><i data-lt-icon="chevron-down"></i></button>
-          </div>
-          <div class="mw-act"><button id="mw-act-btn">Falar</button></div>
+        <h2>Jogo da memória</h2>
+        <p>Vire duas cartas por vez e encontre os pares iguais. Comece com poucos pares e
+           aumente quando quiser. Se as cartas não combinarem, elas só voltam a virar — nada acontece.</p>
+        <div class="jg-tags">
+          <span class="jg-tag">Memória</span>
+          <span class="jg-tag">Atenção</span>
+          <span class="jg-tag">Associação visual</span>
         </div>
-      </div>
+        <a class="jg-btn jg-btn-primario" href="jogo-memoria.html">Jogar memória</a>
+      </article>
 
-      <!-- fim / mundo completo -->
-      <div id="mw-fim-wrap" style="display:none;"></div>
+      <!-- 2. CLASSIFICAR -->
+      <article class="jg-card jg-tema-classificar lt-reveal">
+        <div class="jg-card-icone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="6" r="3.2"/>
+            <rect x="14.6" y="2.8" width="6.6" height="6.6" rx="1.4"/>
+            <path d="M6 14.5 9.5 21h-7z"/>
+            <path d="M14 14h7v7h-7z"/>
+          </svg>
+        </div>
+        <h2>Classificar</h2>
+        <p>Leve cada objeto para a caixa certa: por cor, por forma ou por tamanho.
+           Um critério de cada vez, do jeito que fizer mais sentido pra você. Se errar a caixa,
+           a peça só volta pro lugar.</p>
+        <div class="jg-tags">
+          <span class="jg-tag">Raciocínio lógico</span>
+          <span class="jg-tag">Atenção</span>
+          <span class="jg-tag">Vocabulário</span>
+        </div>
+        <a class="jg-btn jg-btn-primario" href="jogo-classificar.html">Jogar classificar</a>
+      </article>
+
+      <!-- 3. ENCAIXE -->
+      <article class="jg-card jg-tema-encaixe lt-reveal">
+        <div class="jg-card-icone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="2.5" width="9" height="9" rx="1.6" stroke-dasharray="2.6 2.2"/>
+            <circle cx="17" cy="17" r="4.4"/>
+            <path d="M13.5 8.5 8.5 13.5M13.5 13.5v-5h-5" transform="translate(0.4 0.4)"/>
+          </svg>
+        </div>
+        <h2>Encaixe</h2>
+        <p>Encontre o molde certo para cada peça: formas geométricas nos seus contornos ou
+           as duas metades de uma figura. A área de encaixe é generosa — chegou perto, encaixou.</p>
+        <div class="jg-tags">
+          <span class="jg-tag">Coordenação</span>
+          <span class="jg-tag">Percepção de formas</span>
+          <span class="jg-tag">Padrões</span>
+        </div>
+        <a class="jg-btn jg-btn-primario" href="jogo-encaixe.html">Jogar encaixe</a>
+      </article>
+
+      <!-- 4. IMAGEM ↔ PALAVRA -->
+      <article class="jg-card jg-tema-palavra lt-reveal">
+        <div class="jg-card-icone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="4" width="8.5" height="8.5" rx="1.8"/>
+            <path d="m4.4 11 2.3-2.6 1.9 2.1"/>
+            <path d="M14.5 7h7M14.5 10.5h4.5"/>
+            <path d="M6.7 15.5v2.2a2 2 0 0 0 2 2h9.6"/>
+            <path d="m16.6 17.6 1.9 2.1-1.9 2.1"/>
+          </svg>
+        </div>
+        <h2>Imagem e palavra</h2>
+        <p>Ligue cada figura ao nome dela. Se você ainda não lê tudo sozinho, ligue o som
+           e o Theo lê a palavra em voz alta. Ligação errada só desfaz, sem aviso nenhum.</p>
+        <div class="jg-tags">
+          <span class="jg-tag">Leitura</span>
+          <span class="jg-tag">Vocabulário</span>
+          <span class="jg-tag">Associação</span>
+        </div>
+        <a class="jg-btn jg-btn-primario" href="jogo-imagem-palavra.html">Jogar imagem e palavra</a>
+      </article>
+
+    </div>
+
+    <section class="jg-instrucao solta lt-reveal">
+      <i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i>
+      <div>
+        <b>Como esses jogos funcionam.</b> Todos começam no nível mais fácil e só ficam maiores
+        se você quiser. Em cada jogo há um botão de ajustes para escolher quantos itens aparecem,
+        o tema das figuras e se quer som. Dá para recomeçar a qualquer momento — repetir não é falhar.
+      </div>
     </section>
   </main>
 
-  <!-- DRAWER: diário de conexões -->
-  <aside class="mw-log" id="mw-log" aria-label="Diário de conexões">
-    <div class="mw-log-top">
-      <h3>Quem o Theo conheceu</h3>
-      <button class="hbtn" id="mw-log-close" aria-label="Fechar"><i data-lt-icon="x" aria-hidden="true"></i></button>
-    </div>
-    <div class="mw-log-list" id="mw-log-list"></div>
-  </aside>
-
-  <!-- MODAL: encontro social -->
-  <div class="mw-modal" id="mw-modal" role="dialog" aria-modal="true" aria-labelledby="mw-npc-nome">
-    <div class="mw-dialog">
-      <div class="mw-dialog-top">
-        <div class="mw-npc-av" id="mw-npc-av">?</div>
-        <div><b id="mw-npc-nome">Morador</b><span id="mw-npc-papel"></span></div>
-      </div>
-      <div class="mw-dialog-body">
-        <div id="mw-cena">
-          <div class="mw-situacao" id="mw-situacao"></div>
-          <p class="mw-fala" id="mw-fala"></p>
-          <div class="mw-opcoes" id="mw-opcoes"></div>
-        </div>
-        <div class="mw-reacao" id="mw-reacao">
-          <img id="mw-reacao-img" src="" alt="">
-          <span class="tag" id="mw-reacao-tag"></span>
-          <p id="mw-reacao-txt"></p>
-          <div class="xp" id="mw-reacao-xp"></div>
-          <div style="margin-top:14px;">
-            <button class="mw-btn mw-btn-primary" id="mw-reacao-ok">Continuar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <script src="js/jogos/base.js"></script>
   <script>
-  /* ====================================================================
-     O MUNDO GELADO DO THEO — jogo único de mundo aberto
-     - Mapa procedural com seed (muda a cada entrada).
-     - Moradores e situações sociais geradas pela IA (Groq via proxy),
-       com banco de reserva robusto caso a IA não responda.
-     - Reações do urso (boa / neutra / ruim) usando as imagens de img/.
-     ==================================================================== */
-  (function () {
-    'use strict';
-    var LT = window.LUMITEA || {};
-    var esc = LT.esc || function (s) { return String(s == null ? '' : s); };
-    var sb = LT.criarSupabase ? LT.criarSupabase() : null;
-
-    /* ---------- estado do usuário ---------- */
-    var userId = null, perfil = { nome: 'amigo', humorRecente: null };
-
-    async function boot() {
-      if (!sb) { entrarOffline(); return; }
-      try {
-        var r = await sb.auth.getSession();
-        if (!r.data.session) { location.href = 'login.html'; return; }
-        userId = r.data.session.user.id;
-        var p = await sb.from('profiles').select('nome, tipo').eq('id', userId).single();
-        if (p.error || !p.data) { location.href = 'login.html'; return; }
-        if (p.data.tipo === 'responsavel') { location.href = 'home-cuidador.html'; return; }
-        perfil.nome = p.data.nome || 'amigo';
-        document.getElementById('nav-user-name').textContent = perfil.nome;
-        // humor recente (opcional, para a IA adaptar)
-        try {
-          var h = await sb.from('registros_humor').select('nivel').eq('id_neurodivergente', userId)
-            .order('created_at', { ascending: false }).limit(1);
-          if (h.data && h.data[0]) perfil.humorRecente = h.data[0].nivel;
-        } catch (e) {}
-      } catch (e) { entrarOffline(); }
-    }
-    function entrarOffline() { document.getElementById('nav-user-name').textContent = 'amigo'; }
-    window.sairDaConta = function () {
-      if (sb) sb.auth.signOut().then(function () { location.href = 'login.html'; });
-      else location.href = 'login.html';
-    };
-    boot();
-
-    /* ---------- RNG com seed (mulberry32) ---------- */
-    function rng(seed) {
-      var a = seed >>> 0;
-      return function () {
-        a |= 0; a = (a + 0x6D2B79F5) | 0;
-        var t = Math.imul(a ^ (a >>> 15), 1 | a);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-    }
-    function pick(rand, arr) { return arr[Math.floor(rand() * arr.length)]; }
-
-    /* ---------- paleta dos moradores ---------- */
-    var CORES = ['#4a7eb5', '#3aa39f', '#7c5cbf', '#e08e30', '#c0698f', '#5a9e54', '#d96d5a', '#3f8bbf'];
-
-    /* ---------- banco de reserva (offline) ---------- */
-    // Situações sociais reais. Cada uma tem 3 opções marcadas por qualidade.
-    var TEMAS = ['Vila do Inverno', 'Praça das Luzes do Norte', 'Mercado de Gelo',
-                 'Bairro da Aurora', 'Lago Congelado', 'Floresta de Pinheiros'];
-    var NOMES = ['Bel', 'Caio', 'Dani', 'Enzo', 'Flor', 'Gus', 'Ravi', 'Lia', 'Theo Jr.',
-                 'Nina', 'Ped', 'Mara', 'Vini', 'Sol', 'Kai', 'Duda'];
-    var PAPEIS = ['vizinha', 'colega da escola', 'dono da loja', 'pessoa da praça',
-                  'amigo novo', 'jogador do parque', 'bibliotecária', 'irmão mais novo'];
-
-    var CENAS = [
-      { papel: 'colega da escola',
-        situacao: 'Um grupo está rindo perto de você. Você não sabe se estão rindo de você ou de uma piada qualquer.',
-        fala: 'Ah, oi! A gente tava falando de um vídeo engraçado. Quer ver?',
-        opcoes: [
-          { q: 'boa',    t: 'Pergunto com calma: "É de um vídeo? Posso ver também?"', fb: 'Perguntar antes de supor evita mal-entendido. Você checou os fatos em vez de assumir o pior — isso é força, não fraqueza.' },
-          { q: 'neutra', t: 'Sorrio e fico por perto, mas não falo nada.', fb: 'Tudo bem ficar quieto. Da próxima, uma frase curta como "do que é?" já te inclui na conversa.' },
-          { q: 'ruim',   t: 'Saio rápido achando que estão rindo de mim.', fb: 'Faz sentido se proteger. Mas às vezes o riso não é sobre a gente. Respira e checa antes de decidir sair.' }
-        ] },
-      { papel: 'vizinha',
-        situacao: 'A vizinha está carregando muitas sacolas e parece cansada na porta de casa.',
-        fala: 'Ufa... essas sacolas hoje estão pesadas.',
-        opcoes: [
-          { q: 'boa',    t: 'Ofereço ajuda: "Quer que eu segure uma pra você?"', fb: 'Você percebeu o que o outro sentia e agiu com gentileza. Notar e oferecer ajuda fortalece amizades.' },
-          { q: 'neutra', t: 'Digo "que pesado!" e sigo o meu caminho.', fb: 'Você reconheceu o que ela disse — isso já é conexão. Oferecer ajuda seria um passo a mais, quando der.' },
-          { q: 'ruim',   t: 'Passo direto sem dizer nada.', fb: 'Sem julgamento — às vezes não percebemos. Uma frase curta já mostra que você se importa.' }
-        ] },
-      { papel: 'amigo novo',
-        situacao: 'Alguém da sua idade está sozinho no banco da praça, mexendo no celular.',
-        fala: '...',
-        opcoes: [
-          { q: 'boa',    t: 'Chego perto e digo: "Oi, posso sentar aqui?"', fb: 'Pedir pra sentar respeita o espaço do outro e abre a porta. Início de amizade costuma ser simples assim.' },
-          { q: 'neutra', t: 'Sento no mesmo banco em silêncio.', fb: 'Dividir o espaço já conta. Um "oi" curto deixaria mais claro que você quer companhia.' },
-          { q: 'ruim',   t: 'Fico encarando de longe esperando ele falar primeiro.', fb: 'Esperar é seguro, mas pode passar despercebido. Um aceno pequeno já quebra o gelo.' }
-        ] },
-      { papel: 'dono da loja',
-        situacao: 'Você quer um produto mas não acha na prateleira. O dono está livre no balcão.',
-        fala: 'Precisa de ajuda pra achar alguma coisa?',
-        opcoes: [
-          { q: 'boa',    t: 'Digo claramente: "Sim, estou procurando ___. Pode me ajudar?"', fb: 'Pedir ajuda direto resolve mais rápido e é totalmente normal. Você foi claro — ótimo.' },
-          { q: 'neutra', t: 'Respondo "tô só olhando" mesmo precisando.', fb: 'Sem problema querer um tempo. Mas se precisa mesmo, pedir economiza energia sua.' },
-          { q: 'ruim',   t: 'Desisto e saio sem o que vim buscar.', fb: 'Frustrante, né? Da próxima, lembra: o trabalho dele é justamente te ajudar.' }
-        ] },
-      { papel: 'jogador do parque',
-        situacao: 'Um grupo está jogando bola e parece divertido. Você gostaria de entrar.',
-        fala: 'Bora! Tá faltando um na nossa equipe.',
-        opcoes: [
-          { q: 'boa',    t: 'Aceito: "Pode ser! Como vocês estão jogando?"', fb: 'Aceitar e perguntar as regras mostra interesse e te integra rápido. Mandou bem.' },
-          { q: 'neutra', t: 'Digo "talvez depois" e continuo observando.', fb: 'Observar primeiro é uma estratégia válida pra quem gosta de entender antes de entrar.' },
-          { q: 'ruim',   t: 'Balanço a cabeça que não, mesmo querendo jogar.', fb: 'Às vezes o "não" automático protege. Mas dá pra dizer "deixa eu olhar um pouco" e entrar quando se sentir pronto.' }
-        ] },
-      { papel: 'pessoa da praça',
-        situacao: 'Você esbarrou sem querer em alguém e a pessoa derrubou o que segurava.',
-        fala: 'Ai! Ah... tudo bem.',
-        opcoes: [
-          { q: 'boa',    t: 'Peço desculpa e ajudo: "Foi sem querer, desculpa. Deixa eu pegar."', fb: 'Pedir desculpa e reparar mostra responsabilidade. Errar é humano; consertar é maduro.' },
-          { q: 'neutra', t: 'Digo "desculpa" e sigo andando.', fb: 'O pedido de desculpa já importa. Ajudar a recolher seria o passo extra que cuida do outro.' },
-          { q: 'ruim',   t: 'Fico paralisado sem saber o que dizer.', fb: 'Travar diante do inesperado acontece. Uma palavra só — "desculpa" — já resolve bastante.' }
-        ] },
-      { papel: 'irmão mais novo',
-        situacao: 'Seu irmão mexeu nas suas coisas sem pedir e você ficou irritado.',
-        fala: 'Eu só queria ver, não quebrei nada!',
-        opcoes: [
-          { q: 'boa',    t: 'Respiro e digo: "Fico bravo quando mexem sem pedir. Pede da próxima, tá?"', fb: 'Você nomeou o sentimento e pôs um limite sem agredir. Esse é o jeito mais forte de resolver conflito.' },
-          { q: 'neutra', t: 'Pego minhas coisas de volta sem falar nada.', fb: 'Recuperar o que é seu é justo. Dizer como se sentiu ajudaria ele a entender o limite.' },
-          { q: 'ruim',   t: 'Grito e mando ele sair do quarto.', fb: 'A raiva é válida — o jeito é que pesa. Respira fundo e troca o grito por uma frase de limite.' }
-        ] },
-      { papel: 'bibliotecária',
-        situacao: 'Está barulhento e você precisa de silêncio pra se concentrar, mas tem gente conversando alto perto.',
-        fala: 'Posso ajudar em algo?',
-        opcoes: [
-          { q: 'boa',    t: 'Peço com educação: "Tem um lugar mais quietinho? O barulho me atrapalha."', fb: 'Você defendeu sua necessidade sensorial com respeito. Pedir o que você precisa é um direito seu.' },
-          { q: 'neutra', t: 'Coloco fone e tento aguentar o barulho.', fb: 'Adaptar com fone é esperto. Mas pedir um canto calmo pouparia sua energia.' },
-          { q: 'ruim',   t: 'Vou embora sem conseguir estudar.', fb: 'Sair protege, mas você perde o que veio fazer. Da próxima, tente pedir antes de desistir.' }
-        ] }
-    ];
-
-    /* ---------- gerar mundo: tenta IA, cai pro banco ---------- */
-    async function gerarMundo(seed) {
-      var rand = rng(seed);
-      // tenta IA primeiro
-      try {
-        var viaIA = await gerarViaIA(rand);
-        if (viaIA && viaIA.npcs && viaIA.npcs.length >= 3) return viaIA;
-      } catch (e) { /* segue pro fallback */ }
-      return gerarFallback(rand);
-    }
-
-    function gerarFallback(rand) {
-      var tema = pick(rand, TEMAS);
-      var n = 5 + Math.floor(rand() * 2); // 5-6 moradores
-      var bag = CENAS.slice().sort(function () { return rand() - 0.5; }).slice(0, n);
-      var nomes = NOMES.slice().sort(function () { return rand() - 0.5; });
-      var npcs = bag.map(function (c, i) {
-        return {
-          nome: nomes[i % nomes.length],
-          papel: c.papel,
-          cor: CORES[i % CORES.length],
-          situacao: c.situacao,
-          fala: c.fala,
-          opcoes: c.opcoes.map(function (o) { return { texto: o.t, qualidade: o.q, feedback: o.fb }; })
-        };
-      });
-      return { tema: tema, npcs: npcs };
-    }
-
-    async function gerarViaIA(rand) {
-      if (!LT.groqFetch) throw new Error('sem proxy');
-      var humorTxt = '';
-      if (perfil.humorRecente != null) {
-        var labels = ['com raiva', 'ansioso(a)', 'triste', 'mais ou menos', 'bem', 'ótimo'];
-        humorTxt = ' O humor recente dele(a) é "' + (labels[perfil.humorRecente] || 'neutro') + '". Ajuste o tom das situações com isso em mente (sem citar o humor).';
-      }
-      var sys =
-        'Você é o roteirista do jogo "O Mundo Gelado do Theo", para um adolescente autista chamado ' + perfil.nome + '.' + humorTxt + '\n' +
-        'Gere um mundo de RPG social. Devolva SOMENTE um JSON válido (sem texto antes/depois, sem markdown) neste formato exato:\n' +
-        '{"tema":"nome curto do lugar","npcs":[{"nome":"...","papel":"...","situacao":"...","fala":"...","opcoes":[{"texto":"...","qualidade":"boa|neutra|ruim","feedback":"..."},{...},{...}]}]}\n' +
-        'Regras: 5 a 6 npcs. Cada npc tem EXATAMENTE 3 opções, uma de cada qualidade (boa, neutra, ruim) em ordem embaralhada. ' +
-        'As situações são sociais reais e cotidianas para adolescentes (cumprimentar, pedir ajuda, entrar num grupo, resolver conflito, pôr limite, lidar com mudança de plano, mal-entendido). ' +
-        'O "feedback" valida o sentimento primeiro e ensina sem julgar, em 1-2 frases, português do Brasil, tom acolhedor e adolescente (nunca infantil). ' +
-        'Nada de violência, romance ou conteúdo adulto. Sem emojis. Frases curtas.';
-      var body = {
-        model: LT.GROQ_MODEL || 'llama-3.3-70b-versatile',
-        messages: [{ role: 'system', content: sys }, { role: 'user', content: 'Monte um mundo novo e diferente agora. Seed criativa: ' + Math.floor(rand() * 1e9) }],
-        max_tokens: 1000, temperature: 1.0
-      };
-      var res = await LT.groqFetch(body);
-      if (!res.ok) throw new Error('proxy ' + res.status);
-      var data = await res.json();
-      var txt = data && data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
-      var json = extrairJSON(txt);
-      if (!json || !Array.isArray(json.npcs)) throw new Error('json inválido');
-      // sanear
-      var npcs = json.npcs.filter(function (n) { return n && n.fala && Array.isArray(n.opcoes) && n.opcoes.length === 3; })
-        .slice(0, 6).map(function (n, i) {
-          return {
-            nome: String(n.nome || NOMES[i % NOMES.length]).slice(0, 24),
-            papel: String(n.papel || 'morador').slice(0, 40),
-            cor: CORES[i % CORES.length],
-            situacao: String(n.situacao || '').slice(0, 320),
-            fala: String(n.fala || '...').slice(0, 220),
-            opcoes: n.opcoes.map(function (o) {
-              var q = String(o.qualidade || '').toLowerCase();
-              if (['boa', 'neutra', 'ruim'].indexOf(q) < 0) q = 'neutra';
-              return { texto: String(o.texto || '').slice(0, 200), qualidade: q, feedback: String(o.feedback || '').slice(0, 320) };
-            })
-          };
-        });
-      if (npcs.length < 3) throw new Error('poucos npcs');
-      return { tema: String(json.tema || pick(rand, TEMAS)).slice(0, 40), npcs: npcs };
-    }
-
-    function extrairJSON(txt) {
-      if (!txt) return null;
-      var a = txt.indexOf('{'), b = txt.lastIndexOf('}');
-      if (a < 0 || b <= a) return null;
-      try { return JSON.parse(txt.slice(a, b + 1)); } catch (e) { return null; }
-    }
-
-    /* ================================================================
-       MOTOR DO MUNDO (Canvas 2D, top-down)
-       ================================================================ */
-    var TILE = 56, COLS = 26, ROWS = 18;
-    var T = { SNOW: 0, ICE: 1, TREE: 2, ROCK: 3, PATH: 4, HOUSE: 5 };
-    var BLOCK = { 1: true, 2: true, 3: true, 5: true };
-
-    var canvas = document.getElementById('mw-canvas');
-    var ctx = canvas.getContext('2d');
-    var calmo = function () {
-      return document.documentElement.getAttribute('data-modo-calmo') === 'true' ||
-        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    };
-
-    var World = {
-      map: [], npcs: [], tema: '',
-      player: { x: 0, y: 0, dir: 'down', vx: 0, vy: 0 },
-      cam: { x: 0, y: 0 },
-      running: false, last: 0, t: 0, near: null,
-      xp: 0, elos: 0, nivel: 1,
-    };
-    var keys = {};
-    var XP_POR_NIVEL = 100;
-    var NIVEIS = ['Explorador', 'Conhecido', 'Companheiro', 'Amigo', 'Amigo de confiança', 'Coração da vila'];
-
-    function construirMapa(seed, npcsData) {
-      var rand = rng(seed ^ 0x9e3779b9);
-      var map = [];
-      for (var y = 0; y < ROWS; y++) { map[y] = []; for (var x = 0; x < COLS; x++) map[y][x] = T.SNOW; }
-
-      // moldura de pinheiros/rochas
-      for (var x = 0; x < COLS; x++) { map[0][x] = T.TREE; map[ROWS - 1][x] = T.TREE; }
-      for (var y = 0; y < ROWS; y++) { map[y][0] = T.TREE; map[y][COLS - 1] = T.TREE; }
-
-      // lago congelado (elipse)
-      var lcx = 5 + Math.floor(rand() * (COLS - 10)), lcy = 4 + Math.floor(rand() * (ROWS - 8));
-      var rx = 2 + Math.floor(rand() * 2), ry = 2 + Math.floor(rand() * 2);
-      for (var yy = 1; yy < ROWS - 1; yy++) for (var xx = 1; xx < COLS - 1; xx++) {
-        var dx = (xx - lcx) / rx, dy = (yy - lcy) / ry;
-        if (dx * dx + dy * dy <= 1) map[yy][xx] = T.ICE;
-      }
-
-      // clusters de árvores
-      var clusters = 5 + Math.floor(rand() * 4);
-      for (var c = 0; c < clusters; c++) {
-        var cx = 2 + Math.floor(rand() * (COLS - 4)), cy = 2 + Math.floor(rand() * (ROWS - 4));
-        var sz = 2 + Math.floor(rand() * 3);
-        for (var k = 0; k < sz; k++) {
-          var tx = cx + Math.floor(rand() * 3) - 1, ty = cy + Math.floor(rand() * 3) - 1;
-          if (tx > 0 && tx < COLS - 1 && ty > 0 && ty < ROWS - 1 && map[ty][tx] === T.SNOW) map[ty][tx] = (rand() < 0.3 ? T.ROCK : T.TREE);
-        }
-      }
-
-      // posicionar moradores em tiles de neve livres, espaçados
-      var spots = [];
-      var npcs = npcsData.map(function (d, i) {
-        var px, py, tries = 0;
-        do {
-          px = 2 + Math.floor(rand() * (COLS - 4));
-          py = 2 + Math.floor(rand() * (ROWS - 4));
-          tries++;
-        } while (tries < 200 && (map[py][px] !== T.SNOW || tooClose(spots, px, py, 3)));
-        spots.push({ x: px, y: py });
-        // casinha atrás de alguns
-        if (rand() < 0.5 && py > 1 && map[py - 1][px] === T.SNOW) map[py - 1][px] = T.HOUSE;
-        // limpa o tile do npc e vizinhança imediata
-        map[py][px] = T.SNOW;
-        return { data: d, x: px, y: py, feito: false, escolha: null, bob: rand() * 6 };
-      });
-
-      // ponto inicial do jogador: tile de neve livre central
-      var sp = { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) };
-      var guard = 0;
-      while ((map[sp.y][sp.x] !== T.SNOW || tooClose(spots, sp.x, sp.y, 1)) && guard < 300) {
-        sp.x = 2 + Math.floor(rand() * (COLS - 4)); sp.y = 2 + Math.floor(rand() * (ROWS - 4)); guard++;
-      }
-      map[sp.y][sp.x] = T.SNOW;
-
-      World.map = map; World.npcs = npcs;
-      World.player.x = sp.x * TILE + TILE / 2;
-      World.player.y = sp.y * TILE + TILE / 2;
-    }
-    function tooClose(spots, x, y, d) {
-      for (var i = 0; i < spots.length; i++) { if (Math.abs(spots[i].x - x) < d && Math.abs(spots[i].y - y) < d) return true; }
-      return false;
-    }
-
-    function tileAt(px, py) {
-      var tx = Math.floor(px / TILE), ty = Math.floor(py / TILE);
-      if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) return T.TREE;
-      return World.map[ty][tx];
-    }
-    function blocked(px, py) { return !!BLOCK[tileAt(px, py)]; }
-
-    /* ---------- input ---------- */
-    window.addEventListener('keydown', function (e) {
-      var k = e.key.toLowerCase();
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', 'e', ' '].indexOf(k) >= 0) {
-        if (World.running) e.preventDefault();
-      }
-      keys[k] = true;
-      if ((k === 'e' || k === ' ') && World.running && World.near && !World.near.feito) abrirEncontro(World.near);
-      if (k === 'escape') fecharModal();
-    });
-    window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
-
-    // dpad touch
-    var padDir = null;
-    document.querySelectorAll('.mw-pad button').forEach(function (b) {
-      var d = b.getAttribute('data-dir');
-      var down = function (e) { e.preventDefault(); padDir = d; };
-      var up = function (e) { e.preventDefault(); if (padDir === d) padDir = null; };
-      b.addEventListener('touchstart', down, { passive: false });
-      b.addEventListener('touchend', up); b.addEventListener('touchcancel', up);
-      b.addEventListener('mousedown', down); b.addEventListener('mouseup', up); b.addEventListener('mouseleave', up);
-    });
-    document.getElementById('mw-act-btn').addEventListener('click', function () {
-      if (World.near && !World.near.feito) abrirEncontro(World.near);
-    });
-
-    /* ---------- loop ---------- */
-    function step(ts) {
-      if (!World.running) return;
-      var dt = Math.min((ts - World.last) / 1000 || 0, 0.05); World.last = ts; World.t += dt;
-      atualizar(dt);
-      desenhar();
-      requestAnimationFrame(step);
-    }
-
-    function atualizar(dt) {
-      var sp = 168; // px/s
-      var dx = 0, dy = 0;
-      if (keys['arrowup'] || keys['w'] || padDir === 'up') dy -= 1;
-      if (keys['arrowdown'] || keys['s'] || padDir === 'down') dy += 1;
-      if (keys['arrowleft'] || keys['a'] || padDir === 'left') dx -= 1;
-      if (keys['arrowright'] || keys['d'] || padDir === 'right') dx += 1;
-      if (dx && dy) { dx *= 0.707; dy *= 0.707; }
-      if (dx < 0) World.player.dir = 'left'; else if (dx > 0) World.player.dir = 'right';
-      else if (dy < 0) World.player.dir = 'up'; else if (dy > 0) World.player.dir = 'down';
-
-      var p = World.player, nx = p.x + dx * sp * dt, ny = p.y + dy * sp * dt, r = 14;
-      if (!blocked(nx + (dx > 0 ? r : -r), p.y) && !blocked(nx, p.y + r) && !blocked(nx, p.y - r)) p.x = nx;
-      if (!blocked(p.x, ny + (dy > 0 ? r : -r)) && !blocked(p.x + r, ny) && !blocked(p.x - r, ny)) p.y = ny;
-
-      // câmera segue o jogador, presa às bordas
-      var vw = canvas.width, vh = canvas.height, worldW = COLS * TILE, worldH = ROWS * TILE;
-      World.cam.x = Math.max(0, Math.min(p.x - vw / 2, worldW - vw));
-      World.cam.y = Math.max(0, Math.min(p.y - vh / 2, worldH - vh));
-      if (worldW < vw) World.cam.x = (worldW - vw) / 2;
-      if (worldH < vh) World.cam.y = (worldH - vh) / 2;
-
-      // morador mais próximo
-      World.near = null; var best = 9999;
-      World.npcs.forEach(function (n) {
-        var cx = n.x * TILE + TILE / 2, cy = n.y * TILE + TILE / 2;
-        var d = Math.hypot(cx - p.x, cy - p.y);
-        if (d < TILE * 1.15 && !n.feito && d < best) { best = d; World.near = n; }
-      });
-      var hint = document.getElementById('mw-hint'), act = document.getElementById('mw-act-btn');
-      if (World.near) {
-        hint.classList.add('on');
-        hint.innerHTML = '<i data-lt-icon="message-circle" aria-hidden="true"></i> Falar com ' + esc(World.near.data.nome) + ' — aperte <b>E</b>';
-        if (window.LUMI && LUMI.hydrateIcons) LUMI.hydrateIcons(hint);
-        act.classList.add('on');
-      } else { hint.classList.remove('on'); act.classList.remove('on'); }
-    }
-
-    /* ---------- render ---------- */
-    function desenhar() {
-      var camx = World.cam.x, camy = World.cam.y;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // chão
-      var x0 = Math.floor(camx / TILE), y0 = Math.floor(camy / TILE);
-      var x1 = Math.ceil((camx + canvas.width) / TILE), y1 = Math.ceil((camy + canvas.height) / TILE);
-      for (var ty = y0; ty <= y1; ty++) for (var tx = x0; tx <= x1; tx++) {
-        if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) continue;
-        var sx = tx * TILE - camx, sy = ty * TILE - camy, tile = World.map[ty][tx];
-        desenharTile(tile, sx, sy, tx, ty);
-      }
-      // moradores
-      World.npcs.forEach(function (n) {
-        desenharNPC(n, n.x * TILE + TILE / 2 - camx, n.y * TILE + TILE / 2 - camy);
-      });
-      // jogador
-      desenharUrso(World.player.x - camx, World.player.y - camy);
-    }
-
-    function desenharTile(tile, sx, sy, tx, ty) {
-      // base neve (xadrez suave)
-      var shade = ((tx + ty) % 2 === 0) ? '#eef6ff' : '#e7f1fc';
-      ctx.fillStyle = shade; ctx.fillRect(sx, sy, TILE, TILE);
-      if (tile === T.ICE) {
-        ctx.fillStyle = '#cfe6fb'; ctx.fillRect(sx, sy, TILE, TILE);
-        ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(sx + 8, sy + 14); ctx.lineTo(sx + 22, sy + 30); ctx.stroke();
-      } else if (tile === T.TREE) {
-        // tronco
-        ctx.fillStyle = '#8a6b4f'; ctx.fillRect(sx + TILE / 2 - 4, sy + TILE - 18, 8, 16);
-        // copa (pinheiro)
-        ctx.fillStyle = '#3f7d5a';
-        for (var i = 0; i < 3; i++) {
-          var w = 26 - i * 6, yo = sy + 8 + i * 12;
-          ctx.beginPath(); ctx.moveTo(sx + TILE / 2, yo - 6); ctx.lineTo(sx + TILE / 2 - w, yo + 14); ctx.lineTo(sx + TILE / 2 + w, yo + 14); ctx.closePath(); ctx.fill();
-        }
-        // neve na copa
-        ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.beginPath(); ctx.arc(sx + TILE / 2, sy + 8, 5, 0, 7); ctx.fill();
-      } else if (tile === T.ROCK) {
-        ctx.fillStyle = '#9fb1c4'; ctx.beginPath(); ctx.ellipse(sx + TILE / 2, sy + TILE - 16, 16, 12, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.ellipse(sx + TILE / 2, sy + TILE - 22, 12, 5, 0, 0, 7); ctx.fill();
-      } else if (tile === T.HOUSE) {
-        ctx.fillStyle = '#cf9a6b'; ctx.fillRect(sx + 8, sy + 22, TILE - 16, TILE - 26);
-        ctx.fillStyle = '#a85a47'; ctx.beginPath(); ctx.moveTo(sx + 4, sy + 24); ctx.lineTo(sx + TILE / 2, sy + 6); ctx.lineTo(sx + TILE - 4, sy + 24); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(sx + 4, sy + 22, TILE - 8, 4);
-        ctx.fillStyle = '#6b4636'; ctx.fillRect(sx + TILE / 2 - 5, sy + TILE - 14, 10, 14);
-      }
-    }
-
-    function desenharUrso(cx, cy) {
-      var b = calmo() ? 0 : Math.sin(World.t * 4) * 1.5;
-      ctx.save();
-      // sombra
-      ctx.fillStyle = 'rgba(46,95,163,.16)'; ctx.beginPath(); ctx.ellipse(cx, cy + 16, 16, 6, 0, 0, 7); ctx.fill();
-      // corpo
-      ctx.fillStyle = '#fbfdff'; ctx.strokeStyle = '#bcd6f1'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.ellipse(cx, cy + b, 16, 17, 0, 0, 7); ctx.fill(); ctx.stroke();
-      // orelhas
-      ctx.beginPath(); ctx.arc(cx - 10, cy - 12 + b, 5, 0, 7); ctx.arc(cx + 10, cy - 12 + b, 5, 0, 7); ctx.fill(); ctx.stroke();
-      // focinho
-      ctx.fillStyle = '#eef6ff'; ctx.beginPath(); ctx.ellipse(cx, cy + 4 + b, 8, 6, 0, 0, 7); ctx.fill();
-      // olhos + nariz conforme direção
-      ctx.fillStyle = '#1a2e4a';
-      var ox = World.player.dir === 'left' ? -2 : World.player.dir === 'right' ? 2 : 0;
-      ctx.beginPath(); ctx.arc(cx - 5 + ox, cy - 2 + b, 1.8, 0, 7); ctx.arc(cx + 5 + ox, cy - 2 + b, 1.8, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx + ox, cy + 3 + b, 2.2, 0, 7); ctx.fill();
-      ctx.restore();
-    }
-
-    function desenharNPC(n, cx, cy) {
-      var bob = calmo() ? 0 : Math.sin(World.t * 2 + n.bob) * 2;
-      ctx.save();
-      ctx.fillStyle = 'rgba(46,95,163,.16)'; ctx.beginPath(); ctx.ellipse(cx, cy + 18, 14, 5, 0, 0, 7); ctx.fill();
-      // corpo (gota arredondada na cor do npc)
-      ctx.fillStyle = n.data.cor;
-      ctx.beginPath(); ctx.ellipse(cx, cy + bob, 14, 16, 0, 0, 7); ctx.fill();
-      // cabeça clara
-      ctx.fillStyle = '#fdf3e3'; ctx.beginPath(); ctx.arc(cx, cy - 6 + bob, 9, 0, 7); ctx.fill();
-      ctx.fillStyle = '#1a2e4a';
-      ctx.beginPath(); ctx.arc(cx - 3, cy - 7 + bob, 1.6, 0, 7); ctx.arc(cx + 3, cy - 7 + bob, 1.6, 0, 7); ctx.fill();
-      ctx.strokeStyle = '#1a2e4a'; ctx.lineWidth = 1.4; ctx.beginPath();
-      if (n.feito) { ctx.arc(cx, cy - 3 + bob, 3, 0.1 * Math.PI, 0.9 * Math.PI); } // sorriso
-      else { ctx.moveTo(cx - 2.5, cy - 3 + bob); ctx.lineTo(cx + 2.5, cy - 3 + bob); }
-      ctx.stroke();
-      // marcador acima
-      if (!n.feito) {
-        var pulse = calmo() ? 0 : Math.sin(World.t * 4) * 2;
-        ctx.fillStyle = '#e08e30';
-        ctx.beginPath(); ctx.moveTo(cx, cy - 26 - pulse); ctx.lineTo(cx - 6, cy - 36 - pulse); ctx.lineTo(cx + 6, cy - 36 - pulse); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 10px Nunito';
-        ctx.textAlign = 'center'; ctx.fillText('!', cx, cy - 28 - pulse);
-      } else {
-        ctx.fillStyle = '#2e7d32'; ctx.beginPath(); ctx.arc(cx, cy - 30, 7, 0, 7); ctx.fill();
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath();
-        ctx.moveTo(cx - 3, cy - 30); ctx.lineTo(cx - 1, cy - 27); ctx.lineTo(cx + 4, cy - 33); ctx.stroke();
-      }
-      // nome
-      ctx.fillStyle = 'rgba(26,46,74,.9)'; ctx.font = '700 11px Nunito'; ctx.textAlign = 'center';
-      ctx.fillText(n.data.nome, cx, cy + 32);
-      ctx.restore();
-    }
-
-    /* ================================================================
-       ENCONTRO SOCIAL (modal) + REAÇÃO DO URSO
-       ================================================================ */
-    var URSOS = {
-      boa:   'img/urso-nogelo-feliz.png',
-      neutra:'img/ursoalblackpensador.jpg',
-      ruim:  'img/urso-nogelo-serio.jpg'
-    };
-    var TAG = { boa: 'Que bom!', neutra: 'Caminho do meio', ruim: 'Vamos pensar juntos' };
-    var XP = { boa: 30, neutra: 18, ruim: 10 };
-    var encontroAtual = null;
-
-    function abrirEncontro(n) {
-      encontroAtual = n;
-      World.running = false; // pausa o mundo
-      var d = n.data;
-      document.getElementById('mw-npc-av').textContent = (d.nome || '?').charAt(0).toUpperCase();
-      document.getElementById('mw-npc-av').style.background = d.cor;
-      document.getElementById('mw-npc-nome').textContent = d.nome;
-      document.getElementById('mw-npc-papel').textContent = d.papel;
-      document.getElementById('mw-situacao').textContent = d.situacao || '';
-      document.getElementById('mw-situacao').style.display = d.situacao ? '' : 'none';
-      document.getElementById('mw-fala').textContent = d.fala || '...';
-
-      var box = document.getElementById('mw-opcoes'); box.innerHTML = '';
-      // embaralha as opções a cada abertura
-      var ops = d.opcoes.slice().sort(function () { return Math.random() - 0.5; });
-      ops.forEach(function (o) {
-        var btn = document.createElement('button');
-        btn.type = 'button'; btn.className = 'mw-op'; btn.textContent = o.texto;
-        btn.addEventListener('click', function () { escolher(n, o, btn); });
-        box.appendChild(btn);
-      });
-      document.getElementById('mw-cena').style.display = '';
-      document.getElementById('mw-reacao').classList.remove('on');
-      var m = document.getElementById('mw-modal'); m.classList.add('on');
-    }
-
-    function escolher(n, o, btn) {
-      var botoes = document.querySelectorAll('#mw-opcoes .mw-op');
-      botoes.forEach(function (b) { b.disabled = true; });
-      btn.classList.add('sel-' + o.qualidade);
-      n.feito = true; n.escolha = o.qualidade;
-
-      // reação do urso
-      var rImg = document.getElementById('mw-reacao-img');
-      rImg.src = URSOS[o.qualidade] || URSOS.neutra;
-      rImg.alt = 'Urso reagindo: ' + TAG[o.qualidade];
-      var tag = document.getElementById('mw-reacao-tag');
-      tag.className = 'tag ' + o.qualidade; tag.textContent = TAG[o.qualidade];
-      document.getElementById('mw-reacao-txt').textContent = o.feedback || '';
-      var ganho = XP[o.qualidade] || 10;
-      document.getElementById('mw-reacao-xp').textContent = '+' + ganho + ' XP  ·  +1 elo com ' + n.data.nome;
-
-      ganharXP(ganho); World.elos++;
-      atualizarHUD();
-
-      setTimeout(function () {
-        document.getElementById('mw-cena').style.display = 'none';
-        document.getElementById('mw-reacao').classList.add('on');
-      }, 380);
-    }
-
-    document.getElementById('mw-reacao-ok').addEventListener('click', function () {
-      fecharModal();
-      // todos concluídos?
-      if (World.npcs.every(function (n) { return n.feito; })) finalizarMundo();
-    });
-
-    function fecharModal() {
-      document.getElementById('mw-modal').classList.remove('on');
-      if (!document.getElementById('mw-fim-wrap').style.display || document.getElementById('mw-fim-wrap').style.display === 'none') {
-        World.running = true; World.last = performance.now(); requestAnimationFrame(step);
-      }
-    }
-
-    /* ---------- progressão ---------- */
-    function ganharXP(n) {
-      World.xp += n;
-      while (World.xp >= XP_POR_NIVEL) { World.xp -= XP_POR_NIVEL; World.nivel++; }
-    }
-    function atualizarHUD() {
-      document.getElementById('mw-lvl-badge').textContent = World.nivel;
-      document.getElementById('mw-lvl-nome').textContent = NIVEIS[Math.min(World.nivel - 1, NIVEIS.length - 1)];
-      document.getElementById('mw-xp-fill').style.width = Math.round((World.xp / XP_POR_NIVEL) * 100) + '%';
-      document.getElementById('mw-xp-txt').textContent = World.xp + ' / ' + XP_POR_NIVEL + ' XP';
-      document.getElementById('mw-elos-txt').textContent = World.elos + (World.elos === 1 ? ' elo' : ' elos');
-      renderLog();
-    }
-
-    function renderLog() {
-      var list = document.getElementById('mw-log-list'); list.innerHTML = '';
-      World.npcs.forEach(function (n) {
-        var it = document.createElement('div');
-        it.className = 'mw-log-it' + (n.feito ? ' feito' : '');
-        var status = n.feito ? 'Conexão feita' : 'Ainda não conversaram';
-        it.innerHTML = '<span class="ld" style="background:' + esc(n.data.cor) + '">' + esc((n.data.nome || '?').charAt(0).toUpperCase()) + '</span>' +
-          '<div><b>' + esc(n.data.nome) + '</b><span>' + esc(n.data.papel) + ' · ' + status + '</span></div>';
-        list.appendChild(it);
-      });
-    }
-
-    /* ---------- abrir / sair / finalizar ---------- */
-    var tInicio = 0;
-    async function entrarNoMundo() {
-      document.getElementById('mw-start').style.display = 'none';
-      document.getElementById('mw-stage').classList.add('on');
-      document.getElementById('mw-game').style.display = 'none';
-      document.getElementById('mw-fim-wrap').style.display = 'none';
-      document.getElementById('mw-load').classList.add('on');
-
-      var seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
-      var mundo = await gerarMundo(seed);
-
-      World.tema = mundo.tema; World.xp = 0; World.elos = 0; World.nivel = 1;
-      construirMapa(seed, mundo.npcs);
-      document.getElementById('mw-tema').textContent = mundo.tema;
-      atualizarHUD();
-
-      document.getElementById('mw-load').classList.remove('on');
-      document.getElementById('mw-game').style.display = '';
-      ajustarCanvas();
-      if (window.LUMI && LUMI.hydrateIcons) LUMI.hydrateIcons(document.getElementById('mw-stage'));
-
-      tInicio = Date.now();
-      World.running = true; World.last = performance.now();
-      requestAnimationFrame(step);
-    }
-
-    function finalizarMundo() {
-      World.running = false;
-      salvar(true);
-      var wrap = document.getElementById('mw-fim-wrap');
-      document.getElementById('mw-game').style.display = 'none';
-      wrap.style.display = '';
-      wrap.innerHTML =
-        '<div class="mw-fim">' +
-          '<img src="img/urso-estrelhinha.png" alt="">' +
-          '<h3>Você conectou com a vila inteira</h3>' +
-          '<p>' + World.elos + ' elos de amizade · nível ' + World.nivel + ' (' + esc(NIVEIS[Math.min(World.nivel - 1, NIVEIS.length - 1)]) + ')</p>' +
-          '<p>Cada conversa foi um treino de verdade. O Theo ficou orgulhoso.</p>' +
-          '<div class="btns">' +
-            '<button class="mw-btn mw-btn-primary" id="mw-denovo"><i data-lt-icon="refresh-cw"></i> Novo mundo</button>' +
-            '<a class="mw-btn mw-btn-ghost" href="conversa.html"><i data-lt-icon="message-circle"></i> Falar com o Theo</a>' +
-            '<a class="mw-btn mw-btn-soft" href="home-autista.html">Voltar ao início</a>' +
-          '</div>' +
-        '</div>';
-      if (window.LUMI && LUMI.hydrateIcons) LUMI.hydrateIcons(wrap);
-      document.getElementById('mw-denovo').addEventListener('click', entrarNoMundo);
-    }
-
-    function sairDoMundo() {
-      World.running = false;
-      salvar(false);
-      document.getElementById('mw-stage').classList.remove('on');
-      document.getElementById('mw-start').style.display = '';
-    }
-
-    function salvar(terminou) {
-      if (!sb || !userId) return;
-      var dur = Math.round((Date.now() - tInicio) / 1000);
-      var feitos = World.npcs.filter(function (n) { return n.feito; }).length;
-      var boas = World.npcs.filter(function (n) { return n.escolha === 'boa'; }).length;
-      try {
-        sb.from('sessoes_jogo').insert({
-          id_neurodivergente: userId,
-          jogo_id: 'mundo-theo',
-          duracao_segundos: dur,
-          pontuacao: World.nivel * 100 + World.xp,
-          acertos: boas,
-          total: World.npcs.length,
-          terminou: !!terminou,
-          dados: { tema: World.tema, elos: World.elos, nivel: World.nivel, feitos: feitos, boas: boas }
-        }).then(function () {}, function () {});
-      } catch (e) {}
-    }
-
-    /* ---------- responsividade do canvas ---------- */
-    function ajustarCanvas() {
-      // Resolução interna 1:1 com o tamanho CSS (mantém a matemática de câmera simples).
-      var wrap = canvas.parentElement, w = wrap.clientWidth || 896;
-      var cssW = Math.max(280, Math.round(w));
-      var cssH = Math.round(Math.min(cssW * (560 / 896), 620));
-      canvas.style.width = cssW + 'px';
-      canvas.style.height = cssH + 'px';
-      canvas.width = cssW;
-      canvas.height = cssH;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-    }
-    window.addEventListener('resize', function () { if (World.running || document.getElementById('mw-game').style.display !== 'none') ajustarCanvas(); });
-
-    /* ---------- ligações de UI ---------- */
-    document.getElementById('mw-jogar').addEventListener('click', entrarNoMundo);
-    document.getElementById('mw-sair-btn').addEventListener('click', sairDoMundo);
-    document.getElementById('mw-log-btn').addEventListener('click', function () { renderLog(); document.getElementById('mw-log').classList.add('on'); });
-    document.getElementById('mw-log-close').addEventListener('click', function () { document.getElementById('mw-log').classList.remove('on'); });
-    document.getElementById('mw-modal').addEventListener('click', function (e) { if (e.target === this) { /* manter foco: não fecha clicando fora durante reação */ } });
-
-    /* burger mobile */
-    (function () {
-      var cb = document.getElementById('burger-home'), menu = document.getElementById('mm-home');
-      if (cb && menu) {
-        cb.addEventListener('change', function () { menu.style.display = cb.checked ? 'flex' : 'none'; });
-        menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { cb.checked = false; menu.style.display = 'none'; }); });
-      }
-    })();
-  })();
+    LUMIJOGOS.boot();
   </script>
 
   <!-- Widgets globais -->
+  <script src="js/core/reveal.js"></script>
   <script src="js/evento-checkin.js"></script>
   <script src="js/sobrecarga.js"></script>
 </body>

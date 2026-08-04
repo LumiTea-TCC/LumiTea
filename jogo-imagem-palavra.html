@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>LumiTEA — Imagem e palavra</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/jogos.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/icons.js" defer></script>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="games.html" class="active">Jogos do Theo</a>
+      <a href="comunidade.html">Comunidade</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+    <label class="app-burger" for="burger-home">
+      <input type="checkbox" id="burger-home">
+      <span></span><span></span><span></span>
+    </label>
+  </nav>
+
+  <div id="mm-home" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="games.html" class="active">Jogos do Theo</a>
+    <a href="comunidade.html">Comunidade</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div class="app-mobile-menu-sair">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+
+  <main class="jg-wrap jg-tema-palavra">
+    <a class="jg-voltar" href="games.html">
+      <i class="lt-i" data-lt-icon="chevron-left" aria-hidden="true"></i> Todos os jogos
+    </a>
+
+    <header class="jg-cabecalho">
+      <div class="jg-card-icone" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="4" width="8.5" height="8.5" rx="1.8"/>
+          <path d="m4.4 11 2.3-2.6 1.9 2.1"/>
+          <path d="M14.5 7h7M14.5 10.5h4.5"/>
+          <path d="M6.7 15.5v2.2a2 2 0 0 0 2 2h9.6"/>
+          <path d="m16.6 17.6 1.9 2.1-1.9 2.1"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Imagem e palavra</h1>
+        <p>Ligue cada figura ao nome dela. Toque numa figura e depois na palavra — ou arraste
+           uma até a outra. Se ainda não lê tudo sozinho, ligue o som: o nome é lido em voz alta.</p>
+      </div>
+    </header>
+
+    <div class="jg-barra">
+      <div class="jg-progresso">
+        <span class="rotulo" id="progresso-txt">0 de 4 ligações feitas</span>
+        <div class="jg-trilha" id="progresso" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Ligações feitas">
+          <div class="preenche" id="progresso-fill"></div>
+        </div>
+      </div>
+      <div class="jg-acoes">
+        <button type="button" class="jg-icone-btn" id="btn-reiniciar" title="Começar de novo" aria-label="Começar de novo"></button>
+        <button type="button" class="jg-icone-btn" id="btn-som"></button>
+        <button type="button" class="jg-icone-btn" id="btn-ajustes" aria-expanded="false" aria-controls="ajustes" title="Ajustes" aria-label="Abrir ajustes do jogo"></button>
+      </div>
+    </div>
+
+    <section class="jg-ajustes" id="ajustes" aria-label="Ajustes do jogo de imagem e palavra">
+      <h2>Ajustes</h2>
+      <div id="ajustes-campos"></div>
+    </section>
+
+    <p class="jg-instrucao" id="instrucao">
+      <i class="lt-i" data-lt-icon="lightbulb" aria-hidden="true"></i>
+      <span id="instrucao-txt">Toque numa figura e depois na palavra que combina com ela.</span>
+    </p>
+
+    <section class="jg-palco" id="palco">
+      <div class="jg-ligacao" id="ligacao">
+        <svg class="jg-linha-svg" id="linhas" aria-hidden="true" focusable="false"></svg>
+        <div class="jg-coluna" id="col-figuras">
+          <span class="jg-coluna-rotulo">Figuras</span>
+        </div>
+        <div class="jg-meio" aria-hidden="true"></div>
+        <div class="jg-coluna" id="col-palavras">
+          <span class="jg-coluna-rotulo">Palavras</span>
+        </div>
+      </div>
+      <p class="jg-aviso" id="aviso" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="jg-fim" id="fim"></section>
+  </main>
+
+  <script src="js/jogos/base.js"></script>
+  <script src="js/jogos/sprites.js"></script>
+  <script src="js/jogos/imagem-palavra.js"></script>
+
+  <!-- Widgets globais -->
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>

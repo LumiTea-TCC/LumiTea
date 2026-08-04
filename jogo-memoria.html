@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>LumiTEA — Jogo da memória</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/jogos.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/icons.js" defer></script>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="games.html" class="active">Jogos do Theo</a>
+      <a href="comunidade.html">Comunidade</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+    <label class="app-burger" for="burger-home">
+      <input type="checkbox" id="burger-home">
+      <span></span><span></span><span></span>
+    </label>
+  </nav>
+
+  <div id="mm-home" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="games.html" class="active">Jogos do Theo</a>
+    <a href="comunidade.html">Comunidade</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div class="app-mobile-menu-sair">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+
+  <main class="jg-wrap jg-tema-memoria">
+    <a class="jg-voltar" href="games.html">
+      <i class="lt-i" data-lt-icon="chevron-left" aria-hidden="true"></i> Todos os jogos
+    </a>
+
+    <header class="jg-cabecalho">
+      <div class="jg-card-icone" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="4" width="9" height="13" rx="2"/>
+          <rect x="12.5" y="7" width="9" height="13" rx="2"/>
+          <path d="M6 9.5h2.5M6 12h2.5"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Jogo da memória</h1>
+        <p>Vire duas cartas por vez e encontre os pares iguais. Quando as figuras são diferentes,
+           as cartas simplesmente voltam a virar — sem apito, sem perder ponto, sem pressa.</p>
+      </div>
+    </header>
+
+    <div class="jg-barra">
+      <div class="jg-progresso">
+        <span class="rotulo" id="progresso-txt">0 de 4 pares encontrados</span>
+        <div class="jg-trilha" id="progresso" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Pares encontrados">
+          <div class="preenche" id="progresso-fill"></div>
+        </div>
+      </div>
+      <div class="jg-acoes">
+        <button type="button" class="jg-icone-btn" id="btn-reiniciar" title="Começar de novo" aria-label="Começar de novo"></button>
+        <button type="button" class="jg-icone-btn" id="btn-som"></button>
+        <button type="button" class="jg-icone-btn" id="btn-ajustes" aria-expanded="false" aria-controls="ajustes" title="Ajustes" aria-label="Abrir ajustes do jogo"></button>
+      </div>
+    </div>
+
+    <section class="jg-ajustes" id="ajustes" aria-label="Ajustes do jogo da memória">
+      <h2>Ajustes</h2>
+      <div id="ajustes-campos"></div>
+    </section>
+
+    <section class="jg-palco" id="palco">
+      <div class="jg-cartas" id="cartas"></div>
+      <p class="jg-aviso" id="aviso" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="jg-fim" id="fim"></section>
+  </main>
+
+  <script src="js/jogos/base.js"></script>
+  <script src="js/jogos/sprites.js"></script>
+  <script src="js/jogos/memoria.js"></script>
+
+  <!-- Widgets globais -->
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>
