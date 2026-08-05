@@ -438,13 +438,13 @@
         return'<div class="ev-item'+(cuid?' cuid':'')+'">'+
           '<div class="ev-stripe" style="background:'+(ev.cor||'#7c5cbf')+'"></div>'+
           '<div class="ev-body">'+
-            '<div class="ev-tit">'+(ev.titulo||'Evento')+'</div>'+
+            '<div class="ev-tit">'+window.LUMITEA.esc(ev.titulo||'Evento')+'</div>'+
             '<div class="ev-meta">'+
               '<span class="ev-time">'+(window.LUMI?LUMI.icon('clock'):'')+' '+hora+'</span>'+
               (cuid?'<span class="ev-tag cuid-tag">'+(window.LUMI?LUMI.icon('users'):'')+' Cuidador</span>':'')+
               (ev.roleplay_prep?'<span class="ev-tag rp-tag">'+(window.LUMI?LUMI.icon('play'):'')+' Roleplay</span>':'')+
             '</div>'+
-            (ev.descricao?'<div class="ev-desc">'+ev.descricao+'</div>':'')+
+            (ev.descricao?'<div class="ev-desc">'+window.LUMITEA.esc(ev.descricao)+'</div>':'')+
           '</div>'+
           (!cuid?'<button class="ev-del" onclick="delEv(\''+ev.id+'\')">'+(window.LUMI?LUMI.icon('trash'):'')+'</button>':'')+
         '</div>'
@@ -508,13 +508,17 @@
       var evs=_evs.filter(function(e){return e.roleplay_prep&&(e.data_evento||'').slice(0,10)>=hoje}).slice(0,4);
       var cont=document.getElementById('rp-list');
       if(!evs.length){cont.innerHTML='<div class="empty-rp">Adicione um evento com roleplay para praticar!</div>';return}
-      cont.innerHTML=evs.map(function(ev){
+      cont.innerHTML='';
+      evs.forEach(function(ev){
         var diff=Math.ceil((new Date(ev.data_evento+'T12:00:00')-new Date())/86400000);
-        return'<div class="rp-card" onclick="iniciarRP(\''+ev.id+'\',\''+ev.titulo.replace(/'/g,'')+'\')" id="rpc-'+ev.id+'">'+
-          '<div class="rp-info"><div class="rp-name">'+ev.titulo+'</div><div class="rp-date">'+new Date(ev.data_evento+'T12:00:00').toLocaleDateString('pt-BR')+'</div></div>'+
-          '<div class="rp-days">'+diff+'d</div>'+
-        '</div>'
-      }).join('');
+        var card=document.createElement('div');
+        card.className='rp-card';
+        card.id='rpc-'+ev.id;
+        card.innerHTML='<div class="rp-info"><div class="rp-name">'+window.LUMITEA.esc(ev.titulo||'Evento')+'</div><div class="rp-date">'+new Date(ev.data_evento+'T12:00:00').toLocaleDateString('pt-BR')+'</div></div>'+
+          '<div class="rp-days">'+diff+'d</div>';
+        card.addEventListener('click', function(){ iniciarRP(ev.id, ev.titulo); });
+        cont.appendChild(card);
+      });
     }
 
     async function iniciarRP(id,titulo){

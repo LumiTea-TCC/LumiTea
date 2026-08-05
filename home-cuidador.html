@@ -38,6 +38,7 @@
     <div class="app-nav-links">
       <a href="home-cuidador.html" class="active" id="nav-painel-link">Painel</a>
       <a href="comunidade-cuidador.html">Comunidade</a>
+      <a href="calendario-cuidador.html">Calendário</a>
       <a href="#" onclick="irTela('alertas',null);return false;">Alertas <span id="nav-alerta-cnt" style="display:none;background:#f44336;color:#fff;font-size:10px;border-radius:99px;padding:1px 6px;margin-left:4px;"></span></a>
       <a href="#" onclick="irTela('relatorio',null);return false;">Relatórios</a>
       <a href="#" onclick="irTela('chat',null);return false;">Consultoria</a>
@@ -64,6 +65,7 @@
   <div id="mm-cuidador" class="app-mobile-menu">
     <a href="home-cuidador.html">Painel</a>
     <a href="comunidade-cuidador.html">Comunidade</a>
+    <a href="calendario-cuidador.html">Calendário</a>
     <a href="#" onclick="irTela('alertas',null);return false;">Alertas</a>
     <a href="#" onclick="irTela('live',null);return false;">Ao vivo</a>
     <a href="#" onclick="irTela('humor',null);return false;">Histórico de humor</a>
@@ -121,6 +123,7 @@
 
         <div class="cui-nav-section">Acompanhamento</div>
         <button class="cui-nav-btn" onclick="irTela('humor',this)"><span class="cui-nav-icon" data-lt-icon="heart"></span> Histórico de humor</button>
+        <button class="cui-nav-btn" onclick="window.location.href='calendario-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="calendar"></span> Calendário</button>
         <button class="cui-nav-btn" onclick="irTela('relatorio',this)"><span class="cui-nav-icon" data-lt-icon="file-text"></span> Relatórios</button>
         <button class="cui-nav-btn" onclick="irTela('observacoes',this)"><span class="cui-nav-icon" data-lt-icon="edit"></span> Observações</button>
         <button class="cui-nav-btn" onclick="irTela('progresso',this)"><span class="cui-nav-icon" data-lt-icon="star"></span> Progresso</button>
@@ -409,7 +412,7 @@
       for (var i = 0; i < teens.length; i++) {
         var t = teens[i];
         const { data: p } = await sb.from('profiles').select('nome, sobrenome').eq('id', t.id).single();
-        var teen = { id: t.id, nome: (p && p.nome) ? p.nome : 'Sem nome', sobrenome: (p && p.sobrenome) || '', xp: t.xp || 0, nivel: t.nivel || 1 };
+        let teen = { id: t.id, nome: (p && p.nome) ? p.nome : 'Sem nome', sobrenome: (p && p.sobrenome) || '', xp: t.xp || 0, nivel: t.nivel || 1 };
         _teensVinculados.push(teen);
 
         var opt = document.createElement('option');
@@ -418,7 +421,14 @@
 
         var card = document.createElement('div');
         card.className = 'vinculo-teen-card';
-        card.innerHTML = '<div class="vinculo-teen-av">' + _ic('user') + '</div><div class="vinculo-teen-info"><div class="vinculo-teen-nome">' + window.LUMITEA.esc(teen.nome) + '</div><div class="vinculo-teen-meta">Nível ' + teen.nivel + ' • ' + teen.xp + ' XP</div></div><span class="vinculo-status">' + _ic('check') + ' Vinculado</span>';
+        card.innerHTML = '<div class="vinculo-teen-av">' + _ic('user') + '</div><div class="vinculo-teen-info"><div class="vinculo-teen-nome">' + window.LUMITEA.esc(teen.nome) + '</div><div class="vinculo-teen-meta">Nível ' + teen.nivel + ' • ' + teen.xp + ' XP</div></div><div class="vinculo-teen-actions"><span class="vinculo-status">' + _ic('check') + ' Vinculado</span></div>';
+        var actions = card.querySelector('.vinculo-teen-actions');
+        var btnSuspender = document.createElement('button');
+        btnSuspender.type = 'button';
+        btnSuspender.className = 'vinculo-teen-suspender';
+        btnSuspender.innerHTML = _ic('x') + ' Encerrar vínculo';
+        btnSuspender.addEventListener('click', function () { suspenderVinculo(teen.id, teen.nome); });
+        actions.appendChild(btnSuspender);
         vinculoList.appendChild(card);
       }
 
@@ -759,6 +769,24 @@
         err.textContent = msg; err.classList.add('on'); return;
       }
       inp.value = '';
+      await _carregarTeensVinculados();
+    }
+
+    async function suspenderVinculo(teenId, nomeTeen) {
+      var ok = await LumiUI.confirm(
+        'Isso vai desconectar ' + (nomeTeen || 'o adolescente') + ' da sua conta. Para se reconectar depois, ele(a) vai precisar compartilhar um novo código de vínculo com você.',
+        { titulo: 'Encerrar vínculo?', ok: 'Encerrar vínculo', cancelar: 'Cancelar' }
+      );
+      if (!ok) return;
+
+      const { data, error } = await sb.rpc('suspender_vinculo', { p_teen_id: teenId });
+      if (error || data !== 'ok') {
+        LumiUI.toast('Não foi possível encerrar o vínculo. Tente novamente.', { type: 'error' });
+        return;
+      }
+
+      LumiUI.toast('Vínculo encerrado.', { type: 'success' });
+      if (_teenSelecionado === teenId) { _teenSelecionado = null; }
       await _carregarTeensVinculados();
     }
 

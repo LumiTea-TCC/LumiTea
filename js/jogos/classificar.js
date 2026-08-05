@@ -238,11 +238,13 @@
   /* ---------- fim da rodada ---------- */
   function finalizar() {
     var duracao = Math.round((Date.now() - estado.inicio) / 1000);
+    var pontuacao = estado.total * 10;
+    var xpGanho = J.ganharXP(pontuacao);
 
     J.salvarSessao({
       jogoId: JOGO,
       duracao: duracao,
-      pontuacao: estado.total * 10,
+      pontuacao: pontuacao,
       acertos: estado.total,
       total: estado.tentativas,
       terminou: true,
@@ -258,6 +260,8 @@
         '<h2>Tudo guardado no lugar certo!</h2>' +
         '<p>Você separou ' + estado.total + ' figuras olhando só para o que importava. ' +
         'Isso é atenção e lógica trabalhando juntas.</p>' +
+        (xpGanho ? '<p class="jg-xp-ganho">+' + xpGanho.ganho + ' XP' +
+          (xpGanho.subiuNivel ? ' — você subiu para o nível ' + xpGanho.nivel + '!' : '') + '</p>' : '') +
         '<div class="jg-fim-btns">' +
         '<button type="button" class="jg-btn jg-btn-primario" id="fim-denovo">Jogar de novo</button>' +
         '<button type="button" class="jg-btn jg-btn-secundario" id="fim-ajustes">Mudar o desafio</button>' +

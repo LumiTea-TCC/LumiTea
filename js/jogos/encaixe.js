@@ -194,11 +194,13 @@
   /* ---------- fim da rodada ---------- */
   function finalizar() {
     var duracao = Math.round((Date.now() - estado.inicio) / 1000);
+    var pontuacao = estado.total * 10;
+    var xpGanho = J.ganharXP(pontuacao);
 
     J.salvarSessao({
       jogoId: JOGO,
       duracao: duracao,
-      pontuacao: estado.total * 10,
+      pontuacao: pontuacao,
       acertos: estado.total,
       total: estado.tentativas,
       terminou: true,
@@ -214,6 +216,8 @@
         '<h2>Tudo no lugar!</h2>' +
         '<p>Você encaixou ' + estado.total + (estado.total === 1 ? ' peça' : ' peças') +
         '. Reconhecer contornos e encontrar onde cada coisa se encaixa é um treino e tanto.</p>' +
+        (xpGanho ? '<p class="jg-xp-ganho">+' + xpGanho.ganho + ' XP' +
+          (xpGanho.subiuNivel ? ' — você subiu para o nível ' + xpGanho.nivel + '!' : '') + '</p>' : '') +
         '<div class="jg-fim-btns">' +
         '<button type="button" class="jg-btn jg-btn-primario" id="fim-denovo">Jogar de novo</button>' +
         '<button type="button" class="jg-btn jg-btn-secundario" id="fim-ajustes">Mudar o desafio</button>' +

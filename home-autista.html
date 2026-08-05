@@ -19,6 +19,7 @@
   <script src="js/core/config.js"></script>
   <script src="js/core/icons.js" defer></script>
   <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -314,6 +315,21 @@
         var ativo = document.getElementById('vinculo-ativo-teen');
         if (ativo) ativo.style.display = 'flex';
       }
+      _avisarSeVinculoEncerrado();
+    }
+
+    /* Compara com o último estado salvo localmente para avisar quando o
+       cuidador encerra o vínculo (a tabela não guarda um "status", então
+       detectamos a transição id_responsavel: algo → nulo). */
+    function _avisarSeVinculoEncerrado() {
+      try {
+        var tinhaCuidador = localStorage.getItem('lt-tinha-cuidador') === '1';
+        var temCuidadorAgora = !!(_perfil && _perfil.idResponsavel);
+        if (tinhaCuidador && !temCuidadorAgora && window.LumiUI) {
+          LumiUI.toast('Seu cuidador encerrou o vínculo com você. Se quiserem se reconectar, compartilhe seu novo código com ele(a).', { type: 'info' });
+        }
+        localStorage.setItem('lt-tinha-cuidador', temCuidadorAgora ? '1' : '0');
+      } catch (e) {}
     }
 
     function copiarCodigoVinculo() {

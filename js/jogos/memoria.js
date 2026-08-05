@@ -172,11 +172,13 @@
     var duracao = Math.round((Date.now() - estado.inicio) / 1000);
     var pares = estado.total;
     var proximo = { 3: 4, 4: 6, 6: 8 }[pares] || null;
+    var pontuacao = pares * 10;
+    var xpGanho = J.ganharXP(pontuacao);
 
     J.salvarSessao({
       jogoId: JOGO,
       duracao: duracao,
-      pontuacao: pares * 10,
+      pontuacao: pontuacao,
       acertos: pares,
       total: estado.tentativas,
       terminou: true,
@@ -191,6 +193,8 @@
         '<h2>Você encontrou todos os pares!</h2>' +
         '<p>Foram ' + pares + (pares === 1 ? ' par' : ' pares') + ' em ' + estado.tentativas +
         (estado.tentativas === 1 ? ' tentativa' : ' tentativas') + '. Cada carta que você lembrou foi sua memória trabalhando.</p>' +
+        (xpGanho ? '<p class="jg-xp-ganho">+' + xpGanho.ganho + ' XP' +
+          (xpGanho.subiuNivel ? ' — você subiu para o nível ' + xpGanho.nivel + '!' : '') + '</p>' : '') +
         '<div class="jg-fim-btns">' +
         '<button type="button" class="jg-btn jg-btn-primario" id="fim-denovo">Jogar de novo</button>' +
         (proximo ? '<button type="button" class="jg-btn jg-btn-secundario" id="fim-mais">Tentar com ' + proximo + ' pares</button>' : '') +

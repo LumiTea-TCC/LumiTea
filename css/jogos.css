@@ -739,6 +739,12 @@ html[data-modo-calmo="true"] .jg-carta { perspective: none; }
   margin: var(--sp-3) 0 var(--sp-2);
 }
 .jg-fim p { color: var(--text-soft); font-size: .95rem; line-height: 1.6; margin: 0 auto var(--sp-2); max-width: 46ch; }
+.jg-xp-ganho {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  color: var(--brand);
+  font-size: 1rem;
+}
 .jg-fim-btns { display: flex; gap: var(--sp-3); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-5); }
 
 /* ============================================================

@@ -386,12 +386,41 @@
   };
 
   /* ============================================================
-     REGISTRO DA PARTIDA (sessoes_jogo)
+     REGISTRO DA PARTIDA (sessoes_jogo) + XP/NÍVEL (neurodivergente)
+     Mesma tabela e mesmos limiares de nível usados em app-teen.js
+     e home-autista.html — assim o XP ganho aqui aparece lá também.
      ============================================================ */
   var sb = LT.criarSupabase ? LT.criarSupabase() : null;
-  var usuario = { id: null, nome: 'amigo' };
+  var usuario = { id: null, nome: 'amigo', xp: 0, nivel: 1 };
+  var NIVEL_XP = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000];
   J.usuario = usuario;
   J.supabase = sb;
+
+  function _calcularNivel(xp) {
+    var nivel = 1;
+    for (var i = NIVEL_XP.length - 1; i >= 0; i--) {
+      if (xp >= NIVEL_XP[i]) { nivel = i + 1; break; }
+    }
+    return nivel;
+  }
+
+  /* Soma XP local + no servidor. Devolve o resultado na hora (o envio ao
+     banco é em segundo plano, sem travar a tela de fim de jogo). */
+  J.ganharXP = function (quantidade) {
+    if (!sb || !usuario.id || !quantidade) return null;
+    var novoXp = (usuario.xp || 0) + quantidade;
+    var novoNivel = _calcularNivel(novoXp);
+    var subiuNivel = novoNivel > (usuario.nivel || 1);
+    usuario.xp = novoXp;
+    usuario.nivel = novoNivel;
+    try {
+      sb.from('neurodivergente')
+        .update({ xp: novoXp, nivel: novoNivel })
+        .eq('id', usuario.id)
+        .then(function () {}, function () {});
+    } catch (e) {}
+    return { ganho: quantidade, total: novoXp, nivel: novoNivel, subiuNivel: subiuNivel };
+  };
 
   J.salvarSessao = function (dados) {
     if (!sb || !usuario.id) return;
@@ -445,6 +474,11 @@
         if (p.data.tipo === 'responsavel') { location.href = 'home-cuidador.html'; return; }
         usuario.nome = p.data.nome || 'amigo';
         if (nomeEl) nomeEl.textContent = usuario.nome;
+        try {
+          var nd = await sb.from('neurodivergente').select('xp, nivel').eq('id', usuario.id).single();
+          usuario.xp = (nd.data && nd.data.xp) || 0;
+          usuario.nivel = (nd.data && nd.data.nivel) || 1;
+        } catch (e) {}
       } catch (e) {
         if (nomeEl) nomeEl.textContent = 'amigo';
       }

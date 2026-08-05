@@ -184,6 +184,12 @@
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     var _uid = null;
     var _teens = [];
     var _eventos = [];
@@ -293,10 +299,10 @@
         return '<div class="event-item '+(ev.origem!=='cuidador'?'from-teen':'')+'">'
           +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
           +'<div class="ev-info">'
-          +'<div class="ev-title">'+(ev.titulo||'Evento')+'</div>'
+          +'<div class="ev-title">'+esc(ev.titulo||'Evento')+'</div>'
           +'<div class="ev-time">'+(window.LUMI?LUMI.icon('clock'):'')+' '+hora+'</div>'
-          +(ev.descricao?'<div class="ev-desc">'+ev.descricao+'</div>':'')
-          +'<div class="teen-tag">'+origemTag+'</div>'
+          +(ev.descricao?'<div class="ev-desc">'+esc(ev.descricao)+'</div>':'')
+          +'<div class="teen-tag">'+esc(origemTag)+'</div>'
           +'</div>'
           +(ev.origem==='cuidador'?'<button class="ev-del" onclick="deletarEvento(\''+ev.id+'\')">'+(window.LUMI?LUMI.icon('trash'):'')+'</button>':'')
           +'</div>';
@@ -376,9 +382,9 @@
         var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });
         return '<div class="event-item" style="margin-bottom:8px;">'
           +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
-          +'<div class="ev-info"><div class="ev-title">'+(ev.titulo||'Evento')+'</div>'
+          +'<div class="ev-info"><div class="ev-title">'+esc(ev.titulo||'Evento')+'</div>'
           +'<div class="ev-time">'+new Date((ev.data_evento||'')+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})+'</div>'
-          +'<div class="teen-tag">'+(ev.origem==='cuidador'?'Você':(teen?teen.nome:'Adolescente'))+'</div>'
+          +'<div class="teen-tag">'+esc(ev.origem==='cuidador'?'Você':(teen?teen.nome:'Adolescente'))+'</div>'
           +'</div></div>';
       }).join('');
     }

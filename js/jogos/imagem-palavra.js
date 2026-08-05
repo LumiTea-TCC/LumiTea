@@ -210,11 +210,13 @@
   /* ---------- fim da rodada ---------- */
   function finalizar() {
     var duracao = Math.round((Date.now() - estado.inicio) / 1000);
+    var pontuacao = estado.total * 10;
+    var xpGanho = J.ganharXP(pontuacao);
 
     J.salvarSessao({
       jogoId: JOGO,
       duracao: duracao,
-      pontuacao: estado.total * 10,
+      pontuacao: pontuacao,
       acertos: estado.total,
       total: estado.tentativas,
       terminou: true,
@@ -230,6 +232,8 @@
         '<h2>Todas as ligações certas!</h2>' +
         '<p>Você ligou ' + estado.total + (estado.total === 1 ? ' palavra' : ' palavras') +
         ' às figuras certas. Cada uma dessas é uma palavra que agora é sua.</p>' +
+        (xpGanho ? '<p class="jg-xp-ganho">+' + xpGanho.ganho + ' XP' +
+          (xpGanho.subiuNivel ? ' — você subiu para o nível ' + xpGanho.nivel + '!' : '') + '</p>' : '') +
         '<div class="jg-fim-btns">' +
         '<button type="button" class="jg-btn jg-btn-primario" id="fim-denovo">Jogar de novo</button>' +
         '<button type="button" class="jg-btn jg-btn-secundario" id="fim-ajustes">Trocar o tema</button>' +

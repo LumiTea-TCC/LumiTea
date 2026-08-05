@@ -126,6 +126,7 @@
     .tipo-teen{background:rgba(74,126,181,0.12);color:var(--primary-dark)}
   </style>
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -575,6 +576,23 @@
         document.getElementById('secSemVinculo').style.display='none';
         document.getElementById('secComVinculo').style.display='flex';
       }
+      _avisarSeVinculoEncerrado();
+    }
+
+    /* Compara com o último estado salvo localmente para avisar quando o
+       cuidador encerra o vínculo (a tabela não guarda um "status", então
+       detectamos a transição id_responsavel: algo → nulo). Mesma chave de
+       localStorage usada em home-autista.html, então o aviso aparece uma
+       única vez, em qualquer página que o teen abrir primeiro. */
+    function _avisarSeVinculoEncerrado(){
+      try{
+        var tinhaCuidador = localStorage.getItem('lt-tinha-cuidador') === '1';
+        var temCuidadorAgora = !!(_perfil && _perfil.id_resp);
+        if(tinhaCuidador && !temCuidadorAgora && window.LumiUI){
+          LumiUI.toast('Seu cuidador encerrou o vínculo com você. Se quiserem se reconectar, compartilhe seu novo código com ele(a).', {type:'info'});
+        }
+        localStorage.setItem('lt-tinha-cuidador', temCuidadorAgora ? '1' : '0');
+      }catch(e){}
     }
 
     function preencherForm(){
