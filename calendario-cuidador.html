@@ -295,8 +295,8 @@
       cont.innerHTML = evs.map(function(ev) {
         var hora = ev.hora_evento ? ev.hora_evento.slice(0,5) : 'Sem hora';
         var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });
-        var origemTag = ev.origem === 'cuidador' ? 'Você adicionou' : (teen?teen.nome:'Adolescente');
-        return '<div class="event-item '+(ev.origem!=='cuidador'?'from-teen':'')+'">'
+        var origemTag = ev.origem === 'responsavel' ? 'Você adicionou' : (teen?teen.nome:'Adolescente');
+        return '<div class="event-item '+(ev.origem!=='responsavel'?'from-teen':'')+'">'
           +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
           +'<div class="ev-info">'
           +'<div class="ev-title">'+esc(ev.titulo||'Evento')+'</div>'
@@ -304,7 +304,7 @@
           +(ev.descricao?'<div class="ev-desc">'+esc(ev.descricao)+'</div>':'')
           +'<div class="teen-tag">'+esc(origemTag)+'</div>'
           +'</div>'
-          +(ev.origem==='cuidador'?'<button class="ev-del" onclick="deletarEvento(\''+ev.id+'\')">'+(window.LUMI?LUMI.icon('trash'):'')+'</button>':'')
+          +(ev.origem==='responsavel'?'<button class="ev-del" onclick="deletarEvento(\''+ev.id+'\')">'+(window.LUMI?LUMI.icon('trash'):'')+'</button>':'')
           +'</div>';
       }).join('');
     }
@@ -323,7 +323,7 @@
       if (!teenId) { alert('Selecione o adolescente!'); return; }
       if (!titulo || !data) { alert('Preencha título e data!'); return; }
 
-      await sb.from('eventos_calendario').insert({
+      var { error: erroInsert } = await sb.from('eventos_calendario').insert({
         id_neurodivergente: teenId,
         titulo: titulo,
         data_evento: data,
@@ -331,18 +331,22 @@
         descricao: desc || null,
         cor: _corSel,
         roleplay_prep: false,
-        origem: 'cuidador',
+        origem: 'responsavel',
         id_cuidador: _uid,
         timestamp: new Date().toISOString()
       });
 
-      // Gera alerta para o adolescente ver
-      await sb.from('alertas').insert({
+      if (erroInsert) {
+        alert('Não foi possível salvar o evento. Tente novamente.');
+        return;
+      }
+
+      // Aviso pro adolescente (best-effort — nenhuma tela do teen lê esta tabela hoje)
+      sb.from('alertas').insert({
         id_neurodivergente: teenId,
         tipo: 'info',
         titulo: 'Novo evento: ' + titulo,
-        desc: 'Seu cuidador adicionou um evento para ' + new Date(data+'T12:00:00').toLocaleDateString('pt-BR'),
-        emoji: '',
+        descricao: 'Seu cuidador adicionou um evento para ' + new Date(data+'T12:00:00').toLocaleDateString('pt-BR'),
         lido: false,
         timestamp: new Date().toISOString()
       });
@@ -384,7 +388,7 @@
           +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
           +'<div class="ev-info"><div class="ev-title">'+esc(ev.titulo||'Evento')+'</div>'
           +'<div class="ev-time">'+new Date((ev.data_evento||'')+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})+'</div>'
-          +'<div class="teen-tag">'+esc(ev.origem==='cuidador'?'Você':(teen?teen.nome:'Adolescente'))+'</div>'
+          +'<div class="teen-tag">'+esc(ev.origem==='responsavel'?'Você':(teen?teen.nome:'Adolescente'))+'</div>'
           +'</div></div>';
       }).join('');
     }

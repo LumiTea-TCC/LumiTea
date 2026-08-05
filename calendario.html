@@ -434,7 +434,7 @@
       if(!evsDia.length){lista.innerHTML='<div class="empty-state"><div class="es-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div><div class="es-txt">Nenhum evento aqui</div><div class="es-sub">Que tal adicionar algo no formulário ao lado?</div></div>';return}
       lista.innerHTML=evsDia.map(function(ev){
         var hora=ev.hora_evento?ev.hora_evento.slice(0,5):'Sem hora';
-        var cuid=ev.origem==='cuidador';
+        var cuid=ev.origem==='responsavel';
         return'<div class="ev-item'+(cuid?' cuid':'')+'">'+
           '<div class="ev-stripe" style="background:'+(ev.cor||'#7c5cbf')+'"></div>'+
           '<div class="ev-body">'+
@@ -494,7 +494,7 @@
 
     function verificarCuidador(){
       var hoje=new Date().toISOString().slice(0,10);
-      var evsCuid=_evs.filter(function(e){return e.origem==='cuidador'&&(e.data_evento||'').slice(0,10)>=hoje});
+      var evsCuid=_evs.filter(function(e){return e.origem==='responsavel'&&(e.data_evento||'').slice(0,10)>=hoje});
       if(evsCuid.length>0){
         var strip=document.getElementById('cuid-strip');strip.classList.add('show');
         document.getElementById('cs-txt').textContent='Seu cuidador adicionou: '+evsCuid[0].titulo;

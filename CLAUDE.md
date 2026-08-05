@@ -8,10 +8,13 @@ Duas áreas: **teen (calma)** e **cuidador (sóbria)**. Mascote: urso **Lumi/The
 
 - Raiz do app: `C:\Users\196402024\LumiTea\` (repo git na mesma pasta).
 - Roda **sem servidor** (caminhos relativos). Local: `serve.ps1` / `rodar-local.bat` (= localhost).
-- **Não há Node/npx/npm/Supabase CLI instalados nesta máquina** (confirmado em 2026-08-05 — busca completa no
-  disco não achou `node.exe`/`supabase.exe`; `python`/`python3` são só o stub da Microsoft Store, sem intérprete
-  real). Não assumir CLI disponível — ver "Deploy/admin da Supabase sem CLI" abaixo. Ferramentas que EXISTEM:
-  PowerShell (com `ConvertFrom-Json`/`ConvertTo-Json` nativos) e `curl` (mingw64, via Bash tool).
+- **Node agora está instalado** (`node v24.16.0`, `npm 11.13.0` — confirmado em 2026-08-05, visível tanto no
+  Bash tool quanto no PowerShell via `C:\Program Files\nodejs\node.exe`). A nota anterior dizendo que não havia
+  Node/npx/npm nesta máquina estava desatualizada — **usar `node --check` pra validar JS sempre que possível**
+  (extrair os blocos `<script>` dos `.html` pra um `.js` temporário no diretório de scratchpad e rodar o check
+  neles, já que os arquivos são HTML, não JS puro). Ainda não instalado: `supabase.exe` (CLI da Supabase) — pra
+  deploy/admin, seguir "Deploy/admin da Supabase sem CLI" abaixo. Ferramentas disponíveis: PowerShell (com
+  `ConvertFrom-Json`/`ConvertTo-Json` nativos), `curl` (mingw64, via Bash tool) e agora Node/npm.
 
 ## Stack
 - **Frontend:** HTML/CSS/JS **vanilla**, sem framework. (Houve um Next.js em `web/` — ABANDONADO, ignore.)
@@ -151,18 +154,33 @@ Substituiu o antigo "Mundo Gelado do Theo" (mundo aberto em canvas), **removido 
   acolhedor ao teen (2026-08-05) — ver seção "Vínculo cuidador↔teen e Calendário compartilhado".
 - Calendário do cuidador: link adicionado ao painel principal (estava órfão) + XSS de título/descrição de
   evento corrigido nos dois lados (`calendario.html` e `calendario-cuidador.html`) (2026-08-05).
+- **Bug raiz do calendário cuidador↔teen não conectar (2026-08-05):** `calendario-cuidador.html` inserindo
+  evento gravava `origem: 'cuidador'`, mas a coluna `origem` de `eventos_calendario` tem
+  `CHECK (origem IN ('adolescente','responsavel','terapeuta'))` — `'cuidador'` não está na lista, então **todo
+  insert do cuidador falhava** (confirmado direto em produção via Management API: 0 eventos com essa origem
+  existiam no banco). Como o código não checava `error` da resposta, a tela mostrava "Evento adicionado com
+  sucesso!" mesmo o evento nunca sendo salvo. Corrigido: `origem` agora grava `'responsavel'` (já usado em
+  `perfil.tipo` em todo o resto do app) em `calendario-cuidador.html`, e todas as comparações
+  `ev.origem==='cuidador'` nos dois arquivos (`calendario.html` e `calendario-cuidador.html`) viraram
+  `==='responsavel'`. Insert agora checa `error` e avisa o usuário se falhar, em vez de sucesso falso. De
+  passagem, também corrigido o mesmo bug de coluna `desc`→`descricao` (ver item 4 do Backlog) no insert de
+  aviso pro teen dentro de `adicionarEventoCuidador()` — só esse call site, os outros 2 do backlog continuam
+  pendentes. RLS/schema de `eventos_calendario`, `relatorios`, `alertas` e `neurodivergente` foram conferidos
+  em produção nessa investigação e estão OK (não eram a causa). `calendario-cuidador.html` **já existia** como
+  página separada do calendário do cuidador desde antes (criada mais cedo no mesmo dia) — não foi recriada.
 
 ## 📋 Backlog (próximos passos, sem quebrar nada)
 1. Migrar os ~27 `alert/confirm` nativos restantes (conta, diário, calendário, conversa) para `LumiUI`.
    Atenção: `confirm()` síncrono → `LumiUI.confirm()` é Promise; ajustar para `await`/`.then`.
 2. Conferir/padronizar escape em `chat.js`, `apoio.js` (provável OK).
 3. Avaliar mitigação da enumeração de PII (item de Segurança) — só com aval do usuário.
-4. **Bug pré-existente, não corrigido hoje (fora de escopo):** todo insert em `alertas` no código usa a
-   coluna `desc`, mas a tabela só tem `descricao` — o insert falha inteiro (coluna inexistente), não só o
-   campo. Afeta `js/cuidador.js` (`salvarAlertaSupabase`), o alerta de crise em `home-cuidador.html`
-   (~L666/755, que também *lê* `a.desc` em vez de `a.descricao` em `carregarAlertas`) e o insert de "novo
-   evento" em `calendario-cuidador.html`. Consertar leitura E escrita juntas se for mexer no sistema de
-   alertas/crise (grep `\.desc\b` perto de `alertas`).
+4. **Bug pré-existente, parcialmente corrigido:** todo insert em `alertas` no código usava a coluna `desc`,
+   mas a tabela só tem `descricao` — o insert falhava inteiro (coluna inexistente), não só o campo. Afeta
+   `js/cuidador.js` (`salvarAlertaSupabase`) e o alerta de crise em `home-cuidador.html` (~L666/755, que
+   também *lê* `a.desc` em vez de `a.descricao` em `carregarAlertas`) — **esses dois ainda pendentes**. O
+   terceiro call site, o insert de "novo evento" em `calendario-cuidador.html`, **já foi corrigido em
+   2026-08-05** junto com o bug do calendário (ver "Já corrigido"). Consertar leitura E escrita juntas nos
+   dois que restam se for mexer no sistema de alertas/crise (grep `\.desc\b` perto de `alertas`).
 5. `conta.html` (teen) tem um campo "Ou informe o código que seu cuidador te passou" que só funciona pra
    contas com `profiles.tipo='terapeuta'` — pra `neurodivergente` (o público normal dessa página), a RPC
    `aceitar_vinculo` sempre retorna `tipo_invalido` (vira "Erro ao vincular." genérico na tela). Não afeta o
