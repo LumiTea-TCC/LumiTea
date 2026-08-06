@@ -49,6 +49,11 @@ var Chat = (function () {
     var d = new Date(ts);
     return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
+  // conversas da comunidade reiniciam todo dia — só mostra mensagens de hoje
+  function inicioDoDia() {
+    var d = new Date(); d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }
 
   /* ---------- inicialização ---------- */
   function iniciar(opts) {
@@ -141,6 +146,7 @@ var Chat = (function () {
       var r = await cfg.sb.from('comunidade_chat')
         .select('id,autor_id,autor_nome,texto,criado_em')
         .eq('publico', cfg.publico).eq('sala', salaAtual)
+        .gte('criado_em', inicioDoDia())
         .order('criado_em', { ascending: true }).limit(100);
       if (r.error) throw r.error;
       el.msgs.innerHTML = '';
@@ -354,9 +360,10 @@ var Chat = (function () {
   }
   function vazio() {
     var msg = cfg.publico === 'cuidador'
-      ? 'Ninguém conversou por aqui ainda. Que tal começar dizendo um oi ou uma dúvida?'
+      ? 'Ninguém conversou por aqui hoje ainda. Que tal começar dizendo um oi ou uma dúvida?'
       : 'Sala vazia por enquanto. Pode ser você a começar — um oi já vale!';
-    return '<div class="ch-vazio">' + icon('message-circle') + '<p>' + esc(msg) + '</p></div>';
+    return '<div class="ch-vazio">' + icon('message-circle') + '<p>' + esc(msg) +
+      '</p><p class="ch-vazio-nota">' + icon('clock') + ' As conversas daqui reiniciam todo dia.</p></div>';
   }
   function erroTabela() {
     return '<div class="ch-vazio">' + icon('alert-circle') +

@@ -76,7 +76,7 @@
     <!-- SIDEBAR -->
     <aside class="cui-sidebar" id="cui-sidebar">
       <div class="cui-logo">
-        <div class="cui-logo-img"><img src="img/urso-joia.png" alt="LumiTEA"></div>
+        <div class="cui-logo-img"><img src="img/urso67.png" alt="LumiTEA"></div>
         <div>
           <div class="cui-logo-text">LumiTEA</div>
           <div class="cui-logo-sub">Painel do Cuidador</div>
@@ -137,7 +137,7 @@
 
     <!-- HERO PERFIL -->
     <div class="set-hero">
-      <div class="set-hero-av" id="hero-avatar">?</div>
+      <div class="set-hero-av" id="hero-avatar"><img src="img/urso67.png" alt=""></div>
       <div class="set-hero-info">
         <div class="set-hero-nome" id="hero-nome">Carregando...</div>
         <div class="set-hero-email" id="hero-email">—</div>
@@ -304,8 +304,6 @@
     })();
 
     function renderPerfil() {
-      var ini = (_perfil.nome || '?').charAt(0).toUpperCase();
-      document.getElementById('hero-avatar').textContent = ini;
       document.getElementById('hero-nome').textContent = (_perfil.nome + ' ' + (_perfil.sobrenome || '')).trim() || 'Cuidador';
       document.getElementById('hero-email').textContent = _email || '';
       document.getElementById('cui-nome-area').textContent = _perfil.nome || 'Cuidador';

@@ -22,7 +22,8 @@
     .profile-hero{background:linear-gradient(135deg,#2e5fa3 0%,#4a7eb5 50%,#5b90c8 100%);border-radius:24px;padding:32px 36px;display:flex;align-items:center;gap:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(46,95,163,0.25)}
     .profile-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,0.07)}
     .profile-hero::after{content:'';position:absolute;bottom:-50px;left:30%;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04)}
-    .ph-avatar{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.18);border:3px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:white;flex-shrink:0;position:relative;z-index:1;box-shadow:0 4px 18px rgba(0,0,0,0.15)}
+    .ph-avatar{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.18);border:3px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:white;flex-shrink:0;position:relative;z-index:1;box-shadow:0 4px 18px rgba(0,0,0,0.15);overflow:hidden}
+    .ph-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
     .ph-info{flex:1;color:white;position:relative;z-index:1}
     .ph-name{font-family:'Baloo 2',sans-serif;font-size:1.7rem;font-weight:800;line-height:1.1;margin-bottom:4px}
     .ph-email{font-size:.82rem;font-weight:600;opacity:.8;margin-bottom:12px}
@@ -159,7 +160,7 @@
     </div>
     <div class="app-nav-right">
       <div class="user-badge">
-        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <div class="user-badge-av"><img src="img/urso-coder.png" alt="" id="nav-avatar"></div>
         <span id="nav-user-name">...</span>
       </div>
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
@@ -190,7 +191,7 @@
 
     <!-- HERO PERFIL -->
     <div class="profile-hero">
-      <div class="ph-avatar" id="ph-avatar">?</div>
+      <div class="ph-avatar" id="ph-avatar"><img src="img/urso-coder.png" alt=""></div>
       <div class="ph-info">
         <div class="ph-name" id="ph-name">Carregando...</div>
         <div class="ph-email" id="ph-email">—</div>
@@ -514,8 +515,6 @@
     })();
 
     function renderPerfil(){
-      var ini = (_perfil.nome||'?').charAt(0).toUpperCase();
-      document.getElementById('ph-avatar').textContent = ini;
       document.getElementById('ph-name').textContent = (_perfil.apelido||_perfil.nome)+' '+(_perfil.sobrenome||'');
       document.getElementById('ph-email').textContent = _perfil.email||'';
       document.getElementById('ph-nivel').textContent = 'Nível '+_perfil.nivel;
@@ -695,7 +694,7 @@
     async function confirmarExcluirDados(){
       if(!confirm('Tem certeza que quer limpar seu histórico de conversas? Isso não pode ser desfeito.')) return;
       try{
-        await sb.from('conversas').delete().eq('id_neurodivergente',_uid);
+        await sb.rpc('limpar_conversa_com_arquivo');
         await sb.from('memoria_lumi').delete().eq('id_neurodivergente',_uid);
         alert('Histórico e memória limpos com sucesso!');
       }catch(e){alert('Erro ao limpar histórico: '+e.message);}

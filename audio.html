@@ -93,6 +93,7 @@
     html[data-modo-calmo="true"] .voz-ring{ display:none !important; }
   </style>
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
 </head>
 <body class="voz-page">
 
@@ -120,6 +121,7 @@
       <button class="voz-btn primary" id="btnGravar"><i class="lt-i" data-lt-icon="mic" aria-hidden="true"></i> Falar</button>
       <button class="voz-btn" id="btnParar" disabled><i class="lt-i" data-lt-icon="x" aria-hidden="true"></i> Parar</button>
       <button class="voz-btn" id="btnMute" title="Cortar a resposta em voz"><i class="lt-i" data-lt-icon="x" aria-hidden="true"></i> <span id="muteTxt">Silenciar</span></button>
+      <button class="voz-btn" id="btnLimpar" title="Apagar esta conversa"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Limpar conversa</button>
     </div>
 
     <div class="voz-transc" id="transcricao" aria-live="polite"></div>
@@ -188,6 +190,31 @@
       muted = !muted;
       muteTxt.textContent = muted ? 'Som ligado' : 'Silenciar';
       if (muted) { try { player.pause(); player.currentTime = 0; } catch (e) {} }
+    });
+
+    var btnLimpar = document.getElementById('btnLimpar');
+    btnLimpar.addEventListener('click', async function () {
+      var ok = window.LumiUI
+        ? await LumiUI.confirm('Quer apagar esta conversa? O histórico atual será apagado e não poderá ser recuperado.', {
+            titulo: 'Limpar conversa',
+            ok: 'Sim, apagar',
+            cancelar: 'Cancelar',
+            mascote: 'img/urso-nogelo-pe.png'
+          })
+        : confirm('Quer apagar esta conversa? O histórico atual será apagado e não poderá ser recuperado.');
+      if (!ok) return;
+
+      transcEl.innerHTML = '';
+      historico = [];
+      setEstado('idle', 'Pronto pra conversar');
+
+      if (!sb) return;
+      try {
+        var r = await sb.auth.getSession();
+        if (!r.data.session) return;
+        var { error } = await sb.rpc('limpar_conversa_com_arquivo');
+        if (error) console.error('[audio] erro ao arquivar histórico:', error.message);
+      } catch (e) { console.warn('[audio] arquivar histórico:', e.message); }
     });
 
     btnGravar.addEventListener('click', async function () {

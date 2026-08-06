@@ -3856,7 +3856,9 @@ body.cui-page { overflow: hidden; }
   background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.35);
   display: flex; align-items: center; justify-content: center;
   font-family: 'Baloo 2', sans-serif; font-size: 2rem; font-weight: 800; flex-shrink: 0;
+  overflow: hidden;
 }
+.set-hero-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .set-hero-info { flex: 1; min-width: 0; }
 .set-hero-nome { font-family: 'Baloo 2', sans-serif; font-size: 1.5rem; font-weight: 800; line-height: 1.15; }
 .set-hero-email { font-size: .82rem; font-weight: 600; opacity: .85; margin-top: 2px; word-break: break-all; }

@@ -74,6 +74,8 @@ html:not([data-modo-calmo="true"]) .ch-head .ch-live .ch-dot { animation: ch-pul
 
 .ch-vazio { margin: auto; text-align: center; color: var(--text-muted); font-size: .9rem; max-width: 360px; }
 .ch-vazio .lt-i { width: 30px; height: 30px; color: var(--primary); display: block; margin: 0 auto 8px; }
+.ch-vazio-nota { font-size: .78rem; margin-top: 10px; opacity: .85; }
+.ch-vazio-nota .lt-i { width: 1em; height: 1em; display: inline-block; vertical-align: -2px; margin: 0 3px 0 0; color: inherit; }
 .ch-sys { align-self: center; font-size: .78rem; color: var(--text-muted); background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: var(--r-pill); padding: 4px 12px; }
 
 /* ---- compositor ---- */

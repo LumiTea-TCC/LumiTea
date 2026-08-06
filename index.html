@@ -294,22 +294,14 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="how-video-wrap">
         <div class="how-video-inner">
           <div class="how-video-frame">
-            <div class="how-video-play-hint">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="12" cy="12" r="10"/>
-                <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
-              </svg>
-              <span>Assista e veja o LumiTEA em ação</span>
-            </div>
-            <!-- Cole aqui a URL do seu vídeo no atributo src -->
-            <iframe
+            <video
               class="how-video-iframe"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              src="img/LumiTEA%20Comercial.mp4"
               title="Como funciona o LumiTEA"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen>
-            </iframe>
+              controls
+              preload="metadata"
+              playsinline>
+            </video>
           </div>
         </div>
       </div><!-- /how-video-wrap -->

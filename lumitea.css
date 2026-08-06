@@ -509,8 +509,8 @@
   border-radius: 22px;
   color: #f4f7fb;
   overflow: hidden;
-  /* Mesmo azul do card "Pronto para começar?" e do fundo das páginas de conta */
-  background: linear-gradient(135deg, var(--primary) 0%, #5a9fd4 100%);
+  /* Mesmo azul do card "Pronto para começar?", agora com gradiente mais visível (mesma paleta) */
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 45%, var(--primary-light) 100%);
   width: 100%;
   position: relative;
   transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);

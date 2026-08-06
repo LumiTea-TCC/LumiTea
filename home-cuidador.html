@@ -99,7 +99,7 @@
     <!-- SIDEBAR -->
     <aside class="cui-sidebar" id="cui-sidebar">
       <div class="cui-logo">
-        <div class="cui-logo-img"><img src="img/urso-joia.png" alt="LumiTEA"></div>
+        <div class="cui-logo-img"><img src="img/urso67.png" alt="LumiTEA"></div>
         <div>
           <div class="cui-logo-text">LumiTEA</div>
           <div class="cui-logo-sub">Painel do Cuidador</div>
@@ -178,7 +178,7 @@
 
         <div class="cui-welcome-hero lt-reveal" id="cui-welcome-hero">
           <div class="cui-welcome-av">
-            <img src="img/urso-joia.png" alt="Lumi">
+            <img src="img/urso67.png" alt="Lumi">
           </div>
           <div class="cui-welcome-text">
             <h2>Olá, <span id="cui-welcome-nome">cuidador</span></h2>
@@ -618,8 +618,12 @@
       var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
       var nomeTeen = teen ? teen.nome : 'adolescente';
 
-      var { data: convs } = await sb.from('conversas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
-      convs = (convs || []).reverse();
+      var { data: convsAtuais } = await sb.from('conversas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
+      var { data: convsArquivadas } = await sb.from('conversas_arquivadas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
+      // Junta conversa ao vivo + arquivada (o adolescente pode ter limpado o chat) e usa as 20 mais recentes no total
+      var convs = (convsAtuais || []).concat(convsArquivadas || [])
+        .sort(function(a, b){ return new Date(a.timestamp) - new Date(b.timestamp); })
+        .slice(-20);
 
       try {
         var resumoMsgs = convs.map(function(m){ return (m.role||'').toUpperCase()+': '+(m.content||''); }).join('\n');

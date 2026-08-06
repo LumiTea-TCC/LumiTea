@@ -44,7 +44,7 @@
     </div>
     <div class="app-nav-right">
       <div class="user-badge">
-        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <div class="user-badge-av"><img src="img/urso-coder.png" alt="" id="nav-avatar"></div>
         <span id="nav-user-name">Carregando...</span>
       </div>
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
@@ -341,12 +341,12 @@
 
       if (_userId && window.supabaseClient) {
         try {
-          const { error } = await window.supabaseClient.from('conversas').delete().eq('id_neurodivergente', _userId)
+          const { error } = await window.supabaseClient.rpc('limpar_conversa_com_arquivo')
           if (error) {
-            console.error('[conversa] erro ao apagar histórico:', error.message)
+            console.error('[conversa] erro ao arquivar histórico:', error.message)
             if (window.LumiUI) LumiUI.toast('Não deu pra apagar o histórico salvo. Tenta de novo mais tarde.', { type: 'error' })
           }
-        } catch (e) { console.warn('[conversa] delete histórico:', e.message) }
+        } catch (e) { console.warn('[conversa] arquivar histórico:', e.message) }
       }
     }
 
