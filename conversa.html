@@ -17,769 +17,412 @@
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
  <script src="js/core/secrets.js"></script>
  <script src="js/core/config.js"></script>
- <style>
- .sr-only {
- position: absolute;
- width: 1px;
- height: 1px;
- padding: 0;
- margin: -1px;
- overflow: hidden;
- clip: rect(0, 0, 0, 0);
- border: 0;
- }
-
- .chat-page {
- height: 100vh;
- margin: 0;
- display: flex;
- flex-direction: column;
- overflow: hidden;
- background: linear-gradient(180deg, #f7fbff 0%, #eef4fb 100%);
- color: #17324f;
- }
-
- .chat-topbar {
- height: 72px;
- display: flex;
- align-items: center;
- justify-content: space-between;
- padding: 0 24px;
- border-bottom: 1px solid #d8e5f2;
- background: rgba(255, 255, 255, 0.9);
- backdrop-filter: blur(8px);
- }
-
- .chat-topbar .logo {
- display: flex;
- align-items: center;
- gap: 10px;
- font-family: 'Baloo 2', sans-serif;
- font-weight: 800;
- font-size: 1.3rem;
- color: #285b8f;
- text-decoration: none;
- }
-
- .chat-topbar .logo img {
- width: 30px;
- height: 30px;
- object-fit: contain;
- }
-
- .topbar-actions {
- display: flex;
- align-items: center;
- gap: 10px;
- }
-
- .top-link,
- .top-button {
- border: 1px solid #b9cde1;
- background: #ffffff;
- color: #285b8f;
- font-family: 'Nunito', sans-serif;
- font-weight: 700;
- font-size: 0.88rem;
- border-radius: 10px;
- padding: 8px 12px;
- text-decoration: none;
- cursor: pointer;
- }
-
- .chat-viewport {
- flex: 1;
- min-height: 0;
- display: flex;
- padding: 0;
- }
-
- .chat-card {
- width: 100%;
- height: 100%;
- max-width: none;
- min-height: 0;
- background: #ffffff;
- border: none;
- border-radius: 0;
- box-shadow: none;
- display: flex;
- flex-direction: column;
- overflow: hidden;
- }
-
- .chat-header-minimal {
- display: flex;
- align-items: center;
- gap: 14px;
- padding: 12px 24px;
- border-bottom: 1px solid #e3edf7;
- text-align: left;
- }
-
- .chat-header-bear {
- width: 56px;
- height: 56px;
- object-fit: contain;
- margin-bottom: 0;
- flex-shrink: 0;
- }
-
- .chat-header-minimal h1 {
- margin: 0;
- font-family: 'Baloo 2', sans-serif;
- font-size: 1.3rem;
- font-weight: 800;
- color: #1a3d63;
- }
-
- .chat-header-minimal p {
- margin: 2px 0 0;
- font-size: 0.88rem;
- color: #4d6780;
- }
-
- .status-line {
- display: inline-flex;
- align-items: center;
- gap: 8px;
- margin-top: 4px;
- font-size: 0.8rem;
- font-weight: 800;
- color: #2e7d5a;
- }
-
- .status-line .dot {
- width: 8px;
- height: 8px;
- border-radius: 50%;
- background: #2e7d5a;
- }
-
- .chat-messages {
- flex: 1;
- min-height: 0;
- overflow-y: auto;
- padding: 22px 24px;
- background: #f8fbff;
- display: flex;
- flex-direction: column;
- gap: 14px;
- }
-
- .msg-row {
- display: flex;
- gap: 10px;
- }
-
- .msg-row.user {
- justify-content: flex-end;
- }
-
- .msg-content {
- max-width: min(78%, 600px);
- display: flex;
- flex-direction: column;
- gap: 4px;
- }
-
- .msg-name {
- font-size: 0.73rem;
- font-weight: 800;
- color: #6b8198;
- }
-
- .msg-row.user .msg-name {
- text-align: right;
- }
-
- .msg-bubble {
- border-radius: 14px;
- padding: 11px 14px;
- font-size: 0.95rem;
- line-height: 1.6;
- word-break: break-word;
- }
-
- .msg-row.lumi .msg-bubble {
- background: #ffffff;
- border: 1px solid #d4e1ef;
- color: #17324f;
- }
-
- .msg-row.user .msg-bubble {
- background: #2f73b7;
- color: #ffffff;
- }
-
- .msg-time {
- font-size: 0.7rem;
- color: #7c92a8;
- }
-
- .msg-row.user .msg-time {
- text-align: right;
- }
-
- .msg-avatar {
- width: 38px;
- height: 38px;
- border-radius: 12px;
- flex-shrink: 0;
- align-self: flex-end;
- display: flex;
- align-items: center;
- justify-content: center;
- overflow: hidden;
- }
- .msg-avatar.lumi-av {
- background: #eef6ff;
- border: 1px solid #d4e1ef;
- }
- .msg-avatar.lumi-av img {
- width: 100%;
- height: 100%;
- object-fit: contain;
- }
- .msg-avatar.user-av {
- background: linear-gradient(135deg, #4a7eb5, #2e5fa3);
- }
-
- .quick-suggestions {
- display: flex;
- flex-wrap: wrap;
- gap: 8px;
- margin-top: 8px;
- }
-
- .suggestion-chip {
- border: 1px solid #c7d8e9;
- background: #f4f9ff;
- color: #285b8f;
- border-radius: 999px;
- padding: 6px 12px;
- font-size: 0.78rem;
- font-weight: 700;
- cursor: pointer;
- }
-
- .typing-indicator {
- display: none;
- }
-
- .typing-indicator.visible {
- display: flex;
- }
-
- .typing-dots {
- display: flex;
- gap: 5px;
- border: 1px solid #d4e1ef;
- background: #ffffff;
- border-radius: 14px;
- padding: 11px 14px;
- }
-
- .typing-dots span {
- width: 7px;
- height: 7px;
- border-radius: 50%;
- background: #5b92c8;
- animation: blink 1.1s infinite ease-in-out;
- }
-
- .typing-dots span:nth-child(2) {
- animation-delay: 0.15s;
- }
-
- .typing-dots span:nth-child(3) {
- animation-delay: 0.3s;
- }
-
- @keyframes blink {
- 0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
- 30% { opacity: 1; transform: translateY(-3px); }
- }
-
- .chat-input-bar {
- border-top: 1px solid #dfeaf5;
- background: #ffffff;
- padding: 12px;
- display: flex;
- align-items: flex-end;
- gap: 10px;
- }
-
- .chat-input-wrap {
- flex: 1;
- position: relative;
- }
-
- .chat-textarea {
- width: 100%;
- min-height: 80px;
- max-height: 220px;
- resize: none;
- border: 1px solid #bfd3e7;
- border-radius: 12px;
- padding: 14px 16px 26px;
- font-size: 1rem;
- line-height: 1.55;
- color: #17324f;
- background: #ffffff;
- }
-
- .chat-textarea:focus-visible,
- .suggestion-chip:focus-visible,
- .btn-send:focus-visible,
- .top-link:focus-visible,
- .top-button:focus-visible {
- outline: 3px solid #125ca8;
- outline-offset: 2px;
- }
-
- .char-counter {
- position: absolute;
- right: 10px;
- bottom: 7px;
- font-size: 0.7rem;
- color: #6d859d;
- }
-
- .char-counter.near-limit {
- color: #a85a00;
- }
-
- .char-counter.at-limit {
- color: #b70022;
- }
-
- .btn-send {
- width: 46px;
- height: 46px;
- border: none;
- border-radius: 12px;
- background: #2f73b7;
- color: #fff;
- display: inline-flex;
- align-items: center;
- justify-content: center;
- cursor: pointer;
- }
-
- .btn-send:disabled {
- background: #9cb6cf;
- cursor: not-allowed;
- }
-
- .btn-send svg {
- width: 18px;
- height: 18px;
- fill: currentColor;
- }
-
- .chat-footer-bar {
- display: flex;
- align-items: center;
- justify-content: space-between;
- gap: 10px;
- border-top: 1px solid #e3edf7;
- background: #f8fbff;
- padding: 10px 12px;
- }
-
- .chat-footer-info {
- font-size: 0.78rem;
- color: #58718a;
- font-weight: 700;
- }
-
- .btn-nova-conversa {
- border: 1px solid #bfd3e7;
- background: #ffffff;
- color: #285b8f;
- border-radius: 10px;
- padding: 8px 10px;
- font-size: 0.78rem;
- font-weight: 800;
- cursor: pointer;
- }
-
- @media (max-width: 700px) {
- .chat-topbar {
- padding: 0 12px;
- height: 64px;
- }
-
- .chat-viewport {
- padding: 0;
- }
-
- .chat-card {
- height: 100%;
- min-height: 0;
- border-radius: 0;
- }
-
- .chat-header-minimal {
- padding: 10px 14px;
- gap: 10px;
- }
-
- .chat-header-minimal h1 {
- font-size: 1.1rem;
- }
-
- .chat-header-bear {
- width: 44px;
- height: 44px;
- }
-
- .chat-header-minimal p {
- font-size: 0.82rem;
- }
-
- .chat-messages {
- padding: 14px 12px;
- }
-
- .msg-content {
- max-width: 88%;
- }
-
- .chat-footer-bar {
- flex-direction: column;
- align-items: stretch;
- }
- }
- </style>
-  <script src="js/core/icons.js" defer></script>
+ <script src="js/core/icons.js" defer></script>
+ <script src="js/core/ui.js" defer></script>
 </head>
-<body class="chat-page">
- <nav class="app-nav">
- <a class="logo" href="home-autista.html">
- <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
- LumiTEA
- </a>
- <div class="app-nav-links">
- <a href="home-autista.html">Início</a>
- <a href="conversa.html">Conversar com o Theo</a>
- <a href="games.html">Jogos do Theo</a>
- <a href="comunidade.html">Comunidade</a>
- <a href="calendario.html">Calendário</a>
- <a href="diario.html">Diário</a>
- <a href="conta.html">Conta</a>
- </div>
- <div class="app-nav-right">
- <div class="user-badge">
- <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
- <span id="nav-user-name">Carregando...</span>
- </div>
- <button class="btn-logout" onclick="sairDaConta()">Sair</button>
- </div>
+<body class="app-body ai-conversation-page">
 
- <label class="app-burger" for="burger-conversa">
- <input type="checkbox" id="burger-conversa">
- <span></span>
- <span></span>
- <span></span>
- </label>
- </nav>
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
 
- <div id="mm-conversa" class="app-mobile-menu">
- <a href="home-autista.html">Início</a>
- <a href="conversa.html" class="active">Conversar com o Theo</a>
- <a href="games.html">Jogos do Theo</a>
- <a href="comunidade.html">Comunidade</a>
- <a href="calendario.html">Calendário</a>
- <a href="diario.html">Diário</a>
- <a href="conta.html">Conta</a>
- <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
- <button class="btn-logout" onclick="sairDaConta()">Sair</button>
- </div>
- </div>
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="games.html">Jogos do Theo</a>
+      <a href="comunidade.html">Comunidade</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/favicon.ico" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
 
- <main class="chat-viewport">
- <section class="chat-card" aria-label="Conversa com a Lumi Theo">
- <div class="chat-header-minimal">
- <img class="chat-header-bear" src="img/urso-aponta-lado.png" alt="Urso Lumi apontando para o chat">
- <div class="chat-header-text">
- <h1>Lumi Theo</h1>
- <p>Conversa segura, com linguagem clara e acolhedora.</p>
- <div class="status-line"><span class="dot" aria-hidden="true"></span>Online</div>
- </div>
- </div>
+    <label class="app-burger" for="burger-conversa">
+      <input type="checkbox" id="burger-conversa">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+  </nav>
 
- <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Histórico da conversa">
- <div class="msg-row lumi welcome-msg" id="welcomeMsg">
- <div class="msg-content">
- <span class="msg-name">Lumi Theo</span>
- <div class="msg-bubble">
- Oi! Que bom te ver por aqui.<br><br>
- Pode me contar como foi seu dia, o que está sentindo, ou algo que esteja te preocupando.
- </div>
- <span class="msg-time" id="welcomeTime"></span>
- <div class="quick-suggestions" id="quickSuggestions">
- <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Como foi meu dia</button>
- <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Estou preocupado com algo</button>
- <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Situação na escola</button>
- <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Quero desabafar</button>
- </div>
- </div>
- </div>
+  <div id="mm-conversa" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="conversa.html" class="active">Conversar com o Theo</a>
+    <a href="games.html">Jogos do Theo</a>
+    <a href="comunidade.html">Comunidade</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
 
- <div class="msg-row lumi typing-indicator" id="typingIndicator" aria-hidden="true">
- <div class="typing-dots"><span></span><span></span><span></span></div>
- </div>
- </div>
+  <div class="conversa-wrapper">
+    <header class="conversa-header">
+      <div class="lumi-avatar-wrap">
+        <div class="lumi-avatar"><img src="img/urso-aponta-lado.png" alt=""></div>
+        <span class="lumi-status-dot" aria-hidden="true"></span>
+      </div>
+      <div class="conversa-header-info">
+        <span class="lumi-online-badge"><span class="dot" aria-hidden="true"></span>Online</span>
+        <h1>Lumi <span>Theo</span></h1>
+        <p>Pode contar pra Lumi o que quiser: seu dia, uma preocupação ou só desabafar. Aqui não existe certo ou errado — é o seu espaço, no seu tempo.</p>
+      </div>
+    </header>
 
- <div class="chat-input-bar">
- <label class="sr-only" for="chatInput">Digite sua mensagem para Lumi Theo</label>
- <div class="chat-input-wrap">
- <textarea
- class="chat-textarea"
- id="chatInput"
- placeholder="Escreva sua mensagem..."
- maxlength="500"
- rows="1"
- onkeydown="handleKey(event)"
- oninput="onInput()"
- ></textarea>
- <span class="char-counter" id="charCounter">0/500</span>
- </div>
- <button class="btn-send" id="sendBtn" type="button" onclick="enviarMensagem()" disabled title="Enviar mensagem">
- <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
- <span class="sr-only">Enviar</span>
- </button>
- </div>
+    <div class="conversa-layout">
+      <div class="chat-main">
+        <section class="chat-container" aria-label="Conversa com a Lumi Theo">
+          <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Histórico da conversa">
+            <div class="msg-row lumi welcome-msg" id="welcomeMsg">
+              <div class="msg-avatar lumi-av">
+                <img src="img/urso-estrelhinha.png" alt="Lumi">
+              </div>
+              <div class="msg-content">
+                <span class="msg-name">Lumi Theo</span>
+                <div class="msg-bubble">
+                  Oi! Que bom te ver por aqui.<br><br>
+                  Pode me contar como foi seu dia, o que está sentindo, ou algo que esteja te preocupando.
+                </div>
+                <span class="msg-time" id="welcomeTime"></span>
+              </div>
+            </div>
 
- <div class="chat-footer-bar">
- <span class="chat-footer-info">Conversa privada e segura.</span>
- <a href="audio.html" class="btn-voz" title="Conversar por voz com o Theo" style="background:linear-gradient(135deg,#4a7eb5 0%,#2e5fa3 100%);color:#fff;border:none;padding:10px 18px;border-radius:999px;font-weight:800;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.95rem;box-shadow:0 4px 14px rgba(46,95,163,.3);">
-   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
-   Falar por voz
- </a>
- <button class="btn-nova-conversa" type="button" onclick="novaConversa()">Nova conversa</button>
- </div>
- </section>
- </main>
+            <div class="msg-row lumi typing-indicator" id="typingIndicator" aria-hidden="true">
+              <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
 
- <script>
- function horaAgora() {
- return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
- }
+          <div class="chat-input-bar">
+            <label class="sr-only" for="chatInput">Digite sua mensagem para Lumi Theo</label>
+            <div class="chat-input-wrap">
+              <textarea
+                class="chat-textarea"
+                id="chatInput"
+                placeholder="Escreva sua mensagem..."
+                maxlength="500"
+                rows="1"
+                onkeydown="handleKey(event)"
+                oninput="onInput()"
+              ></textarea>
+              <span class="char-counter" id="charCounter">0/500</span>
+            </div>
+            <button class="btn-send" id="sendBtn" type="button" onclick="enviarMensagem()" disabled title="Enviar mensagem">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              <span class="sr-only">Enviar</span>
+            </button>
+          </div>
 
- document.getElementById('welcomeTime').textContent = horaAgora()
+          <div class="chat-footer-bar">
+            <span class="chat-footer-info"><i class="lt-i" data-lt-icon="lock" aria-hidden="true"></i> Conversa privada e segura</span>
+            <div class="chat-footer-actions">
+              <a href="audio.html" class="btn-nova-conversa" title="Conversar por voz com o Theo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+                Falar por voz
+              </a>
+              <button class="btn-nova-conversa" type="button" onclick="novaConversa()">Nova conversa</button>
+            </div>
+          </div>
+        </section>
+      </div>
 
- let humorAtual = null
+      <aside class="chat-sidebar">
+        <div class="side-card">
+          <div class="side-card-title"><span class="sc-icon"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i></span> Ideias pra começar</div>
+          <div class="topic-list" id="topicList">
+            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">🌤️</span>Como foi meu dia</button>
+            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">💭</span>Estou preocupado com algo</button>
+            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">🏫</span>Situação na escola</button>
+            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">🗣️</span>Quero desabafar</button>
+          </div>
+        </div>
 
- function usarSugestao(btn) {
- const texto = btn.textContent.trim().replace(/^[\p{Emoji}\s]+/u, '').trim()
- document.getElementById('chatInput').value = texto
- onInput()
- document.getElementById('quickSuggestions').style.display = 'none'
- document.getElementById('chatInput').focus()
- }
+        <div class="side-card">
+          <div class="side-card-title"><span class="sc-icon"><i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i></span> Um espaço só seu</div>
+          <div class="dica-box">Tudo que você conta aqui fica só entre você e a Lumi — sem julgamento, no seu tempo. 💙</div>
+        </div>
+      </aside>
+    </div>
+  </div>
 
- function onInput() {
- const input = document.getElementById('chatInput')
- const counter = document.getElementById('charCounter')
- const sendBtn = document.getElementById('sendBtn')
- const len = input.value.length
+  <script>
+    function horaAgora(d) {
+      return (d ? new Date(d) : new Date()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    }
 
- counter.textContent = `${len}/500`
- counter.className = 'char-counter' + (len > 450 ? (len >= 500 ? ' at-limit' : ' near-limit') : '')
- sendBtn.disabled = input.value.trim().length === 0
+    document.getElementById('welcomeTime').textContent = horaAgora()
 
- input.style.height = 'auto'
- input.style.height = Math.min(Math.max(input.scrollHeight, 80), 220) + 'px'
- }
+    let humorAtual = null
+    let historicoChat = []
+    let _userId = null
+    let _avisouErroSalvar = false
 
- function handleKey(e) {
- if (e.key === 'Enter' && !e.shiftKey) {
- e.preventDefault()
- enviarMensagem()
- }
- }
+    function usarSugestao(btn) {
+      const texto = btn.textContent.trim().replace(/^[\p{Emoji}\s]+/u, '').trim()
+      document.getElementById('chatInput').value = texto
+      onInput()
+      document.getElementById('chatInput').focus()
+    }
 
- function scrollToBottom() {
- const msgs = document.getElementById('chatMessages')
- msgs.scrollTop = msgs.scrollHeight
- }
+    function onInput() {
+      const input = document.getElementById('chatInput')
+      const counter = document.getElementById('charCounter')
+      const sendBtn = document.getElementById('sendBtn')
+      const len = input.value.length
 
- function addMessage(tipo, texto) {
- const msgs = document.getElementById('chatMessages')
- const typing = document.getElementById('typingIndicator')
- const row = document.createElement('div')
- row.className = `msg-row ${tipo}`
- const hora = horaAgora()
+      counter.textContent = `${len}/500`
+      counter.className = 'char-counter' + (len > 450 ? (len >= 500 ? ' at-limit' : ' near-limit') : '')
+      sendBtn.disabled = input.value.trim().length === 0
 
- if (tipo === 'user') {
- row.innerHTML = `
- <div class="msg-content">
- <span class="msg-name" style="text-align:right;">Você</span>
- <div class="msg-bubble">${escapeHtml(texto)}</div>
- <span class="msg-time">${hora}</span>
- </div>
- <div class="msg-avatar user-av"></div>
- `
- } else {
- row.innerHTML = `
- <div class="msg-avatar lumi-av">
- <img src="img/urso-estrelhinha.png" alt="Lumi">
- </div>
- <div class="msg-content">
- <span class="msg-name">Lumi Theo </span>
- <div class="msg-bubble">${escapeHtml(texto).replace(/\n/g, '<br>')}</div>
- <span class="msg-time">${hora}</span>
- </div>
- `
- }
+      input.style.height = 'auto'
+      input.style.height = Math.min(Math.max(input.scrollHeight, 44), 120) + 'px'
+    }
 
- msgs.insertBefore(row, typing)
- scrollToBottom()
- }
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        enviarMensagem()
+      }
+    }
 
- function escapeHtml(text) {
- const div = document.createElement('div')
- div.appendChild(document.createTextNode(text))
- return div.innerHTML
- }
+    function scrollToBottom() {
+      const msgs = document.getElementById('chatMessages')
+      msgs.scrollTop = msgs.scrollHeight
+    }
 
- function showTyping() {
- document.getElementById('typingIndicator').classList.add('visible')
- scrollToBottom()
- }
+    function addMessage(tipo, texto, quando) {
+      const msgs = document.getElementById('chatMessages')
+      const typing = document.getElementById('typingIndicator')
+      const row = document.createElement('div')
+      row.className = `msg-row ${tipo}`
+      const hora = horaAgora(quando)
 
- function hideTyping() {
- document.getElementById('typingIndicator').classList.remove('visible')
- }
+      if (tipo === 'user') {
+        row.innerHTML = `
+          <div class="msg-content">
+            <span class="msg-name">Você</span>
+            <div class="msg-bubble">${escapeHtml(texto)}</div>
+            <span class="msg-time">${hora}</span>
+          </div>
+          <div class="msg-avatar user-av"></div>
+        `
+      } else {
+        row.innerHTML = `
+          <div class="msg-avatar lumi-av">
+            <img src="img/urso-estrelhinha.png" alt="Lumi">
+          </div>
+          <div class="msg-content">
+            <span class="msg-name">Lumi Theo</span>
+            <div class="msg-bubble">${escapeHtml(texto).replace(/\n/g, '<br>')}</div>
+            <span class="msg-time">${hora}</span>
+          </div>
+        `
+      }
 
- const respostasPlaceholder = [
- 'Obrigado por compartilhar isso comigo! Conte-me mais — o que aconteceu?',
- 'Entendo como você se sente. Às vezes as coisas podem parecer muito pesadas, mas estou aqui com você! ',
- 'Que legal que você me contou isso! Como você se sentiu nesse momento?',
- 'Hmm, isso é muito interessante... O que você acha que poderia ajudar nessa situação? ',
- 'Fico feliz em ouvir você! Lembre-se: seus sentimentos são válidos e importantes ',
- 'Isso parece difícil mesmo. Você já tentou conversar com alguém de confiança sobre isso?',
- 'Uau, que experiência! Como isso te fez sentir? Pode me contar mais? ',
- 'Estou aqui para ouvir você, sem pressa! Continue me contando '
- ]
+      msgs.insertBefore(row, typing)
+      scrollToBottom()
+    }
 
- let respostaIdx = 0
- function proximaResposta() {
- const r = respostasPlaceholder[respostaIdx % respostasPlaceholder.length]
- respostaIdx++
- return r
- }
+    function escapeHtml(text) {
+      const div = document.createElement('div')
+      div.appendChild(document.createTextNode(text))
+      return div.innerHTML
+    }
 
- let msgCount = 0
- let historicoChat = []
+    function showTyping() {
+      document.getElementById('typingIndicator').classList.add('visible')
+      scrollToBottom()
+    }
 
- async function enviarMensagem() {
- const input = document.getElementById('chatInput')
- const texto = input.value.trim()
- if (!texto) return
+    function hideTyping() {
+      document.getElementById('typingIndicator').classList.remove('visible')
+    }
 
- if (msgCount === 0) {
- const sugest = document.getElementById('quickSuggestions')
- if (sugest) sugest.style.display = 'none'
- }
+    const respostasPlaceholder = [
+      'Obrigado por compartilhar isso comigo! Conte-me mais — o que aconteceu?',
+      'Entendo como você se sente. Às vezes as coisas podem parecer muito pesadas, mas estou aqui com você! ',
+      'Que legal que você me contou isso! Como você se sentiu nesse momento?',
+      'Hmm, isso é muito interessante... O que você acha que poderia ajudar nessa situação? ',
+      'Fico feliz em ouvir você! Lembre-se: seus sentimentos são válidos e importantes ',
+      'Isso parece difícil mesmo. Você já tentou conversar com alguém de confiança sobre isso?',
+      'Uau, que experiência! Como isso te fez sentir? Pode me contar mais? ',
+      'Estou aqui para ouvir você, sem pressa! Continue me contando '
+    ]
 
- addMessage('user', texto)
- historicoChat.push({ role: 'user', content: texto })
- msgCount++
+    let respostaIdx = 0
+    function proximaResposta() {
+      const r = respostasPlaceholder[respostaIdx % respostasPlaceholder.length]
+      respostaIdx++
+      return r
+    }
 
- input.value = ''
- input.style.height = 'auto'
- document.getElementById('charCounter').textContent = '0/500'
- document.getElementById('sendBtn').disabled = true
+    async function enviarMensagem() {
+      const input = document.getElementById('chatInput')
+      const texto = input.value.trim()
+      if (!texto) return
 
- showTyping()
- try {
-   let resposta
-   if (window.LumiIA && window.LumiIA.responder) {
-     const perfil = { humorRecente: typeof humorAtual === 'number' ? humorAtual : null }
-     const r = await window.LumiIA.responder(historicoChat, null, perfil)
-     resposta = (r && r.texto) || proximaResposta()
-   } else { resposta = proximaResposta() }
-   hideTyping()
-   addMessage('lumi', resposta)
-   historicoChat.push({ role: 'assistant', content: resposta })
+      addMessage('user', texto)
+      historicoChat.push({ role: 'user', content: texto })
 
-   try {
-     if (window.supabaseClient && window.supabaseClient.auth) {
-       const { data: { session } } = await window.supabaseClient.auth.getSession()
-       if (session) {
-         await window.supabaseClient.from('conversas').insert([
-           { id_neurodivergente: session.user.id, role: 'user', content: texto, timestamp: new Date().toISOString() },
-           { id_neurodivergente: session.user.id, role: 'assistant', content: resposta, timestamp: new Date().toISOString() }
-         ])
-       }
-     }
-   } catch(e) { console.warn('[conversa] persistência:', e.message) }
- } catch(err) {
-   hideTyping()
-   addMessage('lumi', 'Tive um probleminha pra responder agora. Tenta de novo?')
-   console.error('[conversa] erro:', err)
- }
- }
+      input.value = ''
+      input.style.height = 'auto'
+      document.getElementById('charCounter').textContent = '0/500'
+      document.getElementById('sendBtn').disabled = true
 
- function novaConversa() {
- if (!confirm('Quer começar uma nova conversa? A conversa atual será encerrada.')) return
+      showTyping()
+      try {
+        let resposta
+        if (window.LumiIA && window.LumiIA.responder) {
+          const perfil = { humorRecente: typeof humorAtual === 'number' ? humorAtual : null }
+          const r = await window.LumiIA.responder(historicoChat, null, perfil)
+          resposta = (r && r.texto) || proximaResposta()
+        } else { resposta = proximaResposta() }
+        hideTyping()
+        addMessage('lumi', resposta)
+        historicoChat.push({ role: 'assistant', content: resposta })
 
- const msgs = document.getElementById('chatMessages')
- msgs.querySelectorAll('.msg-row:not(#welcomeMsg):not(#typingIndicator)')
- .forEach(el => el.remove())
+        try {
+          if (_userId && window.supabaseClient) {
+            const { error } = await window.supabaseClient.from('conversas').insert([
+              { id_neurodivergente: _userId, role: 'user', content: texto, timestamp: new Date().toISOString() },
+              { id_neurodivergente: _userId, role: 'assistant', content: resposta, timestamp: new Date().toISOString() }
+            ])
+            if (error) {
+              console.error('[conversa] erro ao salvar mensagem:', error.message)
+              if (!_avisouErroSalvar && window.LumiUI) {
+                _avisouErroSalvar = true
+                LumiUI.toast('Não consegui salvar sua conversa agora. Ela pode se perder se você sair da página.', { type: 'error' })
+              }
+            }
+          }
+        } catch (e) { console.warn('[conversa] persistência:', e.message) }
+      } catch (err) {
+        hideTyping()
+        addMessage('lumi', 'Tive um probleminha pra responder agora. Tenta de novo?')
+        console.error('[conversa] erro:', err)
+      }
+    }
 
- msgCount = 0
- respostaIdx = 0
- humorAtual = null
+    async function novaConversa() {
+      const ok = window.LumiUI
+        ? await LumiUI.confirm('Quer começar uma nova conversa? O histórico atual será apagado e não poderá ser recuperado.', {
+            titulo: 'Nova conversa',
+            ok: 'Sim, começar de novo',
+            cancelar: 'Cancelar',
+            mascote: 'img/urso-aponta-lado.png'
+          })
+        : confirm('Quer começar uma nova conversa? A conversa atual será encerrada.')
+      if (!ok) return
 
- const sugest = document.getElementById('quickSuggestions')
- if (sugest) sugest.style.display = 'flex'
+      const msgs = document.getElementById('chatMessages')
+      msgs.querySelectorAll('.msg-row:not(#welcomeMsg):not(#typingIndicator)')
+        .forEach(el => el.remove())
 
- document.getElementById('welcomeTime').textContent = horaAgora()
- scrollToBottom()
- }
+      respostaIdx = 0
+      humorAtual = null
+      historicoChat = []
 
- async function sairDaConta() {
- // await supabaseClient.auth.signOut()
- window.location.href = 'login.html'
- }
+      document.getElementById('welcomeTime').textContent = horaAgora()
+      scrollToBottom()
 
-(function() {
-var cb = document.getElementById('burger-conversa');
-var menu = document.getElementById('mm-conversa');
-if (!cb || !menu) return;
-cb.addEventListener('change', function() { menu.style.display = cb.checked ? 'flex' : 'none'; });
-menu.querySelectorAll('a').forEach(function(a) {
-a.addEventListener('click', function() { cb.checked = false; menu.style.display = 'none'; });
-});
-})();
+      if (_userId && window.supabaseClient) {
+        try {
+          const { error } = await window.supabaseClient.from('conversas').delete().eq('id_neurodivergente', _userId)
+          if (error) {
+            console.error('[conversa] erro ao apagar histórico:', error.message)
+            if (window.LumiUI) LumiUI.toast('Não deu pra apagar o histórico salvo. Tenta de novo mais tarde.', { type: 'error' })
+          }
+        } catch (e) { console.warn('[conversa] delete histórico:', e.message) }
+      }
+    }
 
-(function() {
-var pagina = window.location.pathname.split('/').pop() || 'home-autista.html';
-document.querySelectorAll('.app-nav-links a').forEach(function(link) {
-link.classList.remove('active');
-var href = link.getAttribute('href');
-if (href === pagina || (pagina === '' && href === 'home-autista.html')) link.classList.add('active');
-});
-})();
+    async function carregarHistorico() {
+      if (!_userId || !window.supabaseClient) return
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('conversas')
+          .select('role, content, timestamp')
+          .eq('id_neurodivergente', _userId)
+          .order('timestamp', { ascending: false })
+          .limit(60)
+        if (error || !data || !data.length) return
 
-(function() {
-var pagina = window.location.pathname.split('/').pop() || 'conversa.html';
-document.querySelectorAll('#mm-conversa a').forEach(function(link) {
-link.classList.remove('active');
-var href = link.getAttribute('href');
-if (href === pagina) link.classList.add('active');
-});
-})();
- </script>
- <script src="js/lumi-ia.js"></script>
+        data.reverse().forEach(function (m) {
+          const tipo = m.role === 'user' ? 'user' : 'lumi'
+          addMessage(tipo, m.content, m.timestamp)
+          historicoChat.push({ role: tipo === 'user' ? 'user' : 'assistant', content: m.content })
+        })
+        scrollToBottom()
+      } catch (e) { console.warn('[conversa] histórico:', e.message) }
+    }
 
- <!-- Widgets globais -->
- <script src="js/evento-checkin.js"></script>
- <script src="js/sobrecarga.js"></script>
+    async function iniciarPagina() {
+      if (!window.supabaseClient) return
+      const { data: { session } } = await window.supabaseClient.auth.getSession()
+      if (!session) { window.location.href = 'login.html'; return }
+      _userId = session.user.id
+
+      try {
+        const { data: perfil } = await window.supabaseClient.from('profiles').select('nome').eq('id', _userId).single()
+        document.getElementById('nav-user-name').textContent = (perfil && perfil.nome) || 'Você'
+      } catch (e) { console.warn('[conversa] perfil:', e.message) }
+
+      await carregarHistorico()
+    }
+
+    async function sairDaConta() {
+      // await supabaseClient.auth.signOut()
+      window.location.href = 'login.html'
+    }
+
+    (function() {
+    var cb = document.getElementById('burger-conversa');
+    var menu = document.getElementById('mm-conversa');
+    if (!cb || !menu) return;
+    cb.addEventListener('change', function() { menu.style.display = cb.checked ? 'flex' : 'none'; });
+    menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() { cb.checked = false; menu.style.display = 'none'; });
+    });
+    })();
+
+    (function() {
+    var pagina = window.location.pathname.split('/').pop() || 'home-autista.html';
+    document.querySelectorAll('.app-nav-links a').forEach(function(link) {
+    link.classList.remove('active');
+    var href = link.getAttribute('href');
+    if (href === pagina || (pagina === '' && href === 'home-autista.html')) link.classList.add('active');
+    });
+    })();
+
+    (function() {
+    var pagina = window.location.pathname.split('/').pop() || 'conversa.html';
+    document.querySelectorAll('#mm-conversa a').forEach(function(link) {
+    link.classList.remove('active');
+    var href = link.getAttribute('href');
+    if (href === pagina) link.classList.add('active');
+    });
+    })();
+
+    iniciarPagina()
+  </script>
+  <script src="js/lumi-ia.js"></script>
+
+  <!-- Widgets globais -->
+  <script src="js/evento-checkin.js"></script>
+  <script src="js/sobrecarga.js"></script>
 </body>
 </html>

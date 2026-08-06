@@ -5,12 +5,24 @@
    Este arquivo fornece apenas helpers complementares.
    ================================================================ */
 
+/* UM cliente Supabase por página. Criar um segundo faz dois GoTrueClient
+   dividirem a mesma chave de sessão e o mesmo navigator.lock — o console avisa
+   ("Multiple GoTrueClient instances detected") e getSession()/signOut() podem
+   travar. Aqui só reaproveitamos o cliente que a página ou o config.js já criou. */
 (function ensureClient() {
-  if (typeof sb !== 'undefined') return;
-  var SB_URL = 'https://yuwdckenzpfdlyawkibn.supabase.co';
-  var SB_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
-  if (typeof supabase !== 'undefined' && typeof window.sb === 'undefined') {
-    try { window.sb = supabase.createClient(SB_URL, SB_KEY); } catch(e) {}
+  // sb pode ser um const da página ainda em TDZ (se o script inline falhou):
+  // nesse caso o próprio typeof lança, por isso o try.
+  try { if (typeof sb !== 'undefined' && sb) return; } catch (e) {}
+  if (window.sb) return;
+  if (window.supabaseClient) { window.sb = window.supabaseClient; return; }
+  if (typeof supabase !== 'undefined' && supabase.createClient) {
+    try {
+      window.sb = supabase.createClient(
+        'https://yuwdckenzpfdlyawkibn.supabase.co',
+        'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N'
+      );
+      window.supabaseClient = window.sb;
+    } catch(e) {}
   }
 })();
 

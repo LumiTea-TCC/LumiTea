@@ -16,12 +16,14 @@
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <link rel="stylesheet" href="css/chat.css">
   <link rel="stylesheet" href="css/aba.css">
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
   <script src="js/core/icons.js" defer></script>
 </head>
-<body class="app-body">
+<body class="app-body lt-pro cui-page">
 
   <div class="bg-layer">
     <div class="blob blob-1"></div>
@@ -29,34 +31,111 @@
     <div class="blob blob-3"></div>
   </div>
 
-  <nav class="app-nav">
-    <a class="logo" href="home-cuidador.html">
-      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
-      LumiTEA
+  <!-- TOPO MOBILE: único jeito de abrir o menu em telas pequenas.
+       No desktop o menu é só a sidebar (.cui-sidebar). -->
+  <div class="cui-mobile-topbar">
+    <a class="cui-mobile-topbar-logo" href="home-cuidador.html">
+      <img src="img/icon-urso.png" alt="">
+      <span>LumiTEA</span>
     </a>
-    <div class="app-nav-links">
-      <a href="home-cuidador.html">Painel</a>
-      <a href="comunidade-cuidador.html" class="active">Comunidade</a>
-      <a href="conta-cuidador.html">Conta</a>
-    </div>
-    <div class="app-nav-right">
-      <a class="user-badge" href="conta-cuidador.html" style="text-decoration:none;color:inherit;">
-        <div class="user-badge-av"><img src="img/favicon.ico" alt=""></div>
-        <span id="nav-user-name">Carregando...</span>
-      </a>
-      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
-    </div>
-    <label class="app-burger" for="burger-cc"><input type="checkbox" id="burger-cc"><span></span><span></span><span></span></label>
-  </nav>
-  <div id="mm-cc" class="app-mobile-menu">
-    <a href="home-cuidador.html">Painel</a>
-    <a href="comunidade-cuidador.html" class="active">Comunidade</a>
-    <a href="conta-cuidador.html">Conta</a>
-    <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
-      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
-    </div>
+    <label class="app-burger" for="burger-cuidador">
+      <input type="checkbox" id="burger-cuidador">
+      <span></span><span></span><span></span>
+    </label>
   </div>
+  <div class="cui-sidebar-overlay" id="cui-sidebar-overlay"></div>
 
+  <!-- Sair da conta: bloco isolado (mesmo padrão de home-cuidador.html) — não depende
+       do resto do script, então um erro em outro lugar não deixa o botão sem resposta. -->
+  <script>
+  (function(){
+    function limparSessaoLocal() {
+      try {
+        Object.keys(localStorage).forEach(function(k){
+          if (k.indexOf('sb-') === 0 && k.indexOf('auth-token') > -1) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+    }
+    window.sairCui = function sairCui() {
+      document.querySelectorAll('.btn-logout, .cui-sair').forEach(function(b){ b.disabled = true; });
+      var jaSaiu = false;
+      function irParaLogin() {
+        if (jaSaiu) return;
+        jaSaiu = true;
+        limparSessaoLocal();
+        window.location.replace('login.html');
+      }
+      setTimeout(irParaLogin, 1500);
+      var cli = window.supabaseClient;
+      try {
+        if (cli && cli.auth) { Promise.resolve(cli.auth.signOut()).then(irParaLogin, irParaLogin); }
+        else { irParaLogin(); }
+      } catch (e) { irParaLogin(); }
+    };
+  })();
+  </script>
+
+  <div class="cui-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="cui-sidebar" id="cui-sidebar">
+      <div class="cui-logo">
+        <div class="cui-logo-img"><img src="img/urso-joia.png" alt="LumiTEA"></div>
+        <div>
+          <div class="cui-logo-text">LumiTEA</div>
+          <div class="cui-logo-sub">Painel do Cuidador</div>
+        </div>
+      </div>
+
+      <div class="cui-status-badge">
+        <div class="cui-status-dot"></div>
+        <span class="cui-status-txt">Monitoramento ativo</span>
+      </div>
+
+      <nav class="cui-nav">
+        <div class="cui-nav-section">Principal</div>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="home"></span> Painel geral</button>
+        <button class="cui-nav-btn ativo" onclick="window.location.href='comunidade-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="users"></span> Comunidade</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=alertas'"><span class="cui-nav-icon" data-lt-icon="bell"></span> Alertas</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=live'"><span class="cui-nav-icon" data-lt-icon="radio"></span> Ao vivo</button>
+
+        <div class="cui-nav-section">Acompanhamento</div>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=humor'"><span class="cui-nav-icon" data-lt-icon="heart"></span> Histórico de humor</button>
+        <button class="cui-nav-btn" onclick="window.location.href='calendario-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="calendar"></span> Calendário</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=relatorio'"><span class="cui-nav-icon" data-lt-icon="file-text"></span> Relatórios</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=observacoes'"><span class="cui-nav-icon" data-lt-icon="edit"></span> Observações</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=progresso'"><span class="cui-nav-icon" data-lt-icon="star"></span> Progresso</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=estatisticas'"><span class="cui-nav-icon" data-lt-icon="bar-chart"></span> Estatísticas</button>
+
+        <div class="cui-nav-section">Conta</div>
+        <button class="cui-nav-btn" onclick="window.location.href='vinculos-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="link"></span> Vínculos</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=chat'"><span class="cui-nav-icon" data-lt-icon="message-circle"></span> Consultoria com a Lumi</button>
+        <button class="cui-nav-btn" onclick="window.location.href='conta-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="settings"></span> Configurações</button>
+      </nav>
+
+      <div class="cui-sidebar-footer">
+        <div id="cui-nome-area" class="cui-nome-area">Carregando...</div>
+        <button class="cui-sair" onclick="sairCui()"><span class="cui-nav-icon" data-lt-icon="log-out"></span> Sair da conta</button>
+      </div>
+    </aside>
+
+    <!-- Gaveta da sidebar no mobile -->
+    <script>
+    (function(){
+      var cb = document.getElementById('burger-cuidador');
+      var sidebar = document.getElementById('cui-sidebar');
+      var overlay = document.getElementById('cui-sidebar-overlay');
+      if (!cb || !sidebar || !overlay) return;
+      function fechar(){ cb.checked = false; sidebar.classList.remove('cui-aberta'); overlay.classList.remove('cui-aberta'); }
+      function abrir(){ sidebar.classList.add('cui-aberta'); overlay.classList.add('cui-aberta'); }
+      cb.addEventListener('change', function(){ if (cb.checked) abrir(); else fechar(); });
+      overlay.addEventListener('click', fechar);
+      sidebar.querySelectorAll('a, button').forEach(function(el){ el.addEventListener('click', fechar); });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') fechar(); });
+    })();
+    </script>
+
+  <div class="cui-main">
   <main class="cap-wrap">
     <header class="cap-hero">
       <div>
@@ -125,9 +204,15 @@
       </div>
     </section>
   </main>
+  </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
 
   <script>
-    var sb = window.LUMITEA.criarSupabase();
+    /* Reusa o cliente único que config.js já criou (window.supabaseClient) — criar um
+       segundo GoTrueClient aqui faria signOut()/getSession() disputarem o mesmo
+       navigator.lock, o mesmo bug que travava o botão Sair em home-cuidador.html. */
+    var sb = window.supabaseClient || window.LUMITEA.criarSupabase();
+    window.supabaseClient = sb;
     var _perfil = { nome: 'você' };
 
     async function iniciar() {
@@ -138,7 +223,7 @@
       if (p.error || !p.data) { location.href = 'login.html'; return; }
       if (p.data.tipo !== 'responsavel' && p.data.tipo !== 'terapeuta') { location.href = 'comunidade.html'; return; }
       _perfil.nome = p.data.nome || 'você';
-      document.getElementById('nav-user-name').textContent = _perfil.nome;
+      document.getElementById('cui-nome-area').textContent = _perfil.nome;
 
       Chat.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador', container: 'chat-root' });
       Comunidade.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador' });
@@ -146,8 +231,6 @@
       Aba.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador', container: 'aba-tools-com' });
     }
     iniciar();
-
-    function sairDaConta() { sb.auth.signOut().then(function () { location.href = 'login.html'; }); }
 
     // tabs
     document.querySelectorAll('.cap-tab').forEach(function (t) {
@@ -158,13 +241,6 @@
         document.getElementById('panel-' + t.getAttribute('data-tab')).classList.add('active');
       });
     });
-
-    // burger
-    (function () {
-      var cb = document.getElementById('burger-cc'), menu = document.getElementById('mm-cc');
-      cb.addEventListener('change', function () { menu.style.display = cb.checked ? 'flex' : 'none'; });
-      menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { cb.checked = false; menu.style.display = 'none'; }); });
-    })();
   </script>
   <script src="js/chat.js"></script>
   <script src="js/comunidade.js"></script>

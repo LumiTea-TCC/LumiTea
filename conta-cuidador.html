@@ -14,11 +14,13 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
 </head>
-<body class="app-body lt-pro">
+<body class="app-body lt-pro cui-page">
 
   <div class="bg-layer">
     <div class="blob blob-1"></div>
@@ -26,41 +28,110 @@
     <div class="blob blob-3"></div>
   </div>
 
-  <!-- NAV -->
-  <nav class="app-nav">
-    <a class="logo" href="home-cuidador.html">
-      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
-      LumiTEA
+  <!-- TOPO MOBILE: único jeito de abrir o menu em telas pequenas.
+       No desktop o menu é só a sidebar (.cui-sidebar). -->
+  <div class="cui-mobile-topbar">
+    <a class="cui-mobile-topbar-logo" href="home-cuidador.html">
+      <img src="img/icon-urso.png" alt="">
+      <span>LumiTEA</span>
     </a>
-    <div class="app-nav-links">
-      <a href="home-cuidador.html">Painel</a>
-      <a href="calendario-cuidador.html">Calendário</a>
-      <a href="conta-cuidador.html" class="active">Conta</a>
-    </div>
-    <div class="app-nav-right">
-      <div class="user-badge">
-        <div class="user-badge-av"><img src="img/favicon.ico" alt=""></div>
-        <span id="nav-user-name">...</span>
-      </div>
-      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
-    </div>
-    <label class="app-burger" for="burg-cc">
-      <input type="checkbox" id="burg-cc">
+    <label class="app-burger" for="burger-cuidador">
+      <input type="checkbox" id="burger-cuidador">
       <span></span><span></span><span></span>
     </label>
-  </nav>
-  <div id="mm-cc" class="app-mobile-menu">
-    <a href="home-cuidador.html">Painel</a>
-    <a href="calendario-cuidador.html">Calendário</a>
-    <a href="conta-cuidador.html" class="active">Conta</a>
-    <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px">
-      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
-    </div>
   </div>
+  <div class="cui-sidebar-overlay" id="cui-sidebar-overlay"></div>
+
+  <!-- Sair da conta: bloco isolado (mesmo padrão de home-cuidador.html) -->
   <script>
-  (function(){var cb=document.getElementById('burg-cc'),menu=document.getElementById('mm-cc');cb.addEventListener('change',function(){menu.style.display=cb.checked?'flex':'none'});menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){cb.checked=false;menu.style.display='none'})})})();
+  (function(){
+    function limparSessaoLocal() {
+      try {
+        Object.keys(localStorage).forEach(function(k){
+          if (k.indexOf('sb-') === 0 && k.indexOf('auth-token') > -1) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+    }
+    window.sairCui = function sairCui() {
+      document.querySelectorAll('.btn-logout, .cui-sair, .btn-danger-ghost').forEach(function(b){ if (b.textContent.indexOf('Sair') > -1) b.disabled = true; });
+      var jaSaiu = false;
+      function irParaLogin() {
+        if (jaSaiu) return;
+        jaSaiu = true;
+        limparSessaoLocal();
+        window.location.replace('login.html');
+      }
+      setTimeout(irParaLogin, 1500);
+      var cli = window.supabaseClient;
+      try {
+        if (cli && cli.auth) { Promise.resolve(cli.auth.signOut()).then(irParaLogin, irParaLogin); }
+        else { irParaLogin(); }
+      } catch (e) { irParaLogin(); }
+    };
+  })();
   </script>
 
+  <div class="cui-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="cui-sidebar" id="cui-sidebar">
+      <div class="cui-logo">
+        <div class="cui-logo-img"><img src="img/urso-joia.png" alt="LumiTEA"></div>
+        <div>
+          <div class="cui-logo-text">LumiTEA</div>
+          <div class="cui-logo-sub">Painel do Cuidador</div>
+        </div>
+      </div>
+
+      <div class="cui-status-badge">
+        <div class="cui-status-dot"></div>
+        <span class="cui-status-txt">Monitoramento ativo</span>
+      </div>
+
+      <nav class="cui-nav">
+        <div class="cui-nav-section">Principal</div>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="home"></span> Painel geral</button>
+        <button class="cui-nav-btn" onclick="window.location.href='comunidade-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="users"></span> Comunidade</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=alertas'"><span class="cui-nav-icon" data-lt-icon="bell"></span> Alertas</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=live'"><span class="cui-nav-icon" data-lt-icon="radio"></span> Ao vivo</button>
+
+        <div class="cui-nav-section">Acompanhamento</div>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=humor'"><span class="cui-nav-icon" data-lt-icon="heart"></span> Histórico de humor</button>
+        <button class="cui-nav-btn" onclick="window.location.href='calendario-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="calendar"></span> Calendário</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=relatorio'"><span class="cui-nav-icon" data-lt-icon="file-text"></span> Relatórios</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=observacoes'"><span class="cui-nav-icon" data-lt-icon="edit"></span> Observações</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=progresso'"><span class="cui-nav-icon" data-lt-icon="star"></span> Progresso</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=estatisticas'"><span class="cui-nav-icon" data-lt-icon="bar-chart"></span> Estatísticas</button>
+
+        <div class="cui-nav-section">Conta</div>
+        <button class="cui-nav-btn" onclick="window.location.href='vinculos-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="link"></span> Vínculos</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=chat'"><span class="cui-nav-icon" data-lt-icon="message-circle"></span> Consultoria com a Lumi</button>
+        <button class="cui-nav-btn ativo" onclick="window.location.href='conta-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="settings"></span> Configurações</button>
+      </nav>
+
+      <div class="cui-sidebar-footer">
+        <div id="cui-nome-area" class="cui-nome-area">Carregando...</div>
+        <button class="cui-sair" onclick="sairCui()"><span class="cui-nav-icon" data-lt-icon="log-out"></span> Sair da conta</button>
+      </div>
+    </aside>
+
+    <!-- Gaveta da sidebar no mobile -->
+    <script>
+    (function(){
+      var cb = document.getElementById('burger-cuidador');
+      var sidebar = document.getElementById('cui-sidebar');
+      var overlay = document.getElementById('cui-sidebar-overlay');
+      if (!cb || !sidebar || !overlay) return;
+      function fechar(){ cb.checked = false; sidebar.classList.remove('cui-aberta'); overlay.classList.remove('cui-aberta'); }
+      function abrir(){ sidebar.classList.add('cui-aberta'); overlay.classList.add('cui-aberta'); }
+      cb.addEventListener('change', function(){ if (cb.checked) abrir(); else fechar(); });
+      overlay.addEventListener('click', fechar);
+      sidebar.querySelectorAll('a, button').forEach(function(el){ el.addEventListener('click', fechar); });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') fechar(); });
+    })();
+    </script>
+
+  <div class="cui-main">
   <!-- CONTEÚDO -->
   <main class="set-page">
 
@@ -174,18 +245,24 @@
       <div class="danger-title" id="t-danger"><i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i> Zona de risco</div>
       <div class="danger-sub">Estas ações afetam o acesso à sua conta. Tenha certeza antes de continuar.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-danger-ghost" onclick="sairDaConta()"><i class="lt-i" data-lt-icon="log-out" aria-hidden="true"></i> Sair da conta</button>
+        <button class="btn-danger-ghost" onclick="sairCui()"><i class="lt-i" data-lt-icon="log-out" aria-hidden="true"></i> Sair da conta</button>
         <button class="btn-danger-ghost" onclick="excluirConta()"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Excluir minha conta</button>
       </div>
     </section>
 
   </main>
+  </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
 
   <script>
-    const SB_URL = 'https://yuwdckenzpfdlyawkibn.supabase.co';
-    const SB_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
-    const { createClient } = supabase;
-    const sb = createClient(SB_URL, SB_KEY);
+    /* Reusa o cliente único que config.js já criou (window.supabaseClient) — um
+       segundo GoTrueClient aqui disputaria o mesmo navigator.lock e podia travar
+       getSession()/signOut(), o mesmo bug já corrigido em home-cuidador.html. */
+    const sb = window.supabaseClient ||
+      (window.supabase && window.supabase.createClient
+        ? window.supabase.createClient('https://yuwdckenzpfdlyawkibn.supabase.co', 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N')
+        : null);
+    window.supabaseClient = sb;
 
     var _uid = null, _perfil = null, _email = null;
 
@@ -212,8 +289,8 @@
           window.location.href = 'login.html';
           return;
         }
-        /* Esta página é exclusiva do cuidador */
-        if (p.tipo !== 'responsavel') { window.location.href = 'conta.html'; return; }
+        /* Esta página é exclusiva do cuidador (responsável ou terapeuta) */
+        if (p.tipo !== 'responsavel' && p.tipo !== 'terapeuta') { window.location.href = 'conta.html'; return; }
 
         _perfil = { nome: p.nome || '', sobrenome: p.sobrenome || '', criado_em: p.criado_em };
 
@@ -231,7 +308,7 @@
       document.getElementById('hero-avatar').textContent = ini;
       document.getElementById('hero-nome').textContent = (_perfil.nome + ' ' + (_perfil.sobrenome || '')).trim() || 'Cuidador';
       document.getElementById('hero-email').textContent = _email || '';
-      document.getElementById('nav-user-name').textContent = _perfil.nome || 'Cuidador';
+      document.getElementById('cui-nome-area').textContent = _perfil.nome || 'Cuidador';
       if (_perfil.criado_em) {
         var dt = new Date(_perfil.criado_em);
         document.getElementById('hero-membro').innerHTML = _ic('calendar') + ' Membro desde ' + dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
@@ -345,10 +422,6 @@
       }
     }
 
-    async function sairDaConta() {
-      await sb.auth.signOut();
-      window.location.href = 'login.html';
-    }
   </script>
 </body>
 </html>

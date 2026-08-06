@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Vínculos do Cuidador</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+</head>
+<body class="app-body lt-pro cui-page">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- TOPO MOBILE: único jeito de abrir o menu em telas pequenas.
+       No desktop o menu é só a sidebar (.cui-sidebar). -->
+  <div class="cui-mobile-topbar">
+    <a class="cui-mobile-topbar-logo" href="home-cuidador.html">
+      <img src="img/icon-urso.png" alt="">
+      <span>LumiTEA</span>
+    </a>
+    <label class="app-burger" for="burger-cuidador">
+      <input type="checkbox" id="burger-cuidador">
+      <span></span><span></span><span></span>
+    </label>
+  </div>
+  <div class="cui-sidebar-overlay" id="cui-sidebar-overlay"></div>
+
+  <!-- Sair da conta: bloco isolado (mesmo padrão de home-cuidador.html) -->
+  <script>
+  (function(){
+    function limparSessaoLocal() {
+      try {
+        Object.keys(localStorage).forEach(function(k){
+          if (k.indexOf('sb-') === 0 && k.indexOf('auth-token') > -1) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+    }
+    window.sairCui = function sairCui() {
+      document.querySelectorAll('.btn-logout, .cui-sair').forEach(function(b){ b.disabled = true; });
+      var jaSaiu = false;
+      function irParaLogin() {
+        if (jaSaiu) return;
+        jaSaiu = true;
+        limparSessaoLocal();
+        window.location.replace('login.html');
+      }
+      setTimeout(irParaLogin, 1500);
+      var cli = window.supabaseClient;
+      try {
+        if (cli && cli.auth) { Promise.resolve(cli.auth.signOut()).then(irParaLogin, irParaLogin); }
+        else { irParaLogin(); }
+      } catch (e) { irParaLogin(); }
+    };
+  })();
+  </script>
+
+  <div class="cui-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="cui-sidebar" id="cui-sidebar">
+      <div class="cui-logo">
+        <div class="cui-logo-img"><img src="img/urso-joia.png" alt="LumiTEA"></div>
+        <div>
+          <div class="cui-logo-text">LumiTEA</div>
+          <div class="cui-logo-sub">Painel do Cuidador</div>
+        </div>
+      </div>
+
+      <div class="cui-status-badge">
+        <div class="cui-status-dot"></div>
+        <span class="cui-status-txt">Monitoramento ativo</span>
+      </div>
+
+      <nav class="cui-nav">
+        <div class="cui-nav-section">Principal</div>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="home"></span> Painel geral</button>
+        <button class="cui-nav-btn" onclick="window.location.href='comunidade-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="users"></span> Comunidade</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=alertas'"><span class="cui-nav-icon" data-lt-icon="bell"></span> Alertas</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=live'"><span class="cui-nav-icon" data-lt-icon="radio"></span> Ao vivo</button>
+
+        <div class="cui-nav-section">Acompanhamento</div>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=humor'"><span class="cui-nav-icon" data-lt-icon="heart"></span> Histórico de humor</button>
+        <button class="cui-nav-btn" onclick="window.location.href='calendario-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="calendar"></span> Calendário</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=relatorio'"><span class="cui-nav-icon" data-lt-icon="file-text"></span> Relatórios</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=observacoes'"><span class="cui-nav-icon" data-lt-icon="edit"></span> Observações</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=progresso'"><span class="cui-nav-icon" data-lt-icon="star"></span> Progresso</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=estatisticas'"><span class="cui-nav-icon" data-lt-icon="bar-chart"></span> Estatísticas</button>
+
+        <div class="cui-nav-section">Conta</div>
+        <button class="cui-nav-btn ativo" onclick="window.location.href='vinculos-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="link"></span> Vínculos</button>
+        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=chat'"><span class="cui-nav-icon" data-lt-icon="message-circle"></span> Consultoria com a Lumi</button>
+        <button class="cui-nav-btn" onclick="window.location.href='conta-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="settings"></span> Configurações</button>
+      </nav>
+
+      <div class="cui-sidebar-footer">
+        <div id="cui-nome-area" class="cui-nome-area">Carregando...</div>
+        <button class="cui-sair" onclick="sairCui()"><span class="cui-nav-icon" data-lt-icon="log-out"></span> Sair da conta</button>
+      </div>
+    </aside>
+
+    <!-- Gaveta da sidebar no mobile -->
+    <script>
+    (function(){
+      var cb = document.getElementById('burger-cuidador');
+      var sidebar = document.getElementById('cui-sidebar');
+      var overlay = document.getElementById('cui-sidebar-overlay');
+      if (!cb || !sidebar || !overlay) return;
+      function fechar(){ cb.checked = false; sidebar.classList.remove('cui-aberta'); overlay.classList.remove('cui-aberta'); }
+      function abrir(){ sidebar.classList.add('cui-aberta'); overlay.classList.add('cui-aberta'); }
+      cb.addEventListener('change', function(){ if (cb.checked) abrir(); else fechar(); });
+      overlay.addEventListener('click', fechar);
+      sidebar.querySelectorAll('a, button').forEach(function(el){ el.addEventListener('click', fechar); });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') fechar(); });
+    })();
+    </script>
+
+  <div class="cui-main">
+  <!-- CONTEÚDO: reusa as classes .cui-tela/.cui-section-title/.cui-vinculo-box já
+       usadas quando isso era uma aba dentro de home-cuidador.html, então não precisa
+       de CSS novo. -->
+  <div class="cui-tela ativa">
+    <div class="cui-section-title"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i> Vínculos</div>
+    <div class="cui-vinculo-box">
+      <p style="font-size:13px;color:var(--text-soft);margin-bottom:16px;">Adolescentes vinculados à sua conta:</p>
+      <div id="vinculo-teens-list"><div class="empty-state"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i><p>Carregando...</p></div></div>
+      <hr style="border:none;border-top:1px solid var(--border-faint);margin:20px 0;">
+      <p style="font-size:13px;font-weight:700;color:var(--text-main);margin-bottom:8px;">Adicionar adolescente pelo código de vínculo:</p>
+      <div class="vinculo-input-row">
+        <input type="text" id="inp-codigo-cuidador" maxlength="6" placeholder="CÓDIGO (6 dígitos)" aria-label="Código de vínculo">
+        <button class="btn-primary" onclick="aceitarVinculoCuidador()">Conectar</button>
+      </div>
+      <div class="err-msg" id="err-vinculo-cuidador">Código inválido. Verifique com o adolescente.</div>
+    </div>
+  </div>
+  </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    /* Reusa o cliente único que config.js já criou (window.supabaseClient) — um
+       segundo GoTrueClient aqui disputaria o mesmo navigator.lock e podia travar
+       getSession()/signOut(), o mesmo bug já corrigido em home-cuidador.html. */
+    const sb = window.supabaseClient ||
+      (window.supabase && window.supabase.createClient
+        ? window.supabase.createClient('https://yuwdckenzpfdlyawkibn.supabase.co', 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N')
+        : null);
+    window.supabaseClient = sb;
+
+    var _uid = null;
+    var _teensVinculados = [];
+
+    function _ic(nome, cls) {
+      return (window.LUMI && window.LUMI.icon) ? window.LUMI.icon(nome, cls) : '';
+    }
+
+    async function carregarVinculos() {
+      const { data: teens, error } = await sb.from('neurodivergente').select('id, codigo_vinculo, xp, nivel').eq('id_responsavel', _uid);
+      _teensVinculados = [];
+
+      var vinculoList = document.getElementById('vinculo-teens-list');
+      vinculoList.innerHTML = '';
+
+      if (error) {
+        vinculoList.innerHTML = '<div class="empty-state">' + _ic('alert-triangle') + '<p>Não foi possível carregar os vínculos agora. Tente recarregar a página.</p></div>';
+        return;
+      }
+
+      if (!teens || !teens.length) {
+        vinculoList.innerHTML = '<div class="empty-state">' + _ic('users') + '<p>Nenhum adolescente vinculado ainda.<br>Solicite o código de vínculo ao adolescente.</p></div>';
+        return;
+      }
+
+      for (var i = 0; i < teens.length; i++) {
+        var t = teens[i];
+        const { data: p } = await sb.from('profiles').select('nome, sobrenome').eq('id', t.id).single();
+        let teen = { id: t.id, nome: (p && p.nome) ? p.nome : 'Sem nome', sobrenome: (p && p.sobrenome) || '', xp: t.xp || 0, nivel: t.nivel || 1 };
+        _teensVinculados.push(teen);
+
+        var card = document.createElement('div');
+        card.className = 'vinculo-teen-card';
+        card.innerHTML = '<div class="vinculo-teen-av">' + _ic('user') + '</div><div class="vinculo-teen-info"><div class="vinculo-teen-nome">' + window.LUMITEA.esc(teen.nome) + '</div><div class="vinculo-teen-meta">Nível ' + teen.nivel + ' • ' + teen.xp + ' XP</div></div><div class="vinculo-teen-actions"><span class="vinculo-status">' + _ic('check') + ' Vinculado</span></div>';
+        var actions = card.querySelector('.vinculo-teen-actions');
+        var btnSuspender = document.createElement('button');
+        btnSuspender.type = 'button';
+        btnSuspender.className = 'vinculo-teen-suspender';
+        btnSuspender.innerHTML = _ic('x') + ' Encerrar vínculo';
+        btnSuspender.addEventListener('click', function () { suspenderVinculo(teen.id, teen.nome); });
+        actions.appendChild(btnSuspender);
+        vinculoList.appendChild(card);
+      }
+    }
+
+    async function aceitarVinculoCuidador() {
+      var inp = document.getElementById('inp-codigo-cuidador');
+      var err = document.getElementById('err-vinculo-cuidador');
+      var codigo = (inp.value||'').trim().toUpperCase();
+      if (!codigo || codigo.length < 4) { err.classList.add('on'); return; }
+      err.classList.remove('on');
+      const { data, error } = await sb.rpc('aceitar_vinculo', { p_codigo: codigo });
+      if (error || data !== 'ok') {
+        console.error('[vinculos] aceitar_vinculo não retornou ok — data:', data, 'error:', error, 'uid usado:', _uid);
+        var msg = data === 'codigo_invalido' ? 'Código inválido.'
+          : data === 'ja_vinculado' ? 'Este adolescente já tem um cuidador.'
+          : data === 'tipo_invalido' ? 'Sua conta não tem permissão para vincular adolescentes.'
+          : error ? ('Erro ao vincular: ' + (error.message || error.code || 'desconhecido')) : 'Erro ao vincular. Tente novamente.';
+        err.textContent = msg; err.classList.add('on'); return;
+      }
+      inp.value = '';
+      await carregarVinculos();
+    }
+
+    async function suspenderVinculo(teenId, nomeTeen) {
+      var ok = await LumiUI.confirm(
+        'Isso vai desconectar ' + (nomeTeen || 'o adolescente') + ' da sua conta. Para se reconectar depois, ele(a) vai precisar compartilhar um novo código de vínculo com você.',
+        { titulo: 'Encerrar vínculo?', ok: 'Encerrar vínculo', cancelar: 'Cancelar' }
+      );
+      if (!ok) return;
+
+      const { data, error } = await sb.rpc('suspender_vinculo', { p_teen_id: teenId });
+      if (error || data !== 'ok') {
+        LumiUI.toast('Não foi possível encerrar o vínculo. Tente novamente.', { type: 'error' });
+        return;
+      }
+
+      LumiUI.toast('Vínculo encerrado.', { type: 'success' });
+      await carregarVinculos();
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      _uid = session.user.id;
+
+      const { data: perfil, error } = await sb.from('profiles').select('nome, tipo').eq('id', _uid).single();
+      if (error || !perfil) { window.location.href = 'login.html'; return; }
+      if (perfil.tipo !== 'responsavel' && perfil.tipo !== 'terapeuta') { window.location.href = 'home-autista.html'; return; }
+
+      document.getElementById('cui-nome-area').innerHTML = _ic('user') + ' <strong style="color:var(--text-main)">' + (perfil.nome || 'Cuidador') + '</strong>';
+
+      var inp = document.getElementById('inp-codigo-cuidador');
+      inp.addEventListener('input', function() { inp.value = inp.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,6); });
+      inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') aceitarVinculoCuidador(); });
+
+      await carregarVinculos();
+    });
+  </script>
+</body>
+</html>
