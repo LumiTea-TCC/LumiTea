@@ -90,6 +90,51 @@ Substituiu o antigo "Mundo Gelado do Theo" (mundo aberto em canvas), **removido 
   usuário pedir. Partidas vão para `sessoes_jogo` com `jogo_id` = `memoria`/`classificar`/`encaixe`/`imagem-palavra`.
 - `roleplay.html` e `rpg-social.html` continuam como redirects para `games.html`.
 
+## 🖥️ Painel do cuidador = 13 páginas .html + uma casca comum (2026-08-07)
+Antes, quase tudo do painel eram **abas escondidas** dentro de `home-cuidador.html` (`<div class="cui-tela">`
+trocadas por `irTela()`). Um erro de JS em qualquer ponto daquele arquivo de 875 linhas derrubava **todas** as
+abas juntas — era essa a causa de "as páginas não abrem". O sistema de abas **foi removido**; cada área virou
+uma página de verdade. **Não recriar abas.**
+- Páginas: `home-cuidador.html` (só o painel geral), `alertas-`, `live-`, `humor-`, `relatorios-`,
+  `observacoes-`, `progresso-`, `estatisticas-`, `consultoria-` (chat com a Lumi), `vinculos-`,
+  `calendario-`, `comunidade-`, `conta-cuidador.html`.
+- **`js/core/cuidador-shell.js` (`window.CUI`)** é a casca comum: injeta topo mobile, gaveta, faixa de alerta
+  urgente, **sidebar (menu num lugar só — a const `MENU` no topo do arquivo)** e a barra "Adolescente:".
+  Também faz sessão + guarda de tipo de conta, `window.sairCui()`, e os helpers `esc/ic/vazio/cuiStat/
+  humorChip/humorTexto/calcMediaHumor/renderHumorBars/alertaIcone/NIVEL_XP/definirNome`.
+- **A página declara no `<body>`:** `data-cui-pagina="<id do MENU>"` (item ativo), `data-cui-teen="1"`
+  (injeta a barra do adolescente) e `data-cui-shell="nav"` (só desenha a casca; a página cuida da própria
+  sessão — usado em `comunidade-`, `calendario-`, `conta-cuidador.html`).
+- **A página carrega dados assim:** `CUI.aoTrocarTeen(function (teenId) { ... })`. Roda quando a casca fica
+  pronta e a cada troca no seletor. `teenId` pode vir `null` (sem vínculo) — sempre tratar esse caso.
+- ⚠️ **`cuidador-shell.js` NÃO pode ter `defer`** e tem que vir logo depois do `config.js`. O `<script>` no fim
+  do body das páginas roda durante o parse e já usa `CUI`; com `defer` a casca só existiria depois → 
+  `CUI is not defined`. (Foi um bug real, pego no teste com jsdom.)
+- **Adolescente selecionado é lembrado entre páginas** em `localStorage['lt-cui-teen']`. Se o id salvo não
+  existe mais (vínculo encerrado), cai no primeiro da lista em vez de mostrar tela vazia.
+- `home-cuidador.html?tela=<x>` (links antigos/favoritos) **redireciona** para a página nova — mapa no 1º
+  `<script>` do `<head>`. Mantenha o mapa se renomear alguma página.
+- ⚠️ **Nunca escrever `<script>` (nem `<\/script>`) dentro de string JS ou de comentário HTML.** O `baixarPDF`
+  de `relatorios-cuidador.html` usava um `document.write()` de 1500+ caracteres com uma tag `<script>` escapada
+  dentro; o navegador quebrava com `Uncaught SyntaxError: Invalid or unexpected token` e **derrubava o arquivo
+  inteiro** (Node e parse5 aceitavam — só o navegador reclamava, então o teste com jsdom NÃO pega isso).
+  Reescrito com `createElement`/`appendChild` + `win.print()` chamado pela própria página. Se precisar montar
+  outra janela/documento, usar o mesmo padrão — nada de `document.write`.
+- **Botões de ação principal nunca nascem `hidden` esperando o carregamento dar certo.** Em `relatorios-` o
+  "Gerar relatório" ficava escondido até a lista carregar; qualquer falha no caminho deixava o cuidador sem
+  saída. Agora ele é sempre visível e só fica `disabled` sem adolescente escolhido (+ atalho no estado vazio).
+- Estilos: nenhum `style=""` novo. As peças que vinham inline viraram classes em `app.css`
+  (`.cui-hint`, `.cui-tela-topo`, `.cui-live-hd`, `.humor-linha`, `.cui-teen-*`, `.prog-xp--espaco`, etc.),
+  e existe agora um `[hidden]{display:none!important}` global (sem ele, `hidden` não vence `.btn-primary`,
+  que declara `display:inline-flex`).
+- **Como testar sem login:** as páginas exigem sessão Supabase real, então a verificação é feita com **jsdom**
+  (`npm i jsdom@24` num diretório temporário; jsdom novo exige Node > 20 e aqui o Node é v20.15.1) + um
+  cliente Supabase falso com latência simulada. Confere: menu com 13 itens, item ativo, ícones hidratados,
+  seletor preenchido, conteúdo renderizado e zero erro de console. Foi assim que os 2 bugs de ordem/corrida
+  apareceram.
+- `js/cuidador.js` e `js/lumi-ia.js` **não são mais carregados** por `home-cuidador.html` (o painel usa
+  `LUMITEA.groqFetch`). `js/cuidador.js` ficou órfão — `lumi-ia.js` ainda é usado pelas páginas do teen.
+
 ## 🔗 Vínculo cuidador↔teen e Calendário compartilhado
 - **Vínculo**: vive em `neurodivergente.codigo_vinculo` (gerado no signup) + `.id_responsavel` (NULL = sem
   cuidador). Não há coluna de status — o estado é 100% inferido dessas duas colunas. RPCs SECURITY DEFINER:
@@ -174,13 +219,10 @@ Substituiu o antigo "Mundo Gelado do Theo" (mundo aberto em canvas), **removido 
    Atenção: `confirm()` síncrono → `LumiUI.confirm()` é Promise; ajustar para `await`/`.then`.
 2. Conferir/padronizar escape em `chat.js`, `apoio.js` (provável OK).
 3. Avaliar mitigação da enumeração de PII (item de Segurança) — só com aval do usuário.
-4. **Bug pré-existente, parcialmente corrigido:** todo insert em `alertas` no código usava a coluna `desc`,
-   mas a tabela só tem `descricao` — o insert falhava inteiro (coluna inexistente), não só o campo. Afeta
-   `js/cuidador.js` (`salvarAlertaSupabase`) e o alerta de crise em `home-cuidador.html` (~L666/755, que
-   também *lê* `a.desc` em vez de `a.descricao` em `carregarAlertas`) — **esses dois ainda pendentes**. O
-   terceiro call site, o insert de "novo evento" em `calendario-cuidador.html`, **já foi corrigido em
-   2026-08-05** junto com o bug do calendário (ver "Já corrigido"). Consertar leitura E escrita juntas nos
-   dois que restam se for mexer no sistema de alertas/crise (grep `\.desc\b` perto de `alertas`).
+4. ~~Bug da coluna `desc` vs `descricao` na tabela `alertas`.~~ **RESOLVIDO em 2026-08-07**: os 3 call sites
+   foram corrigidos (`calendario-cuidador.html` em 06/08; o alerta de crise saiu de `home-cuidador.html` e
+   foi para `relatorios-cuidador.html` já gravando `descricao`; `js/cuidador.js` também). A leitura agora usa
+   `a.descricao` em `alertas-cuidador.html`. Não há mais `\.desc\b` perto de `alertas` no projeto.
 5. `conta.html` (teen) tem um campo "Ou informe o código que seu cuidador te passou" que só funciona pra
    contas com `profiles.tipo='terapeuta'` — pra `neurodivergente` (o público normal dessa página), a RPC
    `aceitar_vinculo` sempre retorna `tipo_invalido` (vira "Erro ao vincular." genérico na tela). Não afeta o

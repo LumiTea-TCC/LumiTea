@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Consultoria com a Lumi</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="consultoria">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta e sidebar vêm da casca (js/core/cuidador-shell.js).
+       Esta página não tem barra de adolescente: a consultoria é uma conversa
+       do cuidador com a Lumi, sem ler dados do teen. -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela chat-tela ativa">
+        <div class="cui-chat-wrapper">
+          <div class="cui-chat-hd">
+            <div class="cui-chat-av"><img src="img/urso-joia.png" alt="Lumi"></div>
+            <div class="cui-chat-hd-info">
+              <h4>Lumi — Consultoria TEA</h4>
+              <p><span class="cui-status-dot cui-status-dot--pq"></span> Online agora</p>
+            </div>
+          </div>
+
+          <div class="cui-chat-msgs" id="chat-msgs-cuidador" role="log" aria-live="polite" aria-label="Conversa com a Lumi"></div>
+
+          <div class="cui-pills" id="chat-pills-cuidador">
+            <button type="button" class="cui-pill">Como lidar com crises?</button>
+            <button type="button" class="cui-pill">Estratégias de rotina</button>
+            <button type="button" class="cui-pill">Como se comunicar melhor?</button>
+            <button type="button" class="cui-pill">Sinais de sobrecarga sensorial</button>
+          </div>
+
+          <div class="cui-chat-input-bar">
+            <textarea class="cui-chat-ta" id="cui-ta" rows="1" placeholder="Pergunte à Lumi sobre o adolescente..." aria-label="Mensagem para a Lumi"></textarea>
+            <button class="btn-send-icon" id="btn-send-cui" disabled aria-label="Enviar mensagem">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    var GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
+    var _hist = [];
+    var _carregando = false;
+
+    function renderMsg(role, texto) {
+      var msgs = document.getElementById('chat-msgs-cuidador');
+      if (!msgs) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'cui-msg-wrap ' + role;
+      var bbl = document.createElement('div');
+      bbl.className = 'cui-msg-bbl';
+      // Escapa ANTES de aplicar negrito/quebra: nada que venha da IA entra cru.
+      bbl.innerHTML = CUI.esc(texto).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      var hora = document.createElement('div');
+      hora.className = 'cui-msg-hora';
+      var now = new Date();
+      hora.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      wrap.appendChild(bbl); wrap.appendChild(hora);
+      msgs.appendChild(wrap);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function mostrarTyping() {
+      var msgs = document.getElementById('chat-msgs-cuidador');
+      if (!msgs || document.getElementById('typing-cui')) return;
+      var el = document.createElement('div');
+      el.id = 'typing-cui';
+      el.className = 'cui-msg-wrap lumi';
+      el.innerHTML = '<div class="cui-typing"><span></span><span></span><span></span></div>';
+      msgs.appendChild(el);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function esconderTyping() {
+      var el = document.getElementById('typing-cui');
+      if (el) el.remove();
+    }
+
+    async function enviarMsg() {
+      var ta = document.getElementById('cui-ta');
+      if (!ta) return;
+      var texto = ta.value.trim();
+      if (!texto || _carregando) return;
+
+      ta.value = '';
+      ta.style.height = 'auto';
+      document.getElementById('btn-send-cui').disabled = true;
+      document.getElementById('chat-pills-cuidador').hidden = true;
+      _carregando = true;
+
+      renderMsg('user', texto);
+      _hist.push({ role: 'user', content: texto });
+      mostrarTyping();
+
+      try {
+        var msgs = [{ role: 'system', content: 'Você é a Lumi, consultora especializada em TEA que orienta cuidadores e familiares de adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos profissionais quando necessário.' }].concat(_hist);
+        var res = await window.LUMITEA.groqFetch({ model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 });
+        var data = await res.json();
+        var resposta = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+        esconderTyping();
+        _hist.push({ role: 'assistant', content: resposta });
+        renderMsg('assistant', resposta);
+      } catch (e) {
+        esconderTyping();
+        renderMsg('assistant', 'Houve um problema de conexão. Tente novamente.');
+      }
+
+      _carregando = false;
+    }
+
+    /* Boas-vindas só depois que a casca confirmou a sessão — assim a Lumi
+       chama o cuidador pelo nome em vez de "cuidador". */
+    CUI.aoTrocarTeen(function () {
+      var msgs = document.getElementById('chat-msgs-cuidador');
+      if (!msgs || msgs.children.length) return;
+      var nome = (CUI.perfil && CUI.perfil.nome) ? CUI.perfil.nome.split(' ')[0] : 'cuidador';
+      renderMsg('assistant', 'Olá, ' + nome + '. Sou a Lumi, sua consultora especializada em TEA. Estou aqui para orientar você no apoio ao adolescente sob seus cuidados. Pode me perguntar sobre estratégias, rotinas, comunicação ou qualquer situação que esteja vivenciando.');
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var ta = document.getElementById('cui-ta');
+      ta.addEventListener('input', function () {
+        ta.style.height = 'auto';
+        ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
+        document.getElementById('btn-send-cui').disabled = !ta.value.trim();
+      });
+      ta.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMsg(); }
+      });
+
+      document.getElementById('btn-send-cui').addEventListener('click', enviarMsg);
+
+      document.querySelectorAll('#chat-pills-cuidador .cui-pill').forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          ta.value = pill.textContent.trim();
+          document.getElementById('btn-send-cui').disabled = false;
+          ta.focus();
+        });
+      });
+    });
+  </script>
+</body>
+</html>

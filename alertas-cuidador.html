@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Alertas</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="alertas" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-tela-topo">
+          <div class="cui-section-title cui-section-title--reto"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Alertas</div>
+          <button class="btn-secondary btn-sm" id="btn-marcar-lidos" hidden><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Marcar todos como lidos</button>
+        </div>
+        <div id="alertas-lista"><div class="empty-state"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i><p>Selecione um adolescente para ver os alertas.</p></div></div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    /* A coluna de texto da tabela `alertas` chama-se "descricao". Havia código
+       antigo lendo/gravando "desc" (coluna que não existe) — por isso alertas
+       apareciam sem detalhe e inserts falhavam inteiros. */
+    async function carregarAlertas(teenId) {
+      var lista = document.getElementById('alertas-lista');
+      var btn = document.getElementById('btn-marcar-lidos');
+      if (!lista) return;
+
+      if (!teenId) {
+        if (btn) btn.hidden = true;
+        lista.innerHTML = CUI.vazio('bell', 'Selecione um adolescente para ver os alertas.');
+        return;
+      }
+
+      var res = await CUI.sb.from('alertas').select('*')
+        .eq('id_neurodivergente', teenId)
+        .order('timestamp', { ascending: false }).limit(20);
+
+      if (res.error) {
+        if (btn) btn.hidden = true;
+        lista.innerHTML = CUI.vazio('alert-triangle', 'Não foi possível carregar os alertas agora. Tente recarregar a página.');
+        return;
+      }
+
+      var alertas = res.data || [];
+      if (!alertas.length) {
+        if (btn) btn.hidden = true;
+        lista.innerHTML = CUI.vazio('check-circle', 'Nenhum alerta registrado. Tudo em ordem.');
+        return;
+      }
+
+      var naoLidos = alertas.filter(function (a) { return !a.lido; }).length;
+      if (btn) btn.hidden = naoLidos === 0;
+
+      lista.innerHTML = alertas.map(function (a) {
+        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        var tipo = a.tipo || 'info';
+        var detalhe = a.descricao ? '<br><span class="cui-hint">' + CUI.esc(a.descricao) + '</span>' : '';
+        return '<div class="alerta-item ' + tipo + (a.lido ? ' lido' : '') + '">' +
+                 '<div class="alerta-icon">' + CUI.alertaIcone(tipo) + '</div>' +
+                 '<div class="alerta-info"><label>' + data + '</label><p>' + CUI.esc(a.titulo || '') + detalhe + '</p></div>' +
+                 '<span class="alerta-badge b-' + tipo + '">' + tipo.toUpperCase() + '</span>' +
+               '</div>';
+      }).join('');
+    }
+
+    async function marcarTodosLidos() {
+      if (!CUI.teenId) return;
+      var btn = document.getElementById('btn-marcar-lidos');
+      if (btn) btn.disabled = true;
+
+      var res = await CUI.sb.from('alertas').update({ lido: true })
+        .eq('id_neurodivergente', CUI.teenId).eq('lido', false);
+
+      if (btn) btn.disabled = false;
+      if (res.error) {
+        LumiUI.toast('Não foi possível marcar os alertas agora. Tente novamente.', { type: 'error' });
+        return;
+      }
+
+      await carregarAlertas(CUI.teenId);
+      CUI.atualizarBadgeAlertas();
+      var strip = document.getElementById('cui-alerta-strip');
+      if (strip) strip.classList.remove('show');
+    }
+
+    document.getElementById('btn-marcar-lidos').addEventListener('click', marcarTodosLidos);
+    CUI.aoTrocarTeen(carregarAlertas);
+  </script>
+</body>
+</html>

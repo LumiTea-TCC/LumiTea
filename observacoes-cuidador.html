@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Observações</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="observacoes" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-section-title"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Observações</div>
+
+        <div class="obs-lista" id="obs-lista"><p class="cui-hint">Selecione um adolescente para ver as observações.</p></div>
+
+        <div class="obs-form">
+          <textarea id="obs-txt" rows="2" placeholder="Adicione uma observação sobre o adolescente..." aria-label="Nova observação"></textarea>
+          <button class="btn-primary" id="btn-salvar-obs">Salvar</button>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    /* Observações são privadas do cuidador: a consulta filtra por teen E por
+       id_cuidador, então um cuidador nunca vê a anotação de outro. */
+    var _obs = [];
+
+    async function carregarObs(teenId) {
+      var lista = document.getElementById('obs-lista');
+      if (!lista) return;
+
+      if (!teenId) {
+        _obs = [];
+        lista.innerHTML = '<p class="cui-hint">Selecione um adolescente para ver as observações.</p>';
+        return;
+      }
+
+      var res = await CUI.sb.from('observacoes_cuidador').select('*')
+        .eq('id_neurodivergente', teenId)
+        .eq('id_cuidador', CUI.uid)
+        .order('timestamp', { ascending: false });
+
+      if (res.error) {
+        lista.innerHTML = '<p class="cui-hint">Não foi possível carregar as observações agora. Tente recarregar a página.</p>';
+        return;
+      }
+
+      _obs = res.data || [];
+      renderObs();
+    }
+
+    function renderObs() {
+      var lista = document.getElementById('obs-lista');
+      if (!lista) return;
+      if (!_obs.length) {
+        lista.innerHTML = '<p class="cui-hint">Nenhuma observação ainda. Use o campo abaixo para registrar a primeira.</p>';
+        return;
+      }
+      lista.innerHTML = _obs.map(function (o) {
+        var dt = o.timestamp ? new Date(o.timestamp).toLocaleDateString('pt-BR', { dateStyle: 'short' }) : '';
+        return '<div class="obs-item"><div class="obs-item-top"><span class="obs-data">' + dt + '</span>' +
+               '<button type="button" class="obs-del" data-obs-id="' + CUI.esc(o.id) + '" aria-label="Excluir observação">' + CUI.ic('trash') + '</button></div>' +
+               '<div class="obs-texto">' + CUI.esc(o.texto) + '</div></div>';
+      }).join('');
+
+      lista.querySelectorAll('[data-obs-id]').forEach(function (b) {
+        b.addEventListener('click', function () { deletarObs(b.getAttribute('data-obs-id')); });
+      });
+    }
+
+    async function salvarObs() {
+      if (!CUI.teenId) { LumiUI.toast('Selecione um adolescente.', { type: 'error' }); return; }
+      var txt = document.getElementById('obs-txt');
+      var texto = txt.value.trim();
+      if (!texto) return;
+
+      var res = await CUI.sb.from('observacoes_cuidador').insert({
+        id_neurodivergente: CUI.teenId,
+        id_cuidador: CUI.uid,
+        texto: texto,
+        timestamp: new Date().toISOString()
+      });
+
+      if (res.error) {
+        LumiUI.toast('Não foi possível salvar a observação. Tente novamente.', { type: 'error' });
+        console.error('[observacoes] insert falhou:', res.error);
+        return;
+      }
+
+      txt.value = '';
+      await carregarObs(CUI.teenId);
+    }
+
+    async function deletarObs(id) {
+      var ok = await LumiUI.confirm('Esta observação será apagada e não dá para desfazer.', {
+        titulo: 'Excluir observação?', ok: 'Excluir', cancelar: 'Cancelar'
+      });
+      if (!ok) return;
+
+      var res = await CUI.sb.from('observacoes_cuidador').delete().eq('id', id);
+      if (res.error) {
+        LumiUI.toast('Não foi possível excluir agora. Tente novamente.', { type: 'error' });
+        return;
+      }
+      _obs = _obs.filter(function (o) { return String(o.id) !== String(id); });
+      renderObs();
+    }
+
+    document.getElementById('btn-salvar-obs').addEventListener('click', salvarObs);
+    CUI.aoTrocarTeen(carregarObs);
+  </script>
+</body>
+</html>

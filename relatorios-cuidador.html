@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Relatórios</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="relatorios" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-tela-topo">
+          <div class="cui-section-title cui-section-title--reto"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i> Relatórios</div>
+          <!-- Ação principal da página: fica SEMPRE visível. Antes nascia com
+               `hidden` e só aparecia se o carregamento da lista desse certo —
+               qualquer falha no caminho deixava o cuidador sem como gerar nada. -->
+          <button class="btn-primary" id="btn-gerar-relatorio" disabled><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar relatório</button>
+        </div>
+        <p class="cui-hint cui-rel-explica">A Lumi lê as conversas recentes do adolescente e monta um resumo com pontos de atenção e orientações para você.</p>
+        <div id="relatorios-list"><div class="empty-state"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i><p>Carregando relatórios...</p></div></div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    var GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
+
+    /* O botão do topo só depende do adolescente estar escolhido — nunca do
+       resultado da consulta. Assim o cuidador sempre consegue gerar, mesmo se
+       a lista falhar em carregar. */
+    function ajustarBotao(teenId) {
+      var btn = document.getElementById('btn-gerar-relatorio');
+      if (!btn) return;
+      btn.disabled = !teenId;
+      btn.title = teenId ? 'Gerar um novo relatório com base nas conversas recentes'
+                         : 'Escolha um adolescente na barra acima para gerar o relatório';
+    }
+
+    /* ── LISTA ─────────────────────────────────────────────── */
+    async function carregarRelatorios(teenId) {
+      var lista = document.getElementById('relatorios-list');
+      ajustarBotao(teenId);
+      if (!lista) return;
+
+      if (!teenId) {
+        lista.innerHTML = CUI.vazio('file-text', CUI.teens.length
+          ? 'Selecione um adolescente na barra acima para ver os relatórios.'
+          : 'Nenhum adolescente vinculado à sua conta ainda.');
+        return;
+      }
+
+      var res = await CUI.sb.from('relatorios').select('*')
+        .eq('id_neurodivergente', teenId)
+        .order('timestamp', { ascending: false }).limit(10);
+
+      if (res.error) {
+        lista.innerHTML = CUI.vazio('alert-triangle', 'Não foi possível carregar os relatórios agora. Tente recarregar a página.');
+        console.error('[relatorios] leitura falhou:', res.error);
+        return;
+      }
+
+      var rels = res.data || [];
+      if (!rels.length) {
+        /* Estado vazio com a ação junto: é onde o olho do cuidador está.
+           O botão do topo continua lá, este é um atalho. */
+        var teen = CUI.teen();
+        lista.innerHTML =
+          '<div class="empty-state">' + CUI.ic('file-text') +
+          '<p>Nenhum relatório de ' + CUI.esc(teen ? teen.nome : 'adolescente') + ' ainda.</p>' +
+          '<button type="button" class="btn-primary" id="btn-gerar-primeiro">' + CUI.ic('sparkles') + ' Gerar o primeiro relatório</button>' +
+          '</div>';
+        lista.querySelector('#btn-gerar-primeiro').addEventListener('click', gerarRelatorioManual);
+        return;
+      }
+
+      var labels = { otimo: 'Ótimo', bom: 'Bom', neutro: 'Neutro', dificil: 'Difícil', crise: 'Crise' };
+      lista.innerHTML = rels.map(function (rel, idx) {
+        var data = rel.timestamp ? new Date(rel.timestamp).toLocaleDateString('pt-BR', { dateStyle: 'long' }) : 'Sem data';
+        var hclass = 'humor-' + (rel.humor_geral || 'neutro');
+        var id = 'rel-' + idx;
+        var h = '<div class="relatorio-card" id="' + id + '">';
+        h += '<div class="relatorio-header"><div class="relatorio-date">' + CUI.ic('calendar') + ' ' + data + '</div>';
+        h += '<span class="humor-badge ' + hclass + '">' + (labels[rel.humor_geral] || 'Neutro') + '</span></div>';
+        if (rel.resumo) h += '<div class="relatorio-resumo">' + CUI.esc(rel.resumo) + '</div>';
+        if (rel.pontos_atencao && rel.pontos_atencao.length) {
+          h += '<div class="relatorio-section-title">' + CUI.ic('eye') + ' Pontos de atenção</div>';
+          h += '<ul class="relatorio-list">' + rel.pontos_atencao.map(function (p) { return '<li>' + CUI.esc(p) + '</li>'; }).join('') + '</ul>';
+        }
+        if (rel.dicas_cuidador && rel.dicas_cuidador.length) {
+          h += '<div class="relatorio-section-title">' + CUI.ic('lightbulb') + ' Orientações para o cuidador</div>';
+          h += '<ul class="relatorio-list">' + rel.dicas_cuidador.map(function (d) { return '<li><strong>' + CUI.esc(d.titulo || '') + ':</strong> ' + CUI.esc(d.descricao || d) + '</li>'; }).join('') + '</ul>';
+        }
+        if (rel.sugestoes && rel.sugestoes.length) {
+          h += '<div class="relatorio-section-title">' + CUI.ic('edit') + ' Sugestões</div>';
+          h += '<ul class="relatorio-list">' + rel.sugestoes.map(function (s) { return '<li>' + CUI.esc(s) + '</li>'; }).join('') + '</ul>';
+        }
+        if (rel.visao_psicologica) {
+          h += '<div class="relatorio-section-title">' + CUI.ic('shield') + ' Visão psicológica (confidencial)</div>';
+          h += '<div class="relatorio-psi">' + CUI.esc(rel.visao_psicologica) + '</div>';
+        }
+        h += '<button type="button" class="btn-pdf" data-rel-card="' + id + '" data-rel-data="' + CUI.esc(data) + '">' + CUI.ic('download') + 'Baixar PDF</button>';
+        h += '</div>';
+        return h;
+      }).join('');
+
+      lista.querySelectorAll('[data-rel-card]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          baixarPDF(b.getAttribute('data-rel-card'), b.getAttribute('data-rel-data'));
+        });
+      });
+    }
+
+    /* ── GERAR (IA) ────────────────────────────────────────── */
+    async function gerarRelatorioManual() {
+      var teenId = CUI.teenId;
+      if (!teenId) { LumiUI.toast('Selecione um adolescente primeiro.', { type: 'error' }); return; }
+
+      /* Trava os DOIS botões (topo e estado vazio) enquanto a Lumi escreve:
+         gerar duas vezes criaria relatórios duplicados. */
+      var btns = [document.getElementById('btn-gerar-relatorio'),
+                  document.getElementById('btn-gerar-primeiro')].filter(Boolean);
+      btns.forEach(function (b) { b.disabled = true; b.textContent = 'Gerando…'; });
+
+      var teen = CUI.teen();
+      var nomeTeen = teen ? teen.nome : 'adolescente';
+
+      var atuais = await CUI.sb.from('conversas').select('role, content, timestamp')
+        .eq('id_neurodivergente', teenId).order('timestamp', { ascending: false }).limit(20);
+      var arquivadas = await CUI.sb.from('conversas_arquivadas').select('role, content, timestamp')
+        .eq('id_neurodivergente', teenId).order('timestamp', { ascending: false }).limit(20);
+
+      // Junta conversa ao vivo + arquivada (o adolescente pode ter limpado o chat)
+      // e usa as 20 mais recentes no total.
+      var convs = (atuais.data || []).concat(arquivadas.data || [])
+        .sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); })
+        .slice(-20);
+
+      try {
+        var resumoMsgs = convs.map(function (m) { return (m.role || '').toUpperCase() + ': ' + (m.content || ''); }).join('\n');
+        if (!resumoMsgs) resumoMsgs = 'Sem conversas recentes. O adolescente está começando a usar a plataforma.';
+
+        var res = await window.LUMITEA.groqFetch({
+          model: GROQ_MODEL,
+          messages: [
+            { role: 'system', content: 'Você é a Lumi, especialista em TEA. Gere um relatório para o cuidador. RESPONDA SOMENTE COM JSON VÁLIDO: {"resumo":"","humor_geral":"neutro","pontos_atencao":[],"dicas_cuidador":[],"sugestoes":[],"nivel_crise":false}. - resumo: 2-3 frases. - pontos_atencao: o que observar. - dicas_cuidador: [{titulo,descricao}]. - sugestoes: ações práticas. Português brasileiro. SOMENTE JSON.' },
+            { role: 'user', content: 'Sessão de ' + nomeTeen + ':\n\n' + resumoMsgs }
+          ],
+          max_tokens: 700, temperature: 0.4
+        });
+
+        var data = await res.json();
+        var raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '{}';
+        raw = raw.replace(/```json|```/g, '').trim();
+        var m = raw.match(/\{[\s\S]*\}/);
+        var rel = m ? JSON.parse(m[0]) : { resumo: 'Relatório gerado.', humor_geral: 'neutro', pontos_atencao: [], sugestoes: [] };
+        rel.timestamp = new Date().toISOString();
+
+        // Visão psicológica (complementar — se falhar, o relatório continua válido)
+        try {
+          var res2 = await window.LUMITEA.groqFetch({
+            model: GROQ_MODEL,
+            messages: [
+              { role: 'system', content: 'Você é psicóloga especialista em TEA. Com base neste relatório de sessão de um adolescente autista, escreva uma análise psicológica CONFIDENCIAL (apenas para o cuidador) de 3-4 frases. Foco em padrões emocionais, áreas de atenção e recursos internos do jovem. Português brasileiro. Sem markdown.' },
+              { role: 'user', content: JSON.stringify(rel) }
+            ],
+            max_tokens: 350, temperature: 0.5
+          });
+          if (res2.ok) {
+            var d2 = await res2.json();
+            rel.visao_psicologica = (d2.choices && d2.choices[0] && d2.choices[0].message && d2.choices[0].message.content) || '';
+          }
+        } catch (e) {}
+
+        rel.id_neurodivergente = teenId;
+        var ins = await CUI.sb.from('relatorios').insert(rel);
+        if (ins.error) {
+          LumiUI.toast('O relatório foi gerado, mas não foi possível salvar. Tente de novo.', { type: 'error' });
+          console.error('[relatorios] insert falhou:', ins.error);
+        } else {
+          await carregarRelatorios(teenId);
+        }
+
+        // Alerta de crise. A coluna da tabela `alertas` é "descricao" — usar
+        // "desc" fazia o insert inteiro falhar (coluna inexistente).
+        if (rel.nivel_crise) {
+          var insAlerta = await CUI.sb.from('alertas').insert({
+            id_neurodivergente: teenId,
+            tipo: 'crise',
+            titulo: 'Crise detectada no relatório',
+            descricao: 'O relatório gerado indica sinais de crise.',
+            lido: false,
+            timestamp: new Date().toISOString()
+          });
+          if (insAlerta.error) console.error('[relatorios] alerta de crise não foi salvo:', insAlerta.error);
+          CUI.atualizarBadgeAlertas();
+        }
+      } catch (e) {
+        LumiUI.toast('Erro ao gerar relatório. Verifique sua conexão.', { type: 'error' });
+        console.error(e);
+      }
+
+      /* Destrava os dois. O do estado vazio pode nem existir mais (a lista se
+         recarregou), mas se a geração falhou ele continua na tela — e não pode
+         ficar preso em "Gerando…" sem o cuidador poder tentar de novo. */
+      var topo = document.getElementById('btn-gerar-relatorio');
+      if (topo) topo.innerHTML = CUI.ic('sparkles') + ' Gerar relatório';
+      var vazio = document.getElementById('btn-gerar-primeiro');
+      if (vazio) { vazio.disabled = false; vazio.innerHTML = CUI.ic('sparkles') + ' Gerar o primeiro relatório'; }
+      ajustarBotao(CUI.teenId);
+    }
+
+    /* ── PDF (janela de impressão do navegador) ────────────────
+       Montado com createElement/appendChild de propósito. A versão anterior
+       usava um document.write() de 1500+ caracteres numa linha só, com uma tag
+       <script> escapada dentro da string — o parser do navegador tropeçava
+       nisso e derrubava o arquivo inteiro com "Invalid or unexpected token".
+       Aqui não existe nenhuma tag dentro de string, e quem manda imprimir é
+       esta página, não um script injetado na janela nova. */
+    var CSS_IMPRESSAO = [
+      'body{font-family:Nunito,sans-serif;color:#2c3e5a;max-width:700px;margin:40px auto;padding:20px}',
+      'h1{font-family:"Baloo 2",sans-serif;color:#2f5f8e;font-size:1.6rem;margin-bottom:4px}',
+      '.meta{color:#62788f;font-size:.85rem;margin-bottom:24px}',
+      'h3,.relatorio-section-title{color:#4a7eb5;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px}',
+      'p,li{line-height:1.7;font-size:.92rem;color:#44597a}',
+      'ul{padding-left:20px}',
+      '.relatorio-psi{background:#dce9f7;padding:12px 16px;border-radius:10px;margin:14px 0}',
+      '.relatorio-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}',
+      '.humor-badge{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:99px;background:#dce9f7;color:#2f5f8e}',
+      'svg{width:13px;height:13px;stroke:#4a7eb5;fill:none;stroke-width:1.75;vertical-align:-2px}',
+      'hr{border:none;border-top:1px solid #cddff0;margin-bottom:20px}',
+      '.footer{border-top:1px solid #cddff0;margin-top:40px;padding-top:14px;font-size:.78rem;color:#62788f;text-align:center}',
+      '@media print{body{margin:20px}}'
+    ].join('');
+
+    function baixarPDF(cardId, dataTexto) {
+      var card = document.getElementById(cardId);
+      if (!card) return;
+
+      var teen = CUI.teen();
+      var nomeTeen = teen ? teen.nome : 'Adolescente';
+
+      var win = window.open('', '_blank');
+      if (!win) { LumiUI.toast('Permita popups para baixar o PDF.', { type: 'error' }); return; }
+
+      var doc = win.document;
+      doc.title = 'Relatório LumiTEA — ' + nomeTeen;
+
+      var fonte = doc.createElement('link');
+      fonte.rel = 'stylesheet';
+      fonte.href = 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap';
+      doc.head.appendChild(fonte);
+
+      var estilo = doc.createElement('style');
+      estilo.textContent = CSS_IMPRESSAO;
+      doc.head.appendChild(estilo);
+
+      var titulo = doc.createElement('h1');
+      titulo.textContent = 'Relatório LumiTEA';
+
+      var meta = doc.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = 'Adolescente: ' + nomeTeen + '  |  Data: ' + dataTexto + '  |  Documento confidencial';
+
+      var regua = doc.createElement('hr');
+
+      /* O conteúdo do card já foi escapado ao ser montado; aqui só copiamos e
+         tiramos os botões, que não fazem sentido no papel. */
+      var corpo = doc.createElement('div');
+      corpo.innerHTML = card.innerHTML;
+      Array.prototype.forEach.call(corpo.querySelectorAll('button'), function (b) { b.remove(); });
+
+      var rodape = doc.createElement('div');
+      rodape.className = 'footer';
+      rodape.textContent = 'LumiTEA © 2026 — Relatório gerado pela IA Lumi. Documento confidencial destinado ao cuidador responsável.';
+
+      [titulo, meta, regua, corpo, rodape].forEach(function (el) { doc.body.appendChild(el); });
+
+      /* Espera a fonte carregar pra o papel não sair com a tipografia errada,
+         mas nunca fica esperando pra sempre. */
+      var jaImprimiu = false;
+      function imprimir() {
+        if (jaImprimiu) return;
+        jaImprimiu = true;
+        try { win.focus(); win.print(); } catch (e) {}
+      }
+      if (doc.fonts && doc.fonts.ready && doc.fonts.ready.then) { doc.fonts.ready.then(imprimir, imprimir); }
+      win.setTimeout(imprimir, 1200);
+    }
+
+    document.getElementById('btn-gerar-relatorio').addEventListener('click', gerarRelatorioManual);
+    CUI.aoTrocarTeen(carregarRelatorios);
+  </script>
+</body>
+</html>

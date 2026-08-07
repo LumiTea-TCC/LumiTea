@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Estatísticas</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="estatisticas" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-section-title"><i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i> Estatísticas</div>
+
+        <div class="stats-grid-2">
+          <div class="stat-box"><div class="stat-box-val" id="stat-conversas">—</div><div class="stat-box-lbl">Total de conversas</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-relatorios">—</div><div class="stat-box-lbl">Relatórios gerados</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-nivel">—</div><div class="stat-box-lbl">Nível atual</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-humor-med">—</div><div class="stat-box-lbl">Humor médio (7 dias)</div></div>
+        </div>
+
+        <div class="cui-humor-chart">
+          <h3><i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i> Humor — últimos 7 dias</h3>
+          <div class="humor-bars" id="stat-humor-bars"></div>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    async function carregarEstatisticas(teenId) {
+      var alvos = ['stat-conversas', 'stat-relatorios', 'stat-nivel', 'stat-humor-med'];
+
+      if (!teenId) {
+        alvos.forEach(function (id) { document.getElementById(id).textContent = '—'; });
+        document.getElementById('stat-humor-bars').innerHTML = '<p class="cui-hint">Selecione um adolescente para ver as estatísticas.</p>';
+        return;
+      }
+
+      var convs = await CUI.sb.from('conversas').select('id').eq('id_neurodivergente', teenId);
+      var rels = await CUI.sb.from('relatorios').select('id').eq('id_neurodivergente', teenId);
+      var nd = await CUI.sb.from('neurodivergente').select('nivel').eq('id', teenId).single();
+      var hum = await CUI.sb.from('humores').select('nivel, timestamp')
+        .eq('id_neurodivergente', teenId)
+        .order('timestamp', { ascending: false }).limit(30);
+
+      var humores = hum.data || [];
+      var med = CUI.calcMediaHumor(humores, 7);
+
+      document.getElementById('stat-conversas').textContent = (convs.data || []).length;
+      document.getElementById('stat-relatorios').textContent = (rels.data || []).length;
+      document.getElementById('stat-nivel').textContent = (nd.data && nd.data.nivel) || 1;
+      document.getElementById('stat-humor-med').textContent = med ? med.toFixed(1) + '/5' : '—';
+
+      if (humores.length) {
+        CUI.renderHumorBars(humores, 'stat-humor-bars');
+      } else {
+        document.getElementById('stat-humor-bars').innerHTML = '<p class="cui-hint">Nenhum registro de humor ainda.</p>';
+      }
+    }
+
+    CUI.aoTrocarTeen(carregarEstatisticas);
+  </script>
+</body>
+</html>

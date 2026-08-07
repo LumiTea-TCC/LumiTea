@@ -3546,6 +3546,19 @@ body.cui-page { overflow: hidden; }
   transition: border-color var(--dur-fast) var(--ease-out);
 }
 .cui-teen-sel:focus { border-color: var(--primary); }
+.cui-teen-sel:disabled { opacity: .6; cursor: default; }
+/* Peças da barra do adolescente e do rodapé da sidebar. Nasceram como style=""
+   dentro do HTML; viraram classes quando a casca passou a ser gerada pelo
+   js/core/cuidador-shell.js (uma marcação só pra todas as páginas). */
+.cui-teen-aviso { font-size: 12px; color: var(--text-muted); font-weight: 700; }
+.cui-teen-bar-fim { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.cui-teen-humor {
+  padding: 6px 12px; border-radius: 10px; background: var(--bg-2);
+  border: 1px solid var(--border-soft); font-size: 12px; font-weight: 800;
+}
+.cui-teen-monitor { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+.cui-status-dot--mini { width: 6px; height: 6px; }
+.cui-nome-forte { color: var(--text-main); }
 
 .cui-alerta-strip {
   display: none; padding: var(--sp-3) var(--sp-6);
@@ -3733,6 +3746,45 @@ body.cui-page { overflow: hidden; }
 .cui-pill { background: var(--bg-2); border: 1.5px solid var(--border); border-radius: 20px; padding: 9px 14px; min-height: 38px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-soft); cursor: pointer; transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); white-space: nowrap; }
 .cui-pill:hover { background: var(--panel-1); border-color: var(--primary); color: var(--primary-dark); }
 
+/* ── AUXILIARES DAS PÁGINAS DO CUIDADOR ───────────────────────
+   Cada área do painel virou uma página .html própria (antes eram abas
+   escondidas dentro de home-cuidador.html). No caminho, os style="" que
+   vinham no HTML viraram estas classes — o projeto não aceita estilo inline
+   novo, e assim o mesmo bloco fica igual em todas as páginas. */
+
+/* [hidden] tem que vencer quem declara display (ex.: .btn-primary é
+   inline-flex). Sem isso, esconder pelo atributo simplesmente não funciona. */
+[hidden] { display: none !important; }
+
+.cui-hint { font-size: 13px; color: var(--text-muted); }
+.cui-vinculo-box > .cui-hint { margin-bottom: 16px; }
+.cui-vinculo-titulo { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+.cui-sep { border: none; border-top: 1px solid var(--border-faint); margin: 20px 0; }
+.cui-tela-topo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+/* Linha de explicação logo abaixo do título (o que aquele botão vai fazer). */
+.cui-rel-explica { max-width: 62ch; margin: -8px 0 20px; line-height: 1.55; }
+/* Ação dentro do estado vazio: é onde o olhar cai quando não há nada listado. */
+.empty-state .btn-primary { margin-top: 14px; }
+.cui-section-title--reto { margin-bottom: 0; }
+
+.cui-live-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.cui-live-hd-txt { font-size: 13px; font-weight: 800; color: var(--success); }
+
+.humor-bars--alta { height: 120px; }
+.humor-linha { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-faint); font-size: 13px; }
+.humor-linha-nivel { font-weight: 700; color: var(--text-main); }
+.humor-linha-data { color: var(--text-muted); margin-left: auto; }
+
+.prog-xp--espaco { margin-top: 16px; }
+
+.cui-status-dot--pq { width: 7px; height: 7px; }
+
+.cui-welcome-acoes { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+/* Botões que agora são links de verdade (navegam para outra página): sem
+   sublinhado, pra ficarem idênticos aos <button> ao lado. */
+a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
+.cui-badge-alerta { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+
 /* ── BOTÕES (vocabulário único do painel) ─────────────────── */
 .btn-primary {
   background: linear-gradient(135deg, #3f6fa3, var(--brand-dark)); color: white; border: none; border-radius: var(--r-md);
@@ -3805,7 +3857,9 @@ body.cui-page { overflow: hidden; }
 .prog-xp-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text-soft); }
 .prog-xp-row span:last-child { font-weight: 900; color: var(--primary-dark); }
 .prog-bar-bg { background: var(--panel-1); border-radius: 20px; height: 10px; overflow: hidden; }
-.prog-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--brand), var(--accent)); transition: width var(--dur-slow) var(--ease-out); }
+/* width:0 no CSS: antes vinha de um style="width:0%" no HTML. Sem ele a barra
+   nasce cheia (width:auto = 100% do pai) por um instante, antes do JS medir. */
+.prog-bar-fill { width: 0; height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--brand), var(--accent)); transition: width var(--dur-slow) var(--ease-out); }
 .prog-xp-nivel { text-align: center; font-family: 'Baloo 2', sans-serif; font-size: 2.5rem; font-weight: 800; color: var(--primary-dark); }
 .prog-xp-label { text-align: center; font-size: 12px; color: var(--text-muted); font-weight: 700; }
 

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Histórico de humor</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="humor" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-section-title"><i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i> Histórico de humor</div>
+
+        <div class="cui-humor-chart">
+          <h3>Últimos 7 dias</h3>
+          <div class="humor-bars humor-bars--alta" id="humor-bars-full"></div>
+        </div>
+
+        <div class="cui-alertas-card">
+          <h3><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i> Registros detalhados</h3>
+          <div id="humor-tabela"><p class="cui-hint">Selecione um adolescente para ver o histórico.</p></div>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    async function carregarHumor(teenId) {
+      var tab = document.getElementById('humor-tabela');
+      var barras = document.getElementById('humor-bars-full');
+
+      if (!teenId) {
+        if (barras) barras.innerHTML = '';
+        if (tab) tab.innerHTML = '<p class="cui-hint">Selecione um adolescente para ver o histórico.</p>';
+        return;
+      }
+
+      var res = await CUI.sb.from('humores').select('nivel, timestamp')
+        .eq('id_neurodivergente', teenId)
+        .order('timestamp', { ascending: false }).limit(30);
+
+      if (res.error) {
+        if (tab) tab.innerHTML = '<p class="cui-hint">Não foi possível carregar o histórico agora. Tente recarregar a página.</p>';
+        return;
+      }
+
+      var humores = res.data || [];
+      CUI.renderHumorBars(humores, 'humor-bars-full');
+
+      /* Marca o humor mais recente na barra do topo (a mesma que aparece em
+         todas as páginas do painel). */
+      var chip = document.getElementById('teen-humor-current');
+      if (chip && humores.length) {
+        chip.hidden = false;
+        chip.innerHTML = 'Humor: ' + CUI.humorChip(humores[0].nivel);
+      } else if (chip) {
+        chip.hidden = true;
+      }
+
+      if (!tab) return;
+      if (!humores.length) {
+        tab.innerHTML = '<p class="cui-hint">Nenhum registro de humor ainda.</p>';
+        return;
+      }
+
+      tab.innerHTML = humores.slice(0, 15).map(function (h) {
+        var dt = h.timestamp ? new Date(h.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        return '<div class="humor-linha">' + CUI.humorChip(h.nivel) +
+               '<span class="humor-linha-nivel">Nível ' + CUI.esc(h.nivel) + '/5</span>' +
+               '<span class="humor-linha-data">' + dt + '</span></div>';
+      }).join('');
+    }
+
+    CUI.aoTrocarTeen(carregarHumor);
+  </script>
+</body>
+</html>

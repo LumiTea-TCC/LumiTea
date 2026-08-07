@@ -71,16 +71,19 @@ async function buscarAlertasSupabase(teenId, limite) {
   } catch(e) { return []; }
 }
 
-async function salvarAlertaSupabase(teenId, tipo, titulo, desc, emoji) {
+/* A coluna de texto da tabela `alertas` chama-se "descricao". Gravar "desc"
+   (coluna inexistente) fazia o insert INTEIRO falhar em silêncio. */
+async function salvarAlertaSupabase(teenId, tipo, titulo, descricao, emoji) {
   var client = (typeof sb !== 'undefined') ? sb : null;
   if (!client || !teenId) return;
   try {
-    await client.from('alertas').insert({
+    var r = await client.from('alertas').insert({
       id_neurodivergente: teenId, tipo: tipo || 'info',
-      titulo: titulo || 'Alerta', desc: desc || '',
+      titulo: titulo || 'Alerta', descricao: descricao || '',
       emoji: emoji || '📌', lido: false,
       timestamp: new Date().toISOString()
     });
+    if (r.error) console.warn('[LumiTEA] salvarAlerta:', r.error.message);
   } catch(e) { console.warn('[LumiTEA] salvarAlerta:', e.message); }
 }
 

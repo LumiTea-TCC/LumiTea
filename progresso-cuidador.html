@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Progresso</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="progresso" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-section-title"><i class="lt-i" data-lt-icon="star" aria-hidden="true"></i> Progresso</div>
+
+        <div class="prog-card">
+          <h4>Nível e experiência</h4>
+          <div id="prog-nivel" class="prog-xp-nivel">—</div>
+          <div class="prog-xp-label">Nível atual</div>
+          <div class="prog-xp prog-xp--espaco">
+            <div class="prog-xp-row"><span>XP atual</span><span id="prog-xp-val">—</span></div>
+            <div class="prog-bar-bg" role="progressbar" id="prog-bar-bg" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso para o próximo nível">
+              <div class="prog-bar-fill" id="prog-bar"></div>
+            </div>
+            <div class="prog-xp-row"><span>Próximo nível</span><span id="prog-prox">—</span></div>
+          </div>
+        </div>
+
+        <div class="prog-card">
+          <h4>Atividades</h4>
+          <div class="stats-grid-2">
+            <div class="stat-box"><div class="stat-box-val" id="prog-conversas">—</div><div class="stat-box-lbl">Conversas</div></div>
+            <div class="stat-box"><div class="stat-box-val" id="prog-relatorios">—</div><div class="stat-box-lbl">Relatórios</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    /* XP/nível vêm da tabela `neurodivergente` — a MESMA fonte usada pelo chat e
+       pelos jogos do Theo na área do adolescente. Não existe segunda contagem. */
+    function limparProgresso() {
+      document.getElementById('prog-nivel').textContent = '—';
+      document.getElementById('prog-xp-val').textContent = '—';
+      document.getElementById('prog-prox').textContent = '—';
+      document.getElementById('prog-bar').style.width = '0%';
+      document.getElementById('prog-bar-bg').setAttribute('aria-valuenow', '0');
+      document.getElementById('prog-conversas').textContent = '—';
+      document.getElementById('prog-relatorios').textContent = '—';
+    }
+
+    async function carregarProgresso(teenId) {
+      if (!teenId) { limparProgresso(); return; }
+
+      /* Lê XP/nível direto do banco (e não do cache da casca), pra a página
+         refletir o que o adolescente ganhou desde que a aba foi aberta. */
+      var nd = await CUI.sb.from('neurodivergente').select('xp, nivel').eq('id', teenId).single();
+      var xp = (nd.data && nd.data.xp) || 0;
+      var nivel = (nd.data && nd.data.nivel) || 1;
+
+      var tabela = CUI.NIVEL_XP;
+      var base = tabela[Math.min(nivel - 1, tabela.length - 1)] || 0;
+      var next = tabela[Math.min(nivel, tabela.length - 1)] || tabela[tabela.length - 1];
+      var pct = next > base ? Math.min(Math.round((xp - base) / (next - base) * 100), 100) : 100;
+
+      document.getElementById('prog-nivel').textContent = nivel;
+      document.getElementById('prog-xp-val').textContent = xp + ' XP';
+      document.getElementById('prog-prox').textContent = next + ' XP';
+      document.getElementById('prog-bar').style.width = pct + '%';
+      document.getElementById('prog-bar-bg').setAttribute('aria-valuenow', pct);
+
+      var convs = await CUI.sb.from('conversas').select('id').eq('id_neurodivergente', teenId);
+      var rels = await CUI.sb.from('relatorios').select('id').eq('id_neurodivergente', teenId);
+      document.getElementById('prog-conversas').textContent = (convs.data || []).length;
+      document.getElementById('prog-relatorios').textContent = (rels.data || []).length;
+    }
+
+    CUI.aoTrocarTeen(carregarProgresso);
+  </script>
+</body>
+</html>

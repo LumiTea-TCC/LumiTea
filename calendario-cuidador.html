@@ -19,6 +19,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
   <style>
     .cal-page { display: grid; grid-template-columns: 1fr 380px; gap: 24px; padding: 24px 32px; position: relative; z-index: 1; }
     @media (max-width: 1100px) { .cal-page { grid-template-columns: 1fr; } }
@@ -81,7 +84,10 @@
   </style>
   <script src="js/core/icons.js" defer></script>
 </head>
-<body class="app-body lt-pro cui-page">
+<!-- data-cui-shell="nav": a casca só desenha o menu/topo/gaveta e o sairCui().
+     Esta página já tem a própria checagem de sessão, então a casca não repete
+     o getSession(). -->
+<body class="app-body lt-pro cui-page" data-cui-pagina="calendario" data-cui-shell="nav">
 
   <div class="bg-layer">
     <div class="blob blob-1"></div>
@@ -89,108 +95,9 @@
     <div class="blob blob-3"></div>
   </div>
 
-  <!-- TOPO MOBILE: único jeito de abrir o menu em telas pequenas.
-       No desktop o menu é só a sidebar (.cui-sidebar). -->
-  <div class="cui-mobile-topbar">
-    <a class="cui-mobile-topbar-logo" href="home-cuidador.html">
-      <img src="img/icon-urso.png" alt="">
-      <span>LumiTEA</span>
-    </a>
-    <label class="app-burger" for="burger-cuidador">
-      <input type="checkbox" id="burger-cuidador">
-      <span></span><span></span><span></span>
-    </label>
-  </div>
-  <div class="cui-sidebar-overlay" id="cui-sidebar-overlay"></div>
-
-  <!-- Sair da conta: bloco isolado (mesmo padrão de home-cuidador.html) -->
-  <script>
-  (function(){
-    function limparSessaoLocal() {
-      try {
-        Object.keys(localStorage).forEach(function(k){
-          if (k.indexOf('sb-') === 0 && k.indexOf('auth-token') > -1) localStorage.removeItem(k);
-        });
-      } catch (e) {}
-    }
-    window.sairCui = function sairCui() {
-      document.querySelectorAll('.btn-logout, .cui-sair').forEach(function(b){ b.disabled = true; });
-      var jaSaiu = false;
-      function irParaLogin() {
-        if (jaSaiu) return;
-        jaSaiu = true;
-        limparSessaoLocal();
-        window.location.replace('login.html');
-      }
-      setTimeout(irParaLogin, 1500);
-      var cli = window.supabaseClient;
-      try {
-        if (cli && cli.auth) { Promise.resolve(cli.auth.signOut()).then(irParaLogin, irParaLogin); }
-        else { irParaLogin(); }
-      } catch (e) { irParaLogin(); }
-    };
-  })();
-  </script>
-
+  <!-- Topo mobile, gaveta e sidebar vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
   <div class="cui-layout">
-
-    <!-- SIDEBAR -->
-    <aside class="cui-sidebar" id="cui-sidebar">
-      <div class="cui-logo">
-        <div class="cui-logo-img"><img src="img/urso67.png" alt="LumiTEA"></div>
-        <div>
-          <div class="cui-logo-text">LumiTEA</div>
-          <div class="cui-logo-sub">Painel do Cuidador</div>
-        </div>
-      </div>
-
-      <div class="cui-status-badge">
-        <div class="cui-status-dot"></div>
-        <span class="cui-status-txt">Monitoramento ativo</span>
-      </div>
-
-      <nav class="cui-nav">
-        <div class="cui-nav-section">Principal</div>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="home"></span> Painel geral</button>
-        <button class="cui-nav-btn" onclick="window.location.href='comunidade-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="users"></span> Comunidade</button>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=alertas'"><span class="cui-nav-icon" data-lt-icon="bell"></span> Alertas</button>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=live'"><span class="cui-nav-icon" data-lt-icon="radio"></span> Ao vivo</button>
-
-        <div class="cui-nav-section">Acompanhamento</div>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=humor'"><span class="cui-nav-icon" data-lt-icon="heart"></span> Histórico de humor</button>
-        <button class="cui-nav-btn ativo" onclick="window.location.href='calendario-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="calendar"></span> Calendário</button>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=relatorio'"><span class="cui-nav-icon" data-lt-icon="file-text"></span> Relatórios</button>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=observacoes'"><span class="cui-nav-icon" data-lt-icon="edit"></span> Observações</button>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=progresso'"><span class="cui-nav-icon" data-lt-icon="star"></span> Progresso</button>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=estatisticas'"><span class="cui-nav-icon" data-lt-icon="bar-chart"></span> Estatísticas</button>
-
-        <div class="cui-nav-section">Conta</div>
-        <button class="cui-nav-btn" onclick="window.location.href='vinculos-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="link"></span> Vínculos</button>
-        <button class="cui-nav-btn" onclick="window.location.href='home-cuidador.html?tela=chat'"><span class="cui-nav-icon" data-lt-icon="message-circle"></span> Consultoria com a Lumi</button>
-        <button class="cui-nav-btn" onclick="window.location.href='conta-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="settings"></span> Configurações</button>
-      </nav>
-
-      <div class="cui-sidebar-footer">
-        <div id="cui-nome-area" class="cui-nome-area">Carregando...</div>
-        <button class="cui-sair" onclick="sairCui()"><span class="cui-nav-icon" data-lt-icon="log-out"></span> Sair da conta</button>
-      </div>
-    </aside>
-
-    <!-- Gaveta da sidebar no mobile -->
-    <script>
-    (function(){
-      var cb = document.getElementById('burger-cuidador');
-      var sidebar = document.getElementById('cui-sidebar');
-      var overlay = document.getElementById('cui-sidebar-overlay');
-      if (!cb || !sidebar || !overlay) return;
-      function fechar(){ cb.checked = false; sidebar.classList.remove('cui-aberta'); overlay.classList.remove('cui-aberta'); }
-      function abrir(){ sidebar.classList.add('cui-aberta'); overlay.classList.add('cui-aberta'); }
-      cb.addEventListener('change', function(){ if (cb.checked) abrir(); else fechar(); });
-      overlay.addEventListener('click', fechar);
-      sidebar.querySelectorAll('a, button').forEach(function(el){ el.addEventListener('click', fechar); });
-      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') fechar(); });
-    })();
-    </script>
 
   <div class="cui-main">
   <div class="cal-page">
@@ -303,7 +210,7 @@
 
       const { data: perfil } = await sb.from('profiles').select('nome, tipo').eq('id', _uid).single();
       if (!perfil || (perfil.tipo !== 'responsavel' && perfil.tipo !== 'terapeuta')) { window.location.href = 'home-autista.html'; return; }
-      document.getElementById('cui-nome-area').textContent = perfil.nome || 'Cuidador';
+      CUI.definirNome(perfil.nome); // a casca aplica quando a sidebar montar
 
       await carregarTeens();
       await carregarEventos();
@@ -387,7 +294,13 @@
       document.getElementById('dia-sel-label').textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
       var evs = _eventos.filter(function(e){ return (e.data_evento||'').slice(0,10) === dateStr; });
       var cont = document.getElementById('eventos-do-dia');
-      if (!evs.length) { cont.innerHTML = '<div class="empty-ev"><div class="em-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>Nenhum evento neste dia.</div>'; return; }
+      if (!evs.length) {
+        // <i data-lt-icon> injetado depois do load não é hidratado sozinho —
+        // sem o hydrateIcons o ícone do estado vazio ficava em branco.
+        cont.innerHTML = '<div class="empty-ev"><div class="em-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>Nenhum evento neste dia.</div>';
+        if (window.LUMI && LUMI.hydrateIcons) LUMI.hydrateIcons(cont);
+        return;
+      }
       cont.innerHTML = evs.map(function(ev) {
         var hora = ev.hora_evento ? ev.hora_evento.slice(0,5) : 'Sem hora';
         var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });

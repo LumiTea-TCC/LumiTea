@@ -14,14 +14,43 @@
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+
+  <script>
+  /* Compatibilidade com os links antigos (home-cuidador.html?tela=humor etc.).
+     Cada aba virou uma página própria; quem tiver o link velho salvo, ou um
+     favorito, cai na página certa em vez de numa aba que não existe mais.
+     Roda antes de tudo, ainda no <head>, pra não montar a tela à toa. */
+  (function () {
+    var mapa = {
+      alertas:      'alertas-cuidador.html',
+      live:         'live-cuidador.html',
+      humor:        'humor-cuidador.html',
+      relatorio:    'relatorios-cuidador.html',
+      relatorios:   'relatorios-cuidador.html',
+      observacoes:  'observacoes-cuidador.html',
+      progresso:    'progresso-cuidador.html',
+      estatisticas: 'estatisticas-cuidador.html',
+      chat:         'consultoria-cuidador.html',
+      consultoria:  'consultoria-cuidador.html'
+    };
+    try {
+      var tela = new URLSearchParams(window.location.search).get('tela');
+      if (tela && mapa[tela]) window.location.replace(mapa[tela]);
+    } catch (e) {}
+  })();
+  </script>
+
   <script src="js/core/icons.js" defer></script>
   <script src="js/core/reveal.js" defer></script>
   <script src="js/core/ui.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
 </head>
-<body class="app-body lt-pro cui-page">
+<body class="app-body lt-pro cui-page" data-cui-pagina="painel" data-cui-teen="1">
 
   <div class="bg-layer">
     <div class="blob blob-1"></div>
@@ -29,152 +58,14 @@
     <div class="blob blob-3"></div>
   </div>
 
-  <!-- TOPO MOBILE: único jeito de abrir o menu em telas pequenas.
-       No desktop o menu é só a sidebar (.cui-sidebar) — ver mais abaixo. -->
-  <div class="cui-mobile-topbar">
-    <a class="cui-mobile-topbar-logo" href="home-cuidador.html">
-      <img src="img/icon-urso.png" alt="">
-      <span>LumiTEA</span>
-    </a>
-    <label class="app-burger" for="burger-cuidador">
-      <input type="checkbox" id="burger-cuidador">
-      <span></span>
-      <span></span>
-      <span></span>
-    </label>
-  </div>
-  <div class="cui-sidebar-overlay" id="cui-sidebar-overlay"></div>
-
-  <!-- Sair da conta: fica NESTE bloco pequeno e isolado de propósito.
-       Antes vivia junto do script principal (600+ linhas); qualquer erro lá
-       apagava o sairCui() e o botão parava de responder sem dar sinal.
-       Aqui só depende do window.supabaseClient criado pelo config.js. -->
-  <script>
-  (function(){
-    /* Apaga a sessão guardada no navegador (chave sb-<projeto>-auth-token).
-       Garante que o logout vale mesmo se o signOut() do servidor falhar. */
-    function limparSessaoLocal() {
-      try {
-        Object.keys(localStorage).forEach(function(k){
-          if (k.indexOf('sb-') === 0 && k.indexOf('auth-token') > -1) localStorage.removeItem(k);
-        });
-      } catch (e) {}
-    }
-
-    window.sairCui = function sairCui() {
-      document.querySelectorAll('.btn-logout, .cui-sair').forEach(function(b){ b.disabled = true; });
-
-      var jaSaiu = false;
-      function irParaLogin() {
-        if (jaSaiu) return;
-        jaSaiu = true;
-        limparSessaoLocal();
-        window.location.replace('login.html');
-      }
-
-      // Rede fora do ar ou sessão expirada podem deixar o signOut() pendurado.
-      // A saída não pode depender dele: o timer é armado ANTES de qualquer
-      // chamada, então vale mesmo se a de baixo travar ou lançar erro.
-      setTimeout(irParaLogin, 1500);
-
-      var cli = window.supabaseClient;
-      try {
-        if (cli && cli.auth) { Promise.resolve(cli.auth.signOut()).then(irParaLogin, irParaLogin); }
-        else { irParaLogin(); }
-      } catch (e) { irParaLogin(); }
-    };
-  })();
-  </script>
-
-  <!-- ALERTA URGENTE GLOBAL -->
-  <div class="cui-alerta-strip" id="cui-alerta-strip" role="alert">
-    <i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i>
-    <div class="cui-alerta-strip-msg" id="cui-alerta-strip-msg">Atenção necessária.</div>
-    <button class="cui-alerta-strip-btn" onclick="irTela('alertas',null)">Ver alertas</button>
-    <button class="cui-alerta-strip-x" onclick="fecharAlertaStrip()" aria-label="Fechar alerta"><i class="lt-i" data-lt-icon="x" aria-hidden="true"></i></button>
-  </div>
-
+  <!-- Topo mobile, gaveta, faixa de alerta urgente, sidebar e barra do
+       num arquivo só, então mudar lá muda em todas as páginas do cuidador. -->
+  <!-- Topo mobile, gaveta, faixa de alerta urgente, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
   <div class="cui-layout">
-
-    <!-- SIDEBAR -->
-    <aside class="cui-sidebar" id="cui-sidebar">
-      <div class="cui-logo">
-        <div class="cui-logo-img"><img src="img/urso67.png" alt="LumiTEA"></div>
-        <div>
-          <div class="cui-logo-text">LumiTEA</div>
-          <div class="cui-logo-sub">Painel do Cuidador</div>
-        </div>
-      </div>
-
-      <div class="cui-status-badge">
-        <div class="cui-status-dot"></div>
-        <span class="cui-status-txt">Monitoramento ativo</span>
-      </div>
-
-      <nav class="cui-nav">
-        <div class="cui-nav-section">Principal</div>
-        <button class="cui-nav-btn ativo" id="nav-btn-painel" onclick="irTela('painel',this)"><span class="cui-nav-icon" data-lt-icon="home"></span> Painel geral</button>
-        <button class="cui-nav-btn" onclick="window.location.href='comunidade-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="users"></span> Comunidade</button>
-        <button class="cui-nav-btn" id="nav-btn-alertas" onclick="irTela('alertas',this)"><span class="cui-nav-icon" data-lt-icon="bell"></span> Alertas <span class="cui-nav-cnt" id="nav-alerta-cnt" style="display:none;"></span></button>
-        <button class="cui-nav-btn" id="nav-btn-live" onclick="irTela('live',this)"><span class="cui-nav-icon" data-lt-icon="radio"></span> Ao vivo</button>
-
-        <div class="cui-nav-section">Acompanhamento</div>
-        <button class="cui-nav-btn" id="nav-btn-humor" onclick="irTela('humor',this)"><span class="cui-nav-icon" data-lt-icon="heart"></span> Histórico de humor</button>
-        <button class="cui-nav-btn" onclick="window.location.href='calendario-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="calendar"></span> Calendário</button>
-        <button class="cui-nav-btn" id="nav-btn-relatorio" onclick="irTela('relatorio',this)"><span class="cui-nav-icon" data-lt-icon="file-text"></span> Relatórios</button>
-        <button class="cui-nav-btn" id="nav-btn-observacoes" onclick="irTela('observacoes',this)"><span class="cui-nav-icon" data-lt-icon="edit"></span> Observações</button>
-        <button class="cui-nav-btn" id="nav-btn-progresso" onclick="irTela('progresso',this)"><span class="cui-nav-icon" data-lt-icon="star"></span> Progresso</button>
-        <button class="cui-nav-btn" id="nav-btn-estatisticas" onclick="irTela('estatisticas',this)"><span class="cui-nav-icon" data-lt-icon="bar-chart"></span> Estatísticas</button>
-
-        <div class="cui-nav-section">Conta</div>
-        <button class="cui-nav-btn" onclick="window.location.href='vinculos-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="link"></span> Vínculos</button>
-        <button class="cui-nav-btn" id="nav-btn-chat" onclick="irTela('chat',this)"><span class="cui-nav-icon" data-lt-icon="message-circle"></span> Consultoria com a Lumi</button>
-        <button class="cui-nav-btn" onclick="window.location.href='conta-cuidador.html'"><span class="cui-nav-icon" data-lt-icon="settings"></span> Configurações</button>
-      </nav>
-
-      <div class="cui-sidebar-footer">
-        <div id="cui-nome-area" class="cui-nome-area">Carregando...</div>
-        <button class="cui-sair" onclick="sairCui()"><span class="cui-nav-icon" data-lt-icon="log-out"></span> Sair da conta</button>
-      </div>
-    </aside>
-
-    <!-- Gaveta da sidebar no mobile: abre/fecha com o hambúrguer do topo,
-         fecha ao escolher um item, clicar fora ou apertar Esc. -->
-    <script>
-    (function(){
-      var cb = document.getElementById('burger-cuidador');
-      var sidebar = document.getElementById('cui-sidebar');
-      var overlay = document.getElementById('cui-sidebar-overlay');
-      if (!cb || !sidebar || !overlay) return;
-      function fechar(){ cb.checked = false; sidebar.classList.remove('cui-aberta'); overlay.classList.remove('cui-aberta'); }
-      function abrir(){ sidebar.classList.add('cui-aberta'); overlay.classList.add('cui-aberta'); }
-      cb.addEventListener('change', function(){ if (cb.checked) abrir(); else fechar(); });
-      overlay.addEventListener('click', fechar);
-      sidebar.querySelectorAll('a, button').forEach(function(el){ el.addEventListener('click', fechar); });
-      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') fechar(); });
-    })();
-    </script>
-
-    <!-- MAIN -->
     <div class="cui-main">
 
-      <!-- TEEN SELECTOR BAR -->
-      <div class="cui-teen-bar">
-        <label for="teen-sel">Adolescente:</label>
-        <select id="teen-sel" class="cui-teen-sel" onchange="trocarTeen()">
-          <option value="">Selecione...</option>
-        </select>
-        <div id="teen-link-area" style="font-size:12px;color:var(--text-muted);font-weight:700;"></div>
-        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-          <div id="teen-humor-current" style="display:none;padding:6px 12px;border-radius:10px;background:var(--bg-2);border:1px solid var(--border-soft);font-size:12px;font-weight:800;"></div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--text-muted);">
-            <div class="cui-status-dot" style="width:6px;height:6px;"></div> Monitorando
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ TELA: PAINEL GERAL ══ -->
-      <div id="tela-painel" class="cui-tela ativa">
+      <div class="cui-tela ativa">
 
         <div class="cui-welcome-hero lt-reveal" id="cui-welcome-hero">
           <div class="cui-welcome-av">
@@ -185,13 +76,13 @@
             <p id="cui-welcome-sub">A Lumi está acompanhando e pronta para ajudar.</p>
             <div class="cui-welcome-badges">
               <span><i class="lt-i" data-lt-icon="radio" aria-hidden="true"></i> Monitoramento ativo</span>
-              <span id="wb-alerta-cnt" style="display:none;background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger);"></span>
+              <span id="wb-alerta-cnt" class="cui-badge-alerta" hidden></span>
               <span id="wb-teen-nome">Selecione um adolescente</span>
             </div>
           </div>
-          <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start">
-            <button class="btn-secondary btn-sm" onclick="irTela('alertas',null)"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Ver alertas</button>
-            <button class="btn-primary btn-sm" onclick="irTela('chat',null)"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i> Falar com a Lumi</button>
+          <div class="cui-welcome-acoes">
+            <a class="btn-secondary btn-sm" href="alertas-cuidador.html"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Ver alertas</a>
+            <a class="btn-primary btn-sm" href="consultoria-cuidador.html"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i> Falar com a Lumi</a>
           </div>
         </div>
 
@@ -201,675 +92,123 @@
 
         <div class="cui-alertas-card lt-reveal">
           <h3><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Alertas recentes</h3>
-          <div id="painel-alertas-lista"><p style="font-size:13px;color:var(--text-muted);">Selecione um adolescente para ver os alertas.</p></div>
+          <div id="painel-alertas-lista"><p class="cui-hint">Selecione um adolescente para ver os alertas.</p></div>
         </div>
 
         <div class="cui-humor-chart lt-reveal">
           <h3><i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i> Humor — últimos 7 dias</h3>
           <div class="humor-bars" id="humor-chart-bars">
-            <p style="font-size:13px;color:var(--text-muted);margin:auto;">Selecione um adolescente para ver o humor.</p>
+            <p class="cui-hint">Selecione um adolescente para ver o humor.</p>
           </div>
         </div>
 
-      </div>
-
-      <!-- ══ TELA: ALERTAS ══ -->
-      <div id="tela-alertas" class="cui-tela">
-        <div class="cui-section-title"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Alertas</div>
-        <div id="alertas-lista"><div class="empty-state"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i><p>Selecione um adolescente para ver os alertas.</p></div></div>
-      </div>
-
-      <!-- ══ TELA: AO VIVO ══ -->
-      <div id="tela-live" class="cui-tela">
-        <div class="cui-section-title"><i class="lt-i" data-lt-icon="radio" aria-hidden="true"></i> Ao vivo</div>
-        <div class="cui-alertas-card">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-            <div class="cui-status-dot"></div>
-            <span style="font-size:13px;font-weight:800;color:var(--success);">Monitoramento em tempo real ativo</span>
-          </div>
-          <div id="live-feed"><p style="font-size:13px;color:var(--text-muted);">Selecione um adolescente para acompanhar em tempo real.</p></div>
-        </div>
-      </div>
-
-      <!-- ══ TELA: HUMOR ══ -->
-      <div id="tela-humor" class="cui-tela">
-        <div class="cui-section-title"><i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i> Histórico de humor</div>
-        <div class="cui-humor-chart">
-          <h3>Últimos 7 dias</h3>
-          <div class="humor-bars" id="humor-bars-full" style="height:120px;"></div>
-        </div>
-        <div class="cui-alertas-card">
-          <h3><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i> Registros detalhados</h3>
-          <div id="humor-tabela"></div>
-        </div>
-      </div>
-
-      <!-- ══ TELA: RELATÓRIOS ══ -->
-      <div id="tela-relatorio" class="cui-tela">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-          <div class="cui-section-title" style="margin-bottom:0;"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i> Relatórios</div>
-          <button class="btn-primary" id="btn-gerar-relatorio" onclick="gerarRelatorioManual()" style="display:none;"><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar relatório</button>
-        </div>
-        <div id="relatorios-list"><div class="empty-state"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i><p>Nenhum relatório ainda. Selecione um adolescente e gere o primeiro.</p></div></div>
-      </div>
-
-      <!-- ══ TELA: OBSERVAÇÕES ══ -->
-      <div id="tela-observacoes" class="cui-tela">
-        <div class="cui-section-title"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Observações</div>
-        <div class="obs-lista" id="obs-lista"></div>
-        <div class="obs-form">
-          <textarea id="obs-txt" rows="2" placeholder="Adicione uma observação sobre o adolescente..." aria-label="Nova observação"></textarea>
-          <button class="btn-primary" onclick="salvarObs()">Salvar</button>
-        </div>
-      </div>
-
-      <!-- ══ TELA: PROGRESSO ══ -->
-      <div id="tela-progresso" class="cui-tela">
-        <div class="cui-section-title"><i class="lt-i" data-lt-icon="star" aria-hidden="true"></i> Progresso</div>
-        <div class="prog-card">
-          <h4>Nível e experiência</h4>
-          <div id="prog-nivel" class="prog-xp-nivel">—</div>
-          <div class="prog-xp-label">Nível atual</div>
-          <div style="margin-top:16px;" class="prog-xp">
-            <div class="prog-xp-row"><span>XP atual</span><span id="prog-xp-val">—</span></div>
-            <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-bar" style="width:0%"></div></div>
-            <div class="prog-xp-row"><span>Próximo nível</span><span id="prog-prox">—</span></div>
-          </div>
-        </div>
-        <div class="prog-card">
-          <h4>Atividades</h4>
-          <div class="stats-grid-2">
-            <div class="stat-box"><div class="stat-box-val" id="prog-conversas">—</div><div class="stat-box-lbl">Conversas</div></div>
-            <div class="stat-box"><div class="stat-box-val" id="prog-roleplays">—</div><div class="stat-box-lbl">Roleplays</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ TELA: ESTATÍSTICAS ══ -->
-      <div id="tela-estatisticas" class="cui-tela">
-        <div class="cui-section-title"><i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i> Estatísticas</div>
-        <div class="stats-grid-2">
-          <div class="stat-box"><div class="stat-box-val" id="stat-conversas">—</div><div class="stat-box-lbl">Total de conversas</div></div>
-          <div class="stat-box"><div class="stat-box-val" id="stat-relatorios">—</div><div class="stat-box-lbl">Relatórios gerados</div></div>
-          <div class="stat-box"><div class="stat-box-val" id="stat-nivel">—</div><div class="stat-box-lbl">Nível atual</div></div>
-          <div class="stat-box"><div class="stat-box-val" id="stat-humor-med">—</div><div class="stat-box-lbl">Humor médio (7 dias)</div></div>
-        </div>
-      </div>
-
-      <!-- ══ TELA: CHAT ══ -->
-      <div id="tela-chat" class="cui-tela chat-tela">
-        <div class="cui-chat-wrapper">
-          <div class="cui-chat-hd">
-            <div class="cui-chat-av"><img src="img/urso-joia.png" alt="Lumi"></div>
-            <div class="cui-chat-hd-info">
-              <h4>Lumi — Consultoria TEA</h4>
-              <p><span class="cui-status-dot" style="width:7px;height:7px;"></span> Online agora</p>
-            </div>
-          </div>
-          <div class="cui-chat-msgs" id="chat-msgs-cuidador"></div>
-          <div class="cui-pills" id="chat-pills-cuidador">
-            <button class="cui-pill" onclick="usarPill(this)">Como lidar com crises?</button>
-            <button class="cui-pill" onclick="usarPill(this)">Estratégias de rotina</button>
-            <button class="cui-pill" onclick="usarPill(this)">Como se comunicar melhor?</button>
-            <button class="cui-pill" onclick="usarPill(this)">Sinais de sobrecarga sensorial</button>
-          </div>
-          <div class="cui-chat-input-bar">
-            <textarea class="cui-chat-ta" id="cui-ta" rows="1" placeholder="Pergunte à Lumi sobre o adolescente..." aria-label="Mensagem para a Lumi"></textarea>
-            <button class="btn-send-icon" id="btn-send-cui" disabled onclick="enviarMsgCuidador()" aria-label="Enviar mensagem">
-              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
-          </div>
-        </div>
       </div>
 
     </div><!-- /cui-main -->
   </div><!-- /cui-layout -->
 
-  <!-- ── SCRIPTS ─────────────────────────────────────────────── -->
   <script>
-    const SUPABASE_URL      = 'https://yuwdckenzpfdlyawkibn.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
-    const GROQ_MODEL        = 'llama-3.3-70b-versatile';
+    /* Painel geral: só resumo. Cada área do acompanhamento virou uma página
+       própria (alertas-, live-, humor-, relatorios-, observacoes-,
+       progresso-, estatisticas-, consultoria-cuidador.html). */
 
-    /* UM único cliente Supabase por página. O config.js já cria window.supabaseClient;
-       criar um segundo aqui fazia dois GoTrueClient disputarem a MESMA chave de sessão
-       (e o mesmo navigator.lock), travando getSession()/signOut() — era isso que deixava
-       o nome em "Carregando..." e o botão Sair sem resposta. */
-    const sb = window.supabaseClient ||
-      (window.supabase && window.supabase.createClient
-        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-        : null);
-    window.supabaseClient = sb;
-
-    var _uid           = null;
-    var _perfil        = null;
-    var _teenSelecionado = null;
-    var _teensVinculados = [];
-    var _histCuidador  = [];
-    var _carregando    = false;
-    var _obs           = [];
-    var NIVEL_XP       = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
-
-    /* Ícone seguro mesmo se icons.js ainda não carregou */
-    function _ic(nome, cls) {
-      return (window.LUMI && window.LUMI.icon) ? window.LUMI.icon(nome, cls) : '';
+    function saudacao() {
+      var nome = (CUI.perfil && CUI.perfil.nome) ? CUI.perfil.nome.split(' ')[0] : 'cuidador';
+      document.getElementById('cui-welcome-nome').textContent = nome;
     }
 
-    /* ── INIT ──────────────────────────────────────────────── */
-    document.addEventListener('DOMContentLoaded', async function() {
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) { window.location.href = 'login.html'; return; }
-      _uid = session.user.id;
+    async function carregarPainel(teenId) {
+      saudacao();
 
-      const { data: perfil, error } = await sb.from('profiles').select('nome, sobrenome, tipo').eq('id', _uid).single();
-      if (error || !perfil) { window.location.href = 'login.html'; return; }
-
-      if (perfil.tipo !== 'responsavel' && perfil.tipo !== 'terapeuta') { window.location.href = 'home-autista.html'; return; }
-
-      _perfil = perfil;
-      var nome = perfil.nome || 'Cuidador';
-      document.getElementById('cui-nome-area').innerHTML = _ic('user') + ' <strong style="color:var(--text-main)">' + nome + '</strong>';
-      document.getElementById('cui-welcome-nome').textContent = nome.split(' ')[0];
-
-      // Busca teens vinculados (responsavel_id = _uid)
-      await _carregarTeensVinculados();
-
-      // Deep-link vindo de outra página do cuidador (ex: calendario-cuidador.html?tela=alertas
-      // não existe, mas home-cuidador.html?tela=alertas abre a aba certa aqui)
-      var telaAlvo = new URLSearchParams(window.location.search).get('tela');
-      if (telaAlvo) { irTela(telaAlvo, document.getElementById('nav-btn-' + telaAlvo)); }
-
-      // Chat boas-vindas
-      setTimeout(_benvindoCuidador, 400);
-
-      // Setup textarea
-      var ta = document.getElementById('cui-ta');
-      if (ta) {
-        ta.addEventListener('input', function() {
-          ta.style.height = 'auto';
-          ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
-          document.getElementById('btn-send-cui').disabled = !ta.value.trim();
-        });
-        ta.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMsgCuidador(); }
-        });
-      }
-
-      // Polling a cada 30s
-      setInterval(_pollingAtualizar, 30000);
-    });
-
-    /* ── CARREGAR TEENS ────────────────────────────────────── */
-    async function _carregarTeensVinculados() {
-      const { data: teens } = await sb.from('neurodivergente').select('id, codigo_vinculo, xp, nivel').eq('id_responsavel', _uid);
-      _teensVinculados = [];
-
-      var sel = document.getElementById('teen-sel');
-      sel.innerHTML = '<option value="">Selecione...</option>';
-
-      if (!teens || !teens.length) return;
-
-      for (var i = 0; i < teens.length; i++) {
-        var t = teens[i];
-        const { data: p } = await sb.from('profiles').select('nome, sobrenome').eq('id', t.id).single();
-        let teen = { id: t.id, nome: (p && p.nome) ? p.nome : 'Sem nome', sobrenome: (p && p.sobrenome) || '', xp: t.xp || 0, nivel: t.nivel || 1 };
-        _teensVinculados.push(teen);
-
-        var opt = document.createElement('option');
-        opt.value = teen.id; opt.textContent = teen.nome;
-        sel.appendChild(opt);
-      }
-
-      if (_teensVinculados.length === 1) {
-        sel.value = _teensVinculados[0].id;
-        trocarTeen();
-      }
-    }
-
-    function trocarTeen() {
-      var sel = document.getElementById('teen-sel');
-      _teenSelecionado = sel ? sel.value : null;
-      if (!_teenSelecionado) return;
-      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
-      if (teen) {
-        document.getElementById('wb-teen-nome').innerHTML = _ic('user') + ' ' + window.LUMITEA.esc(teen.nome);
-        document.getElementById('btn-gerar-relatorio').style.display = 'inline-flex';
-      }
-      carregarPainel();
-      carregarAlertas();
-    }
-
-    /* ── PAINEL ────────────────────────────────────────────── */
-    async function carregarPainel() {
-      if (!_teenSelecionado) return;
-      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
-      if (!teen) return;
-
-      // Stats básicos
       var stats = document.getElementById('painel-stats');
-      stats.innerHTML =
-        cuiStat('star','XP total', (teen.xp||0).toLocaleString()) +
-        cuiStat('target','Nível', teen.nivel||1) +
-        cuiStat('bell','Alertas', '—') +
-        cuiStat('heart','Humor hoje', '—');
+      var badgeTeen = document.getElementById('wb-teen-nome');
+      var listaAlertas = document.getElementById('painel-alertas-lista');
+      var barras = document.getElementById('humor-chart-bars');
 
-      // Humores
-      var { data: humores } = await sb.from('humores').select('nivel, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(30);
-      humores = humores || [];
+      if (!teenId) {
+        badgeTeen.textContent = CUI.teens.length ? 'Selecione um adolescente' : 'Nenhum adolescente vinculado';
+        stats.innerHTML = '<div class="cui-stat"><div class="cui-stat-icon">' + CUI.ic('user') + '</div><div class="cui-stat-val">—</div><div class="cui-stat-label">Selecione um adolescente</div></div>';
+        listaAlertas.innerHTML = '<p class="cui-hint">Selecione um adolescente para ver os alertas.</p>';
+        barras.innerHTML = '<p class="cui-hint">Selecione um adolescente para ver o humor.</p>';
+        document.getElementById('wb-alerta-cnt').hidden = true;
+        return;
+      }
+
+      var teen = CUI.teen();
+      badgeTeen.innerHTML = CUI.ic('user') + ' ' + CUI.esc(teen ? teen.nome : '');
+
+      /* XP/nível direto do banco: o cache da casca é do carregamento da página
+         e o adolescente pode ter ganhado XP nos jogos desde então. */
+      var nd = await CUI.sb.from('neurodivergente').select('xp, nivel').eq('id', teenId).single();
+      var xp = (nd.data && nd.data.xp) || 0;
+      var nivel = (nd.data && nd.data.nivel) || 1;
+
+      var hum = await CUI.sb.from('humores').select('nivel, timestamp')
+        .eq('id_neurodivergente', teenId)
+        .order('timestamp', { ascending: false }).limit(30);
+      var humores = hum.data || [];
+
+      var hoje = new Date().toISOString().slice(0, 10);
+      var deHoje = humores.filter(function (h) { return (h.timestamp || '').slice(0, 10) === hoje; });
+      var humorHoje = deHoje.length ? CUI.humorChip(deHoje[0].nivel) : '—';
+      var med7 = CUI.calcMediaHumor(humores, 7);
+
+      stats.innerHTML =
+        CUI.cuiStat('star', 'XP total', xp.toLocaleString('pt-BR')) +
+        CUI.cuiStat('target', 'Nível', nivel) +
+        CUI.cuiStat('heart', 'Humor hoje', humorHoje) +
+        CUI.cuiStat('bar-chart', 'Humor (7d)', med7 ? med7.toFixed(1) + '/5' : '—');
 
       if (humores.length) {
-        var hoje = humores.filter(function(h){ return (h.timestamp||'').slice(0,10) === new Date().toISOString().slice(0,10); });
-        var ultimoHumor = hoje.length ? humorChip(hoje[0].nivel) : '—';
-        var med7 = calcMediaHumor(humores, 7);
-
-        stats.innerHTML =
-          cuiStat('star','XP total', (teen.xp||0).toLocaleString()) +
-          cuiStat('target','Nível', teen.nivel||1) +
-          cuiStat('heart','Humor hoje', ultimoHumor) +
-          cuiStat('bar-chart','Humor (7d)', med7 ? med7.toFixed(1)+'/5' : '—');
-
-        renderHumorBars(humores, 'humor-chart-bars');
-        var hAtual = document.getElementById('teen-humor-current');
-        if (hAtual) { hAtual.style.display='block'; hAtual.innerHTML = 'Humor: ' + humorChip(humores[0] && humores[0].nivel); }
+        CUI.renderHumorBars(humores, 'humor-chart-bars');
+        var chip = document.getElementById('teen-humor-current');
+        if (chip) { chip.hidden = false; chip.innerHTML = 'Humor: ' + CUI.humorChip(humores[0].nivel); }
+      } else {
+        barras.innerHTML = '<p class="cui-hint">Nenhum registro de humor ainda.</p>';
       }
 
-      // Alertas painel
-      await _renderAlertasPainel();
+      await carregarAlertasResumo(teenId);
     }
 
-    function cuiStat(icone, label, val) {
-      return '<div class="cui-stat"><div class="cui-stat-icon">'+_ic(icone)+'</div><div class="cui-stat-val">'+val+'</div><div class="cui-stat-label">'+label+'</div></div>';
-    }
-
-    /* Humor: rótulo textual + cor (sem emoji na área do cuidador) */
-    var HUMOR_TXT  = ['Irritado','Ansioso','Triste','Neutro','Bem','Ótimo'];
-    var HUMOR_COR  = ['#c62828','#e08e30','#fbbf24','#9e9e9e','#42a5f5','#2e7d32'];
-    function humorTexto(n) { return HUMOR_TXT[n] || '—'; }
-    function humorChip(n) {
-      if (n === null || n === undefined || !HUMOR_TXT[n]) return '—';
-      return '<span class="lt-humor-chip" style="--chip:'+HUMOR_COR[n]+'">'+HUMOR_TXT[n]+'</span>';
-    }
-
-    function calcMediaHumor(humores, dias) {
-      var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - dias);
-      var recentes = humores.filter(function(h){ return h.timestamp && new Date(h.timestamp) >= cutoff; });
-      if (!recentes.length) return null;
-      return recentes.reduce(function(a,h){ return a+h.nivel; }, 0) / recentes.length;
-    }
-
-    function renderHumorBars(humores, containerId) {
-      var box = document.getElementById(containerId);
-      if (!box) return;
-      var dias = [];
-      for (var i = 6; i >= 0; i--) {
-        var d = new Date(); d.setDate(d.getDate()-i);
-        var ds = d.toISOString().slice(0,10);
-        var enc = humores.filter(function(h){ return (h.timestamp||'').slice(0,10)===ds; });
-        var med = enc.length ? Math.round(enc.reduce(function(a,h){return a+h.nivel;},0)/enc.length) : 0;
-        dias.push({ label: d.toLocaleDateString('pt-BR',{weekday:'short'}).slice(0,3), valor: med });
-      }
-      box.innerHTML = dias.map(function(d) {
-        var h = d.valor ? (d.valor/5*100)+'%' : '4%';
-        return '<div class="humor-bar-wrap"><div class="humor-bar h'+d.valor+'" style="height:'+h+'" title="'+humorTexto(d.valor)+'"></div><div class="humor-label">'+d.label+'</div></div>';
-      }).join('');
-    }
-
-    /* ── ALERTAS ───────────────────────────────────────────── */
-    function alertaIcone(tipo) {
-      if (tipo === 'crise') return _ic('alert-triangle');
-      if (tipo === 'aviso') return _ic('alert-circle');
-      return _ic('info');
-    }
-
-    async function carregarAlertas() {
-      if (!_teenSelecionado) return;
-      var { data: alertas } = await sb.from('alertas').select('*').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
-      alertas = alertas || [];
-
-      var naoLidos = alertas.filter(function(a){ return !a.lido; }).length;
-      var cnt = document.getElementById('nav-alerta-cnt');
-      var btnCnt = document.getElementById('nav-btn-alertas');
-      if (naoLidos > 0) {
-        if (cnt) { cnt.style.display='inline'; cnt.textContent=naoLidos; }
-        var wbCnt = document.getElementById('wb-alerta-cnt');
-        if (wbCnt) { wbCnt.style.display='inline-flex'; wbCnt.innerHTML=_ic('bell')+' '+naoLidos+' alerta'+(naoLidos>1?'s':''); }
-        if (alertas[0] && alertas[0].tipo === 'crise') {
-          var strip = document.getElementById('cui-alerta-strip');
-          var msg = document.getElementById('cui-alerta-strip-msg');
-          if (strip) strip.classList.add('show');
-          if (msg) msg.textContent = alertas[0].titulo || 'Estado de crise detectado. Verifique os alertas.';
-        }
-      }
-
-      var lista = document.getElementById('alertas-lista');
-      if (!lista) return;
-      if (!alertas.length) {
-        lista.innerHTML = '<div class="empty-state">'+_ic('check-circle')+'<p>Nenhum alerta registrado. Tudo em ordem.</p></div>';
-        return;
-      }
-      lista.innerHTML = alertas.map(function(a) {
-        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
-        var tipo = a.tipo || 'info';
-        return '<div class="alerta-item '+tipo+(a.lido?' lido':'')+'"><div class="alerta-icon">'+alertaIcone(tipo)+'</div><div class="alerta-info"><label>'+data+'</label><p>'+window.LUMITEA.esc(a.titulo||'')+(a.desc?'<br><span style="font-weight:500;color:var(--text-soft);">'+window.LUMITEA.esc(a.desc)+'</span>':'')+'</p></div><span class="alerta-badge b-'+tipo+'">'+tipo.toUpperCase()+'</span></div>';
-      }).join('');
-    }
-
-    async function _renderAlertasPainel() {
-      if (!_teenSelecionado) return;
-      var { data: alertas } = await sb.from('alertas').select('*').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(3);
-      alertas = alertas || [];
+    async function carregarAlertasResumo(teenId) {
       var el = document.getElementById('painel-alertas-lista');
+      var wb = document.getElementById('wb-alerta-cnt');
       if (!el) return;
-      if (!alertas.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">Nenhum alerta registrado. Tudo em ordem.</p>'; return; }
-      el.innerHTML = alertas.map(function(a) {
-        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
-        return '<div class="alerta-item '+(a.tipo||'info')+(a.lido?' lido':'')+'"><div class="alerta-icon">'+alertaIcone(a.tipo)+'</div><div class="alerta-info"><label>'+data+'</label><p>'+window.LUMITEA.esc(a.titulo||a.texto||'Alerta')+'</p></div></div>';
-      }).join('');
-    }
 
-    /* ── RELATÓRIOS ────────────────────────────────────────── */
-    async function carregarRelatorios() {
-      if (!_teenSelecionado) return;
-      var { data: rels } = await sb.from('relatorios').select('*').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(10);
-      rels = rels || [];
-      var lista = document.getElementById('relatorios-list');
-      if (!lista) return;
-      if (!rels.length) {
-        lista.innerHTML = '<div class="empty-state">'+_ic('file-text')+'<p>Nenhum relatório ainda. Clique em "Gerar relatório" para criar o primeiro.</p></div>';
+      var res = await CUI.sb.from('alertas').select('*')
+        .eq('id_neurodivergente', teenId)
+        .order('timestamp', { ascending: false }).limit(3);
+
+      if (res.error) {
+        el.innerHTML = '<p class="cui-hint">Não foi possível carregar os alertas agora.</p>';
         return;
       }
-      var labels = { otimo:'Ótimo', bom:'Bom', neutro:'Neutro', dificil:'Difícil', crise:'Crise' };
-      lista.innerHTML = rels.map(function(rel, idx) {
-        var data = rel.timestamp ? new Date(rel.timestamp).toLocaleDateString('pt-BR',{dateStyle:'long'}) : 'Sem data';
-        var hclass = 'humor-'+(rel.humor_geral||'neutro');
-        var id = 'rel-'+idx;
-        var h = '<div class="relatorio-card" id="'+id+'">';
-        h += '<div class="relatorio-header"><div class="relatorio-date">'+_ic('calendar')+' '+data+'</div>';
-        h += '<span class="humor-badge '+hclass+'">'+(labels[rel.humor_geral]||'Neutro')+'</span></div>';
-        if (rel.resumo) h += '<div class="relatorio-resumo">'+window.LUMITEA.esc(rel.resumo)+'</div>';
-        if (rel.pontos_atencao && rel.pontos_atencao.length) {
-          h += '<div class="relatorio-section-title">'+_ic('eye')+' Pontos de atenção</div>';
-          h += '<ul class="relatorio-list">'+rel.pontos_atencao.map(function(p){return'<li>'+window.LUMITEA.esc(p)+'</li>';}).join('')+'</ul>';
-        }
-        if (rel.dicas_cuidador && rel.dicas_cuidador.length) {
-          h += '<div class="relatorio-section-title">'+_ic('lightbulb')+' Orientações para o cuidador</div>';
-          h += '<ul class="relatorio-list">'+rel.dicas_cuidador.map(function(d){return'<li><strong>'+window.LUMITEA.esc(d.titulo||'')+':</strong> '+window.LUMITEA.esc(d.descricao||d)+'</li>';}).join('')+'</ul>';
-        }
-        if (rel.sugestoes && rel.sugestoes.length) {
-          h += '<div class="relatorio-section-title">'+_ic('edit')+' Sugestões</div>';
-          h += '<ul class="relatorio-list">'+rel.sugestoes.map(function(s){return'<li>'+window.LUMITEA.esc(s)+'</li>';}).join('')+'</ul>';
-        }
-        if (rel.visao_psicologica) {
-          h += '<div class="relatorio-section-title">'+_ic('shield')+' Visão psicológica (confidencial)</div>';
-          h += '<div class="relatorio-psi">'+window.LUMITEA.esc(rel.visao_psicologica)+'</div>';
-        }
-        h += '<button class="btn-pdf" onclick="baixarPDF(\''+id+'\',\''+data+'\')">'+_ic('download')+'Baixar PDF</button>';
-        h += '</div>';
-        return h;
+
+      var alertas = res.data || [];
+      var naoLidos = alertas.filter(function (a) { return !a.lido; }).length;
+      if (wb) {
+        wb.hidden = naoLidos === 0;
+        wb.innerHTML = CUI.ic('bell') + ' ' + naoLidos + ' alerta' + (naoLidos > 1 ? 's' : '');
+      }
+
+      if (!alertas.length) {
+        el.innerHTML = '<p class="cui-hint">Nenhum alerta registrado. Tudo em ordem.</p>';
+        return;
+      }
+
+      el.innerHTML = alertas.map(function (a) {
+        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        return '<div class="alerta-item ' + (a.tipo || 'info') + (a.lido ? ' lido' : '') + '">' +
+                 '<div class="alerta-icon">' + CUI.alertaIcone(a.tipo) + '</div>' +
+                 '<div class="alerta-info"><label>' + data + '</label><p>' + CUI.esc(a.titulo || 'Alerta') + '</p></div>' +
+               '</div>';
       }).join('');
     }
 
-    async function gerarRelatorioManual() {
-      if (!_teenSelecionado) { LumiUI.toast('Selecione um adolescente primeiro.', { type: 'error' }); return; }
-      var btn = document.getElementById('btn-gerar-relatorio');
-      if (btn) { btn.innerHTML = 'Gerando…'; btn.disabled = true; }
-      irTela('relatorio', null);
+    CUI.aoTrocarTeen(carregarPainel);
 
-      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
-      var nomeTeen = teen ? teen.nome : 'adolescente';
-
-      var { data: convsAtuais } = await sb.from('conversas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
-      var { data: convsArquivadas } = await sb.from('conversas_arquivadas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(20);
-      // Junta conversa ao vivo + arquivada (o adolescente pode ter limpado o chat) e usa as 20 mais recentes no total
-      var convs = (convsAtuais || []).concat(convsArquivadas || [])
-        .sort(function(a, b){ return new Date(a.timestamp) - new Date(b.timestamp); })
-        .slice(-20);
-
-      try {
-        var resumoMsgs = convs.map(function(m){ return (m.role||'').toUpperCase()+': '+(m.content||''); }).join('\n');
-        if (!resumoMsgs) resumoMsgs = 'Sem conversas recentes. O adolescente está começando a usar a plataforma.';
-
-        var res = await window.LUMITEA.groqFetch({
-            model: GROQ_MODEL,
-            messages: [
-              { role: 'system', content: 'Você é a Lumi, especialista em TEA. Gere um relatório para o cuidador. RESPONDA SOMENTE COM JSON VÁLIDO: {"resumo":"","humor_geral":"neutro","pontos_atencao":[],"dicas_cuidador":[],"sugestoes":[],"nivel_crise":false}. - resumo: 2-3 frases. - pontos_atencao: o que observar. - dicas_cuidador: [{titulo,descricao}]. - sugestoes: ações práticas. Português brasileiro. SOMENTE JSON.' },
-              { role: 'user', content: 'Sessão de '+nomeTeen+':\n\n'+resumoMsgs }
-            ],
-            max_tokens: 700, temperature: 0.4
-          });
-
-        var data = await res.json();
-        var raw = (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'{}';
-        raw = raw.replace(/```json|```/g,'').trim();
-        var m = raw.match(/\{[\s\S]*\}/);
-        var rel = m ? JSON.parse(m[0]) : { resumo: 'Relatório gerado.', humor_geral: 'neutro', pontos_atencao: [], sugestoes: [] };
-        rel.timestamp = new Date().toISOString();
-
-        // Visão psicológica
-        try {
-          var res2 = await window.LUMITEA.groqFetch({
-              model: GROQ_MODEL,
-              messages: [
-                { role: 'system', content: 'Você é psicóloga especialista em TEA. Com base neste relatório de sessão de um adolescente autista, escreva uma análise psicológica CONFIDENCIAL (apenas para o cuidador) de 3-4 frases. Foco em padrões emocionais, áreas de atenção e recursos internos do jovem. Português brasileiro. Sem markdown.' },
-                { role: 'user', content: JSON.stringify(rel) }
-              ],
-              max_tokens: 350, temperature: 0.5
-            });
-          if (res2.ok) { var d2 = await res2.json(); rel.visao_psicologica = (d2.choices&&d2.choices[0]&&d2.choices[0].message&&d2.choices[0].message.content)||''; }
-        } catch(e) {}
-
-        // Salva no Supabase
-        rel.id_neurodivergente = _teenSelecionado;
-        await sb.from('relatorios').insert(rel);
-        await carregarRelatorios();
-
-        // Alerta de crise
-        if (rel.nivel_crise) {
-          await sb.from('alertas').insert({ id_neurodivergente: _teenSelecionado, tipo: 'crise', titulo: 'Crise detectada no relatório', desc: 'O relatório gerado indica sinais de crise.', lido: false, timestamp: new Date().toISOString() });
-          carregarAlertas();
-        }
-      } catch(e) { LumiUI.toast('Erro ao gerar relatório. Verifique sua conexão.', { type: 'error' }); console.error(e); }
-
-      if (btn) { btn.innerHTML = _ic('sparkles') + ' Gerar relatório'; btn.disabled = false; }
-    }
-
-    function baixarPDF(cardId, data) {
-      var card = document.getElementById(cardId); if (!card) return;
-      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
-      var nomeTeen = teen ? teen.nome : 'Adolescente';
-      var win = window.open('','_blank');
-      if (!win) { LumiUI.toast('Permita popups para baixar o PDF.', { type: 'error' }); return; }
-      win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório LumiTEA — '+nomeTeen+'</title><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet"><style>body{font-family:Nunito,sans-serif;color:#2c3e5a;max-width:700px;margin:40px auto;padding:20px}h1{font-family:"Baloo 2",sans-serif;color:#2f5f8e;font-size:1.6rem;margin-bottom:4px}.meta{color:#62788f;font-size:.85rem;margin-bottom:24px}h3,.relatorio-section-title{color:#4a7eb5;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px}p,li{line-height:1.7;font-size:.92rem;color:#44597a}ul{padding-left:20px}.relatorio-psi{background:#dce9f7;padding:12px 16px;border-radius:10px;margin:14px 0}svg{width:13px;height:13px;stroke:#4a7eb5;fill:none;stroke-width:1.75;vertical-align:-2px}.footer{border-top:1px solid #cddff0;margin-top:40px;padding-top:14px;font-size:.78rem;color:#62788f;text-align:center}@media print{body{margin:20px}}</style></head><body><h1>Relatório LumiTEA</h1><div class="meta">Adolescente: <strong>'+nomeTeen+'</strong> &nbsp;|&nbsp; Data: <strong>'+data+'</strong> &nbsp;|&nbsp; Documento confidencial</div><hr style="border:none;border-top:1px solid #cddff0;margin-bottom:20px;">'+card.innerHTML.replace(/<button[^>]*>[\s\S]*?<\/button>/gi,'')+'<div class="footer">LumiTEA © 2026 — Relatório gerado pela IA Lumi. Documento confidencial destinado ao cuidador responsável.</div><script>window.onload=function(){window.print();}<\/script></body></html>');
-      win.document.close();
-    }
-
-    /* ── OBSERVAÇÕES ───────────────────────────────────────── */
-    async function carregarObs() {
-      if (!_teenSelecionado) return;
-      var { data: obs } = await sb.from('observacoes_cuidador').select('*').eq('id_neurodivergente', _teenSelecionado).eq('id_cuidador', _uid).order('timestamp', { ascending: false });
-      _obs = obs || [];
-      _renderObs();
-    }
-
-    function _renderObs() {
-      var lista = document.getElementById('obs-lista'); if (!lista) return;
-      if (!_obs.length) { lista.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">Nenhuma observação ainda. Use o campo abaixo para registrar a primeira.</p>'; return; }
-      lista.innerHTML = _obs.map(function(o, idx) {
-        var dt = o.timestamp ? new Date(o.timestamp).toLocaleDateString('pt-BR',{dateStyle:'short'}) : '';
-        return '<div class="obs-item"><div class="obs-item-top"><span class="obs-data">'+dt+'</span><button class="obs-del" onclick="deletarObs(\''+o.id+'\')" aria-label="Excluir observação">'+_ic('trash')+'</button></div><div class="obs-texto">'+window.LUMITEA.esc(o.texto)+'</div></div>';
-      }).join('');
-    }
-
-    async function salvarObs() {
-      if (!_teenSelecionado) { LumiUI.toast('Selecione um adolescente.', { type: 'error' }); return; }
-      var txt = document.getElementById('obs-txt');
-      var texto = txt.value.trim(); if (!texto) return;
-      await sb.from('observacoes_cuidador').insert({ id_neurodivergente: _teenSelecionado, id_cuidador: _uid, texto: texto, timestamp: new Date().toISOString() });
-      txt.value = '';
-      await carregarObs();
-    }
-
-    async function deletarObs(id) {
-      await sb.from('observacoes_cuidador').delete().eq('id', id);
-      _obs = _obs.filter(function(o){ return o.id !== id; });
-      _renderObs();
-    }
-
-    /* ── PROGRESSO ─────────────────────────────────────────── */
-    async function carregarProgresso() {
-      if (!_teenSelecionado) return;
-      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
-      if (!teen) return;
-      var xp = teen.xp || 0; var nivel = teen.nivel || 1;
-      var base = NIVEL_XP[Math.min(nivel-1, NIVEL_XP.length-1)] || 0;
-      var next = NIVEL_XP[Math.min(nivel, NIVEL_XP.length-1)] || NIVEL_XP[NIVEL_XP.length-1];
-      var pct = next > base ? Math.min(Math.round((xp-base)/(next-base)*100), 100) : 100;
-      document.getElementById('prog-nivel').textContent = nivel;
-      document.getElementById('prog-xp-val').textContent = xp + ' XP';
-      document.getElementById('prog-prox').textContent = next + ' XP';
-      document.getElementById('prog-bar').style.width = pct + '%';
-      var { data: convs } = await sb.from('conversas').select('id').eq('id_neurodivergente', _teenSelecionado);
-      var { data: rels } = await sb.from('relatorios').select('id').eq('id_neurodivergente', _teenSelecionado);
-      document.getElementById('prog-conversas').textContent = (convs||[]).length;
-      document.getElementById('prog-roleplays').textContent = (rels||[]).length;
-    }
-
-    /* ── ESTATÍSTICAS ──────────────────────────────────────── */
-    async function carregarEstatisticas() {
-      if (!_teenSelecionado) return;
-      var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
-      var { data: convs } = await sb.from('conversas').select('id').eq('id_neurodivergente', _teenSelecionado);
-      var { data: rels } = await sb.from('relatorios').select('id').eq('id_neurodivergente', _teenSelecionado);
-      var { data: humores } = await sb.from('humores').select('nivel, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', { ascending: false }).limit(30);
-      var med = calcMediaHumor(humores||[], 7);
-      document.getElementById('stat-conversas').textContent = (convs||[]).length;
-      document.getElementById('stat-relatorios').textContent = (rels||[]).length;
-      document.getElementById('stat-nivel').textContent = teen ? teen.nivel : '—';
-      document.getElementById('stat-humor-med').textContent = med ? med.toFixed(1)+'/5' : '—';
-    }
-
-    /* ── CHAT CUIDADOR ─────────────────────────────────────── */
-    function _benvindoCuidador() {
-      var nome = (_perfil && _perfil.nome) ? _perfil.nome.split(' ')[0] : 'cuidador';
-      _renderMsgCui('assistant', 'Olá, '+nome+'. Sou a Lumi, sua consultora especializada em TEA. Estou aqui para orientar você no apoio ao adolescente sob seus cuidados. Pode me perguntar sobre estratégias, rotinas, comunicação ou qualquer situação que esteja vivenciando.');
-    }
-
-    function _renderMsgCui(role, texto) {
-      var msgs = document.getElementById('chat-msgs-cuidador'); if (!msgs) return;
-      var wrap = document.createElement('div');
-      wrap.className = 'cui-msg-wrap ' + role;
-      var bbl = document.createElement('div');
-      bbl.className = 'cui-msg-bbl';
-      bbl.innerHTML = window.LUMITEA.esc(texto).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-      var hora = document.createElement('div');
-      hora.className = 'cui-msg-hora';
-      var now = new Date(); hora.textContent = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-      wrap.appendChild(bbl); wrap.appendChild(hora);
-      msgs.appendChild(wrap); msgs.scrollTop = msgs.scrollHeight;
-    }
-
-    function _mostrarTypingCui() {
-      var msgs = document.getElementById('chat-msgs-cuidador');
-      if (document.getElementById('typing-cui')) return;
-      var el = document.createElement('div');
-      el.id = 'typing-cui'; el.className = 'cui-msg-wrap lumi';
-      el.innerHTML = '<div class="cui-typing"><span></span><span></span><span></span></div>';
-      msgs.appendChild(el); msgs.scrollTop = msgs.scrollHeight;
-    }
-
-    function _esconderTypingCui() { var el = document.getElementById('typing-cui'); if (el) el.remove(); }
-
-    async function enviarMsgCuidador() {
-      var ta = document.getElementById('cui-ta'); if (!ta) return;
-      var texto = ta.value.trim(); if (!texto || _carregando) return;
-      ta.value = ''; ta.style.height = 'auto';
-      document.getElementById('btn-send-cui').disabled = true;
-      document.getElementById('chat-pills-cuidador').style.display = 'none';
-      _carregando = true;
-      _renderMsgCui('user', texto);
-      _histCuidador.push({ role: 'user', content: texto });
-      _mostrarTypingCui();
-      try {
-        var msgs = [{ role: 'system', content: 'Você é a Lumi, consultora especializada em TEA que orienta cuidadores e familiares de adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos profissionais quando necessário.' }].concat(_histCuidador);
-        var res = await window.LUMITEA.groqFetch({ model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 });
-        var data = await res.json();
-        var resposta = (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
-        _esconderTypingCui();
-        _histCuidador.push({ role: 'assistant', content: resposta });
-        _renderMsgCui('assistant', resposta);
-      } catch(e) { _esconderTypingCui(); _renderMsgCui('assistant', 'Houve um problema de conexão. Tente novamente.'); }
-      _carregando = false;
-    }
-
-    function usarPill(btn) {
-      var ta = document.getElementById('cui-ta'); if (!ta) return;
-      ta.value = btn.textContent.trim();
-      document.getElementById('btn-send-cui').disabled = false;
-      ta.focus();
-    }
-
-    /* ── NAVEGAÇÃO ─────────────────────────────────────────── */
-    window.irTela = function(id, btn) {
-      document.querySelectorAll('.cui-tela').forEach(function(t){ t.classList.remove('ativa'); });
-      document.querySelectorAll('.cui-nav-btn').forEach(function(b){ b.classList.remove('ativo'); });
-      var tela = document.getElementById('tela-'+id);
-      if (tela) tela.classList.add('ativa');
-      if (btn) btn.classList.add('ativo');
-      switch(id) {
-        case 'painel':       carregarPainel(); break;
-        case 'alertas':      carregarAlertas(); break;
-        case 'relatorio':    carregarRelatorios(); break;
-        case 'observacoes':  carregarObs(); break;
-        case 'progresso':    carregarProgresso(); break;
-        case 'estatisticas': carregarEstatisticas(); break;
-        case 'humor':
-          if (_teenSelecionado) {
-            sb.from('humores').select('nivel, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', {ascending: false}).limit(30).then(function(r) {
-              var humores = r.data || [];
-              renderHumorBars(humores, 'humor-bars-full');
-              var tab = document.getElementById('humor-tabela');
-              if (tab && humores.length) {
-                tab.innerHTML = humores.slice(0,15).map(function(h) {
-                  var dt = h.timestamp ? new Date(h.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
-                  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-faint);font-size:13px;">'+humorChip(h.nivel)+'<span style="font-weight:700;color:var(--text-main)">Nível '+h.nivel+'/5</span><span style="color:var(--text-muted);margin-left:auto">'+dt+'</span></div>';
-                }).join('');
-              } else if (tab) { tab.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhum registro de humor ainda.</p>'; }
-            });
-          }
-          break;
-        case 'live':
-          if (_teenSelecionado) {
-            sb.from('conversas').select('role, content, timestamp').eq('id_neurodivergente', _teenSelecionado).order('timestamp', {ascending: false}).limit(5).then(function(r) {
-              var convs = r.data || [];
-              var feed = document.getElementById('live-feed');
-              if (!feed) return;
-              if (!convs.length) { feed.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">Nenhuma atividade recente.</p>'; return; }
-              feed.innerHTML = convs.map(function(c) {
-                var dt = c.timestamp ? new Date(c.timestamp).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
-                var icone = c.role === 'user' ? _ic('user') : _ic('message-circle');
-                return '<div class="alerta-item"><div class="alerta-icon">'+icone+'</div><div class="alerta-info"><label>'+dt+'</label><p>'+window.LUMITEA.esc((c.content||'').slice(0,120))+'</p></div></div>';
-              }).join('');
-            });
-          }
-          break;
-      }
-    };
-
-    function fecharAlertaStrip() { var s = document.getElementById('cui-alerta-strip'); if (s) s.classList.remove('show'); }
-
-    async function _pollingAtualizar() {
-      if (_teenSelecionado) {
-        var { data: nd } = await sb.from('neurodivergente').select('xp, nivel').eq('id', _teenSelecionado).single();
-        if (nd) {
-          var teen = _teensVinculados.find(function(t){ return t.id === _teenSelecionado; });
-          if (teen) { teen.xp = nd.xp; teen.nivel = nd.nivel; }
-        }
-      }
-    }
-
-    /* sairCui() vive no bloco isolado logo depois da nav (topo do body). */
+    /* Atualiza sozinho a cada 30s, como o painel antigo fazia. */
+    setInterval(function () { if (CUI.pronto && CUI.teenId) carregarPainel(CUI.teenId); }, 30000);
   </script>
-  <script src="js/lumi-ia.js"></script>
-  <script src="js/cuidador.js"></script>
 </body>
 </html>

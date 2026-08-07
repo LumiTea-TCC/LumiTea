@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Ao vivo</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="live" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, faixa de alerta, sidebar e barra do adolescente
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-section-title"><i class="lt-i" data-lt-icon="radio" aria-hidden="true"></i> Ao vivo</div>
+        <div class="cui-alertas-card">
+          <div class="cui-live-hd">
+            <div class="cui-status-dot"></div>
+            <span class="cui-live-hd-txt">Monitoramento em tempo real ativo</span>
+          </div>
+          <div id="live-feed"><p class="cui-hint">Selecione um adolescente para acompanhar em tempo real.</p></div>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    /* Últimas mensagens do adolescente com a Lumi. Só leitura — o cuidador
+       acompanha, não interfere na conversa. */
+    async function carregarLive(teenId) {
+      var feed = document.getElementById('live-feed');
+      if (!feed) return;
+
+      if (!teenId) {
+        feed.innerHTML = '<p class="cui-hint">Selecione um adolescente para acompanhar em tempo real.</p>';
+        return;
+      }
+
+      var res = await CUI.sb.from('conversas').select('role, content, timestamp')
+        .eq('id_neurodivergente', teenId)
+        .order('timestamp', { ascending: false }).limit(5);
+
+      if (res.error) {
+        feed.innerHTML = '<p class="cui-hint">Não foi possível carregar agora. Tente recarregar a página.</p>';
+        return;
+      }
+
+      var convs = res.data || [];
+      if (!convs.length) {
+        feed.innerHTML = '<p class="cui-hint">Nenhuma atividade recente.</p>';
+        return;
+      }
+
+      feed.innerHTML = convs.map(function (c) {
+        var dt = c.timestamp ? new Date(c.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        var icone = c.role === 'user' ? CUI.ic('user') : CUI.ic('message-circle');
+        return '<div class="alerta-item"><div class="alerta-icon">' + icone + '</div><div class="alerta-info"><label>' + dt + '</label><p>' + CUI.esc((c.content || '').slice(0, 120)) + '</p></div></div>';
+      }).join('');
+    }
+
+    CUI.aoTrocarTeen(carregarLive);
+
+    /* "Ao vivo" precisa ser ao vivo: recarrega sozinho a cada 30s. */
+    setInterval(function () { if (CUI.pronto) carregarLive(CUI.teenId); }, 30000);
+  </script>
+</body>
+</html>
