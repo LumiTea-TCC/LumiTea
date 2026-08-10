@@ -3,7 +3,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>LumiTEA — Conversar com a Lumi</title>
+ <title>LumiTEA — Conversar com o Lumi Theo</title>
  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
@@ -20,12 +20,22 @@
  <script src="js/core/icons.js" defer></script>
  <script src="js/core/ui.js" defer></script>
 </head>
-<body class="app-body ai-conversation-page">
+<body class="app-body ai-conversation-page conv-v2">
 
-  <div class="bg-layer">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
+  <!-- Fundo azul com bolhas (mesma receita da tela de login) + urso em circuito.
+       Totalmente decorativo: sem conteúdo, sem clique. -->
+  <div class="conv-fundo" aria-hidden="true">
+    <span class="conv-bolha b1"></span>
+    <span class="conv-bolha b2"></span>
+    <span class="conv-bolha b3"></span>
+    <span class="conv-bolha b4"></span>
+    <span class="conv-bolha b5"></span>
+    <span class="conv-bolha b6"></span>
+    <span class="conv-bolha b7"></span>
+    <span class="conv-bolha b8"></span>
+    <div class="conv-urso-orbita">
+      <img class="conv-urso" src="img/urso-estrelhinha.png" alt="">
+    </div>
   </div>
 
   <nav class="app-nav">
@@ -35,7 +45,7 @@
     </a>
     <div class="app-nav-links">
       <a href="home-autista.html">Início</a>
-      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="entrada-conv.html" class="active" aria-current="page">Conversar com o Theo</a>
       <a href="games.html">Jogos do Theo</a>
       <a href="comunidade.html">Comunidade</a>
       <a href="calendario.html">Calendário</a>
@@ -60,27 +70,21 @@
 
   <div id="mm-conversa" class="app-mobile-menu">
     <a href="home-autista.html">Início</a>
-    <a href="conversa.html" class="active">Conversar com o Theo</a>
+    <a href="entrada-conv.html" class="active" aria-current="page">Conversar com o Theo</a>
     <a href="games.html">Jogos do Theo</a>
     <a href="comunidade.html">Comunidade</a>
     <a href="calendario.html">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html">Conta</a>
-    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+    <div class="mm-rodape">
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
   </div>
 
   <div class="conversa-wrapper">
     <header class="conversa-header">
-      <div class="lumi-avatar-wrap">
-        <div class="lumi-avatar"><img src="img/urso-aponta-lado.png" alt=""></div>
-        <span class="lumi-status-dot" aria-hidden="true"></span>
-      </div>
       <div class="conversa-header-info">
-        <span class="lumi-online-badge"><span class="dot" aria-hidden="true"></span>Online</span>
-        <h1>Lumi <span>Theo</span></h1>
-        <p>Pode contar pra Lumi o que quiser: seu dia, uma preocupação ou só desabafar. Aqui não existe certo ou errado — é o seu espaço, no seu tempo.</p>
+        <h1>Lumi <span>Theo</span><span class="conv-selo" aria-hidden="true"><img src="img/icon-urso.png" alt=""></span></h1>
       </div>
     </header>
 
@@ -104,6 +108,16 @@
 
             <div class="msg-row lumi typing-indicator" id="typingIndicator" aria-hidden="true">
               <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+
+          <div class="conv-chips" id="convChips">
+            <span class="conv-chips-rot">Ideias pra começar</span>
+            <div class="conv-chips-lista">
+              <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Como foi meu dia</button>
+              <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Estou preocupado com algo</button>
+              <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Situação na escola</button>
+              <button class="suggestion-chip" type="button" onclick="usarSugestao(this)">Quero desabafar</button>
             </div>
           </div>
 
@@ -139,23 +153,6 @@
           </div>
         </section>
       </div>
-
-      <aside class="chat-sidebar">
-        <div class="side-card">
-          <div class="side-card-title"><span class="sc-icon"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i></span> Ideias pra começar</div>
-          <div class="topic-list" id="topicList">
-            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">🌤️</span>Como foi meu dia</button>
-            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">💭</span>Estou preocupado com algo</button>
-            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">🏫</span>Situação na escola</button>
-            <button class="topic-item" type="button" onclick="usarSugestao(this)"><span class="t-emoji" aria-hidden="true">🗣️</span>Quero desabafar</button>
-          </div>
-        </div>
-
-        <div class="side-card">
-          <div class="side-card-title"><span class="sc-icon"><i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i></span> Um espaço só seu</div>
-          <div class="dica-box">Tudo que você conta aqui fica só entre você e a Lumi — sem julgamento, no seu tempo. 💙</div>
-        </div>
-      </aside>
     </div>
   </div>
 
@@ -170,6 +167,13 @@
     let historicoChat = []
     let _userId = null
     let _avisouErroSalvar = false
+
+    /* Os chips só existem pra destravar quem abre a tela em branco:
+       na primeira mensagem eles saem e não voltam até "Nova conversa". */
+    function mostrarChips(mostrar) {
+      const chips = document.getElementById('convChips')
+      if (chips) chips.hidden = !mostrar
+    }
 
     function usarSugestao(btn) {
       const texto = btn.textContent.trim().replace(/^[\p{Emoji}\s]+/u, '').trim()
@@ -218,7 +222,7 @@
             <div class="msg-bubble">${escapeHtml(texto)}</div>
             <span class="msg-time">${hora}</span>
           </div>
-          <div class="msg-avatar user-av"></div>
+          <div class="msg-avatar user-av"><img src="img/urso-coder.png" alt=""></div>
         `
       } else {
         row.innerHTML = `
@@ -234,6 +238,7 @@
       }
 
       msgs.insertBefore(row, typing)
+      if (tipo === 'user') mostrarChips(false)
       scrollToBottom()
     }
 
@@ -337,6 +342,7 @@
       historicoChat = []
 
       document.getElementById('welcomeTime').textContent = horaAgora()
+      mostrarChips(true)
       scrollToBottom()
 
       if (_userId && window.supabaseClient) {
@@ -361,6 +367,7 @@
           .limit(60)
         if (error || !data || !data.length) return
 
+        mostrarChips(false)
         data.reverse().forEach(function (m) {
           const tipo = m.role === 'user' ? 'user' : 'lumi'
           addMessage(tipo, m.content, m.timestamp)
@@ -399,23 +406,8 @@
     });
     })();
 
-    (function() {
-    var pagina = window.location.pathname.split('/').pop() || 'home-autista.html';
-    document.querySelectorAll('.app-nav-links a').forEach(function(link) {
-    link.classList.remove('active');
-    var href = link.getAttribute('href');
-    if (href === pagina || (pagina === '' && href === 'home-autista.html')) link.classList.add('active');
-    });
-    })();
-
-    (function() {
-    var pagina = window.location.pathname.split('/').pop() || 'conversa.html';
-    document.querySelectorAll('#mm-conversa a').forEach(function(link) {
-    link.classList.remove('active');
-    var href = link.getAttribute('href');
-    if (href === pagina) link.classList.add('active');
-    });
-    })();
+    /* O item ativo do menu é fixo no HTML: o link "Conversar com o Theo" aponta
+       pra entrada-conv.html, então marcar por nome de arquivo não acharia nada. */
 
     iniciarPagina()
   </script>

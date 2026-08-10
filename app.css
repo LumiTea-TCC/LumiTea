@@ -3997,3 +3997,447 @@ a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
   .set-hero-badges { justify-content: center; }
   .set-page { padding: var(--sp-4) var(--sp-4) var(--sp-8); }
 }
+
+/* ================================================================
+   ENTRADA DA CONVERSA — entrada-conv.html
+   Pórtico calmo antes do chat: título, uma frase, um botão, o Theo.
+   Tudo escopado em body.entrada-conv-page (prefixo .enc-) pra não
+   vazar classe genérica pro resto do app.
+   ================================================================ */
+
+.entrada-conv-page .enc-hero {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(28px, 7vh, 72px) var(--sp-6) 0;
+  text-align: center;
+}
+
+.entrada-conv-page .enc-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 640px;
+}
+
+/* Título display — "Theo" ganha marca-texto suave, como no mockup */
+.entrada-conv-page .enc-titulo {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(2.3rem, 5.6vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-main);
+  margin: 0;
+}
+.entrada-conv-page .enc-titulo-mark {
+  position: relative;
+  z-index: 0;
+  margin-left: 0.04em;
+  padding: 0 0.16em;
+  color: var(--brand-dark);
+}
+.entrada-conv-page .enc-titulo-mark::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0.16em 0 0.1em;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(199, 224, 247, 0.9), rgba(199, 224, 247, 0.55));
+}
+
+.entrada-conv-page .enc-sub {
+  max-width: 50ch;
+  margin: var(--sp-5) 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.65;
+  color: var(--text-soft);
+  text-wrap: balance;
+}
+
+/* Ação única da página */
+.entrada-conv-page .enc-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 60px;
+  margin-top: var(--sp-8);
+  padding: 0 var(--sp-8);
+  border-radius: var(--r-pill);
+  /* Gradiente diagonal: escuro em cima/à esquerda, claro em baixo/à direita.
+     O texto branco cai sobre --primary-action ou mais escuro (≥ 4.6:1). */
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-action) 45%, var(--primary) 100%);
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  box-shadow: 0 10px 26px rgba(25, 118, 210, 0.26);
+  position: relative;
+  isolation: isolate;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+/* Camada de hover: o mesmo gradiente um tom mais fundo, em crossfade.
+   Trocar cor (e não fazer o botão saltar) mantém o efeito calmo. */
+.entrada-conv-page .enc-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #0f4f9c 0%, var(--primary-dark) 55%, var(--primary-action) 100%);
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.entrada-conv-page .enc-cta:hover::after,
+.entrada-conv-page .enc-cta:focus-visible::after { opacity: 1; }
+
+.entrada-conv-page .enc-cta:hover {
+  transform: translateY(-2px);
+  /* halo suave em volta da pílula + sombra um pouco mais aberta */
+  box-shadow: 0 16px 34px rgba(25, 118, 210, 0.30), 0 0 0 6px rgba(33, 150, 243, 0.14);
+}
+/* :focus-visible precisa repetir o anel global — a sombra acima o sobrescreveria */
+.entrada-conv-page .enc-cta:focus-visible {
+  box-shadow: var(--focus-ring), 0 16px 34px rgba(25, 118, 210, 0.28);
+}
+.entrada-conv-page .enc-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.26);
+}
+
+.entrada-conv-page .enc-cta-seta {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.entrada-conv-page .enc-cta:hover .enc-cta-seta,
+.entrada-conv-page .enc-cta:focus-visible .enc-cta-seta { transform: translateX(3px); }
+
+/* Modo calmo e reduced-motion: fica só a mudança de cor, sem nada se mexer */
+@media (prefers-reduced-motion: reduce) {
+  .entrada-conv-page .enc-cta:hover,
+  .entrada-conv-page .enc-cta:focus-visible { transform: none; }
+  .entrada-conv-page .enc-cta:hover .enc-cta-seta,
+  .entrada-conv-page .enc-cta:focus-visible .enc-cta-seta { transform: none; }
+}
+html[data-modo-calmo="true"] .entrada-conv-page .enc-cta:hover,
+html[data-modo-calmo="true"] .entrada-conv-page .enc-cta:focus-visible { transform: none; }
+html[data-modo-calmo="true"] .entrada-conv-page .enc-cta:hover .enc-cta-seta,
+html[data-modo-calmo="true"] .entrada-conv-page .enc-cta:focus-visible .enc-cta-seta { transform: none; }
+
+/* Theo e o amigo conversando — base visual da composição */
+.entrada-conv-page .enc-arte {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: auto;
+  padding: var(--sp-8) 0 var(--sp-6);
+}
+.entrada-conv-page .enc-arte img {
+  display: block;
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  max-height: min(46vh, 440px);
+  object-fit: contain;
+  filter: drop-shadow(0 20px 26px rgba(74, 126, 181, 0.16));
+}
+
+@media (max-width: 640px) {
+  /* Na tela estreita a arte é limitada pela largura, não pela altura: em vez de
+     prender a ilustração no rodapé (e abrir um vazio no meio), centraliza o conjunto. */
+  .entrada-conv-page .enc-hero {
+    justify-content: center;
+    padding: var(--sp-6) var(--sp-4) var(--sp-4);
+  }
+  .entrada-conv-page .enc-arte {
+    margin-top: 0;
+    padding: var(--sp-7) 0 0;
+  }
+  .entrada-conv-page .enc-sub { font-size: 1rem; }
+  .entrada-conv-page .enc-cta {
+    justify-content: center;
+    width: 100%;
+    max-width: 340px;
+    min-height: 56px;
+    padding: 0 var(--sp-6);
+    font-size: 1.08rem;
+  }
+  .entrada-conv-page .enc-arte img { max-height: 38vh; }
+}
+
+/* Telas baixas (celular deitado): a arte cede espaço, nunca o botão */
+@media (max-height: 620px) {
+  .entrada-conv-page .enc-arte img { max-height: 30vh; }
+}
+
+/* Rodapé do menu mobile (era style inline em conversa.html) */
+.mm-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 6px;
+  padding: var(--sp-3) var(--sp-2) var(--sp-1);
+  border-top: 1px solid var(--border-faint);
+}
+
+/* ================================================================
+   CONVERSA v2 (conversa.html) — coluna branca sobre fundo azul
+   Mesma receita de fundo da tela de login (conta.css): gradiente azul
+   + círculos brancos translúcidos. Escopo: body.conv-v2 (a página
+   mantém .ai-conversation-page, então estas regras vêm depois e
+   sobrescrevem o que precisa mudar).
+   ================================================================ */
+
+body.conv-v2 {
+  background: linear-gradient(135deg, var(--primary) 0%, #5a9fd4 100%);
+  overflow-x: hidden;
+}
+/* desliga o blur animado do visual antigo desta página */
+body.conv-v2::before { display: none; }
+
+/* ── Fundo decorativo ─────────────────────────────────────────── */
+.conv-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.conv-bolha {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.11);
+}
+.conv-bolha.b1 { width: 300px; height: 300px; top: -70px;  left: -90px; }
+.conv-bolha.b2 { width: 170px; height: 170px; top: 26%;    left: 2%;    background: rgba(255,255,255,0.09); }
+.conv-bolha.b3 { width: 120px; height: 120px; top: 45%;    left: 11%;   background: rgba(255,255,255,0.13); }
+.conv-bolha.b4 { width: 260px; height: 260px; bottom: -80px; left: -60px; }
+.conv-bolha.b5 { width: 340px; height: 340px; top: -110px; right: -80px; background: rgba(255,255,255,0.09); }
+.conv-bolha.b6 { width: 200px; height: 200px; top: 30%;    right: 4%;   }
+.conv-bolha.b7 { width: 140px; height: 140px; top: 58%;    right: 13%;  background: rgba(255,255,255,0.13); }
+.conv-bolha.b8 { width: 250px; height: 250px; bottom: -70px; right: 2%; }
+
+/* ── Urso em circuito: desce à direita, sobe à esquerda ───────── */
+.conv-urso-orbita {
+  position: absolute;
+  top: 0;
+  left: 88%;
+  width: 128px;
+  margin-left: -64px;
+  animation: convUrsoCircuito 52s linear infinite;
+}
+.conv-urso {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0.96;
+  filter: drop-shadow(0 10px 18px rgba(20, 60, 110, 0.18));
+  animation: convUrsoGira 22s linear infinite;
+}
+/* A troca de faixa acontece fora da tela (embaixo aos 50%, em cima aos 100%). */
+@keyframes convUrsoCircuito {
+  0%   { left: 88%; transform: translateY(-200px); }
+  47%  { left: 88%; transform: translateY(calc(100vh + 200px)); }
+  50%  { left: 12%; transform: translateY(calc(100vh + 200px)); }
+  97%  { left: 12%; transform: translateY(-200px); }
+  100% { left: 88%; transform: translateY(-200px); }
+}
+@keyframes convUrsoGira { to { transform: rotate(360deg); } }
+
+/* Movimento reduzido: o urso para e fica de enfeite numa posição de descanso. */
+@media (prefers-reduced-motion: reduce) {
+  .conv-urso-orbita {
+    animation: none;
+    top: 22%;
+    left: 88%;
+    transform: none;
+  }
+  .conv-urso { animation: none; }
+}
+/* Modo calmo: além de parar (tokens.css já zera animação), o azul fica
+   bem mais suave e as bolhas somem — mesma decisão da tela de login. */
+html[data-modo-calmo="true"] body.conv-v2 {
+  background: linear-gradient(135deg, var(--accent2) 0%, var(--primary-pale) 100%);
+}
+html[data-modo-calmo="true"] .conv-bolha { display: none; }
+html[data-modo-calmo="true"] .conv-urso-orbita {
+  top: 22%;
+  left: 88%;
+  transform: none;
+}
+
+/* ── Coluna branca central ────────────────────────────────────── */
+body.conv-v2 .conversa-wrapper {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 780px;
+  min-height: calc(100vh - 64px);
+  margin: 0 auto;
+  padding: var(--sp-5) var(--sp-7) var(--sp-6);
+  gap: var(--sp-3);
+  background: var(--surface);
+  box-shadow: 0 0 60px rgba(20, 60, 110, 0.20);
+}
+
+/* ── Cabeçalho minimalista ────────────────────────────────────── */
+body.conv-v2 .conversa-header {
+  min-height: 0;
+  padding: var(--sp-2) 0 var(--sp-4);
+  border-bottom: 1px solid var(--border-faint);
+}
+body.conv-v2 .conversa-header-info { gap: 0; }
+body.conv-v2 .conversa-header-info h1 {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: clamp(1.6rem, 3.2vw, 2.15rem);
+  max-width: none;
+}
+/* "Theo" com o mesmo marca-texto da entrada-conv.html */
+body.conv-v2 .conversa-header-info h1 > span:not(.conv-selo) {
+  position: relative;
+  z-index: 0;
+  margin-left: 0.12em;
+  padding: 0 0.16em;
+  color: var(--brand-dark);
+}
+body.conv-v2 .conversa-header-info h1 > span:not(.conv-selo)::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0.16em 0 0.1em;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(199, 224, 247, 0.9), rgba(199, 224, 247, 0.55));
+}
+/* Selo/balãozinho ao lado do título */
+.conv-selo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-left: var(--sp-2);
+  transform: translateY(-8px);
+  border-radius: 14px 14px 14px 4px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-action) 100%);
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.28);
+}
+.conv-selo img { width: 24px; height: 24px; object-fit: contain; }
+
+/* ── Conversa ocupa a coluna inteira (era limitada a 360px) ───── */
+body.conv-v2 .conversa-layout {
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+body.conv-v2 .chat-main {
+  flex: 1;
+  max-width: none;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+body.conv-v2 .chat-container {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  overflow: visible;
+  /* .chat-container é um <section>, e lumitea.css dá `section { padding: 72px 56px;
+     max-width: 1100px }` pra landing. Isso vazava aqui (ficava escondido enquanto a
+     área de mensagens tinha altura fixa) e impedia a conversa de ocupar a coluna. */
+  padding: 0;
+  max-width: none;
+  margin: 0;
+}
+body.conv-v2 .chat-messages {
+  flex: 1;
+  min-height: 220px !important;
+  max-height: none !important;
+  padding: var(--sp-5) var(--sp-1) var(--sp-4);
+  background: transparent;
+}
+
+/* Avatar do teen com o mascote, como no restante do app */
+body.conv-v2 .msg-avatar.user-av {
+  background: var(--primary-pale);
+  border: 2px solid rgba(74, 126, 181, 0.22);
+}
+body.conv-v2 .msg-avatar.user-av img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+/* ── Barra de escrita e rodapé, sobre branco ──────────────────── */
+body.conv-v2 .chat-input-bar {
+  padding: var(--sp-3) 0 var(--sp-2);
+  background: transparent;
+  border-top: 1px solid var(--border-faint);
+}
+body.conv-v2 .chat-textarea {
+  background: var(--bg-2);
+  border-color: var(--border);
+}
+body.conv-v2 .chat-footer-bar {
+  background: transparent;
+  border: none;
+  padding: var(--sp-1) 0 0;
+}
+
+/* ── Chips de sugestão (substituem a antiga sidebar) ──────────── */
+.conv-chips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0 0;
+}
+.conv-chips-rot {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.conv-chips-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+body.conv-v2 .suggestion-chip {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--primary-dark);
+  min-height: 34px;
+}
+body.conv-v2 .suggestion-chip:hover {
+  background: var(--primary-pale);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+/* ── Responsivo ───────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  /* sem faixa azul larga o bastante, o urso sairia por cima da coluna */
+  .conv-urso-orbita { display: none; }
+}
+@media (max-width: 900px) {
+  body.conv-v2 .conversa-wrapper {
+    max-width: none;
+    padding: var(--sp-4) var(--sp-4) var(--sp-5);
+  }
+}

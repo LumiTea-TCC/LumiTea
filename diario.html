@@ -34,7 +34,7 @@
     </a>
     <div class="app-nav-links">
       <a href="home-autista.html">Início</a>
-      <a href="conversa.html">Conversar com o Theo</a>
+      <a href="entrada-conv.html">Conversar com o Theo</a>
       <a href="games.html">Jogos do Theo</a>
       <a href="comunidade.html">Comunidade</a>
       <a href="calendario.html">Calendário</a>
@@ -61,7 +61,7 @@
   <!-- Mobile menu dropdown -->
   <div id="mm-diario" class="app-mobile-menu">
     <a href="home-autista.html">Início</a>
-    <a href="conversa.html">Conversar com o Theo</a>
+    <a href="entrada-conv.html">Conversar com o Theo</a>
     <a href="games.html">Jogos do Theo</a>
     <a href="comunidade.html">Comunidade</a>
     <a href="calendario.html">Calendário</a>
@@ -132,7 +132,7 @@
       <div class="dm-boas-vindas" id="tela-inicio">
         <div class="bv-emoji"><i class="lt-i lt-i--lg" data-lt-icon="book-open" aria-hidden="true"></i></div>
         <h2>Seu Diário Pessoal</h2>
-        <p>Aqui você pode escrever livremente sobre seus sentimentos, seu dia e tudo que quiser expressar. A Lumi vai te ajudar a compreender suas emoções com carinho.</p>
+        <p>Aqui você pode escrever livremente sobre seus sentimentos, seu dia e tudo que quiser expressar. O Lumi Theo vai te ajudar a compreender suas emoções com carinho.</p>
         <div class="dm-stats">
           <div class="dm-stat"><div class="dm-stat-val" id="stat-entradas">0</div><div class="dm-stat-label">Entradas</div></div>
           <div class="dm-stat"><div class="dm-stat-val" id="stat-sequencia">0</div><div class="dm-stat-label">Dias seguidos</div></div>
@@ -157,7 +157,7 @@
         <input class="de-titulo-input" id="de-titulo" type="text" placeholder="Título desta entrada (opcional)..." maxlength="80">
 
         <div>
-          <div style="font-size:0.78rem;font-weight:800;color:var(--primary-dark);margin-bottom:8px;"><i class="lt-i" data-lt-icon="lightbulb" aria-hidden="true"></i> A Lumi pergunta:</div>
+          <div style="font-size:0.78rem;font-weight:800;color:var(--primary-dark);margin-bottom:8px;"><i class="lt-i" data-lt-icon="lightbulb" aria-hidden="true"></i> O Lumi Theo pergunta:</div>
           <div class="de-perguntas" id="de-perguntas"></div>
         </div>
 
@@ -165,7 +165,7 @@
 
         <div class="de-acoes">
           <button class="btn-outline-gray" onclick="cancelarEdicao()">Cancelar</button>
-          <button class="btn-purple" onclick="salvarEntrada()"><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Salvar e ver reflexão da Lumi</button>
+          <button class="btn-purple" onclick="salvarEntrada()"><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Salvar e ver reflexão do Lumi Theo</button>
         </div>
 
       </div>
@@ -192,14 +192,14 @@
 
         <div class="lumi-reflexao">
           <div class="lr-header">
-            <div class="lr-avatar"><img src="img/urso-joia.png" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover"></div>
+            <div class="lr-avatar"><img src="img/icon-urso.png" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover"></div>
             <div>
-              <div class="lr-titulo">Reflexão da Lumi</div>
+              <div class="lr-titulo">Reflexão do Lumi Theo</div>
               <div class="lr-sub">Análise e apoio emocional personalizado</div>
             </div>
           </div>
           <div class="lr-texto" id="lr-texto">
-            <div class="lr-carregando"><i class="lt-i" data-lt-icon="clock" aria-hidden="true"></i> Carregando reflexão da Lumi...</div>
+            <div class="lr-carregando"><i class="lt-i" data-lt-icon="clock" aria-hidden="true"></i> Carregando reflexão do Lumi Theo...</div>
           </div>
         </div>
 
@@ -212,7 +212,9 @@
     const SUPABASE_URL      = 'https://yuwdckenzpfdlyawkibn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N';
     const { createClient } = supabase;
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Reusa o cliente global criado por js/core/config.js (evita o aviso
+    // "Multiple GoTrueClient instances" e a disputa pela mesma storage key).
+    const sb = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
     async function chamarGroq(systemPrompt, msgs, maxTokens) {
       async function tryModel(model) {
@@ -353,38 +355,44 @@
       const texto = document.getElementById('de-texto').value.trim();
       if (!texto) { alert('Escreva algo antes de salvar.'); return; }
 
-      const entrada = {
-        id: _editandoId || 'e_' + Date.now(),
-        id_neurodivergente: _userId,
-        titulo, texto,
-        humor: _humorSel || 'mais-ou-menos',
-        emoji: _humorEmoji,
-        created_at: _editandoId ? (_entradas.find(e => e.id === _editandoId)?.created_at || new Date().toISOString()) : new Date().toISOString(),
-        reflexao_lumi: null
-      };
+      const humor = _humorSel || 'mais-ou-menos';
 
-      // Salvar no Supabase
+      // Salvar no Supabase.
+      // ATENÇÃO: `id` é UUID com DEFAULT gen_random_uuid() no banco — NUNCA mandar
+      // um id gerado no cliente (era 'e_'+Date.now(), o que dava 400 "invalid input
+      // syntax for type uuid"). `created_at`/`updated_at` também vêm do banco.
+      let salva = null;
       try {
         if (_editandoId) {
-          const { error } = await sb.from('diario_entradas').update({ titulo, texto, humor: entrada.humor, emoji: _humorEmoji }).eq('id', _editandoId);
+          const { data, error } = await sb.from('diario_entradas')
+            .update({ titulo, texto, humor, emoji: _humorEmoji })
+            .eq('id', _editandoId)
+            .select()
+            .single();
           if (error) throw error;
+          salva = data;
         } else {
-          const { error } = await sb.from('diario_entradas').insert(entrada);
+          const { data, error } = await sb.from('diario_entradas')
+            .insert({ id_neurodivergente: _userId, titulo, texto, humor, emoji: _humorEmoji })
+            .select()
+            .single();
           if (error) throw error;
+          salva = data;
         }
       } catch(e) {
-        console.error('[Diário] Erro ao salvar entrada:', e.message);
+        console.error('[Diário] Erro ao salvar entrada:', e.code, '|', e.message, '|', e.details, '|', e.hint);
         alert('Erro ao salvar. Verifique sua conexão e tente novamente.');
         return;
       }
 
+      _editandoId = null;
       await carregarEntradas();
-      _entradaAtiva = _entradas.find(e => e.id === entrada.id) || entrada;
+      _entradaAtiva = _entradas.find(e => e.id === salva.id) || salva;
       mostrarTela('leitura');
       preencherLeitura(_entradaAtiva);
       renderSidebar();
 
-      // Gerar reflexão da Lumi
+      // Gerar reflexão do Lumi Theo
       gerarReflexaoLumi(_entradaAtiva);
     }
 
@@ -411,14 +419,14 @@
       document.getElementById('dl-data').textContent = data.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
       document.getElementById('dl-humor-badge').innerHTML = `<span style="background:${hc.bg};color:${hc.color};padding:3px 10px;border-radius:20px;font-weight:800;font-size:0.78rem;">${hc.label}</span>`;
       document.getElementById('dl-texto').textContent = entrada.texto;
-      document.getElementById('lr-texto').innerHTML = '<div class="lr-carregando">' + (window.LUMI ? LUMI.icon('clock') : '') + ' Carregando reflexão da Lumi...</div>';
+      document.getElementById('lr-texto').innerHTML = '<div class="lr-carregando">' + (window.LUMI ? LUMI.icon('clock') : '') + ' Carregando reflexão do Lumi Theo...</div>';
     }
 
     /* ── REFLEXÃO DA LUMI ─────────────────────────────────── */
     async function gerarReflexaoLumi(entrada) {
       try {
         const reflexao = (await chamarGroq(
-          `Você é a Lumi, psicóloga especialista em TEA. Um adolescente autista escreveu em seu diário. Leia com carinho e responda com:
+          `Você é o Lumi Theo, psicólogo especialista em TEA. Um adolescente autista escreveu em seu diário. Leia com carinho e responda com:
 1. Uma validação empática do sentimento (1-2 frases)
 2. Uma reflexão gentil e útil (2-3 frases)
 3. Uma dica prática para a situação (1-2 frases)
@@ -432,9 +440,12 @@ Seja calorosa, simples e sem jargões. Máximo 5-6 frases no total. Português b
         // Salvar reflexão no Supabase
         _entradaAtiva.reflexao_lumi = reflexao;
         try {
-          await sb.from('diario_entradas').update({ reflexao_lumi: reflexao }).eq('id', _entradaAtiva.id);
+          const { error } = await sb.from('diario_entradas').update({ reflexao_lumi: reflexao }).eq('id', _entradaAtiva.id);
+          if (error) throw error;
+          const local = _entradas.find(e => e.id === _entradaAtiva.id);
+          if (local) local.reflexao_lumi = reflexao;
         } catch(e) {
-          console.warn('[Diário] Não foi possível salvar reflexão:', e.message);
+          console.warn('[Diário] Não foi possível salvar reflexão:', e.code, '|', e.message, '|', e.details);
         }
       } catch(e) {
         document.getElementById('lr-texto').textContent = 'Obrigada por escrever aqui! Você foi muito corajoso em expressar seus sentimentos. Continue assim! 🐻';

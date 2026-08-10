@@ -11,6 +11,9 @@
   var dispensados = new Set();
 
   function montarSb() {
+    // Reusa o cliente global (config.js) — criar um segundo GoTrueClient com a
+    // mesma storage key dispara aviso no console e pode brigar pelo token.
+    if (window.supabaseClient) return window.supabaseClient;
     if (!window.LUMITEA || !window.LUMITEA.criarSupabase) return null;
     return window.LUMITEA.criarSupabase();
   }
