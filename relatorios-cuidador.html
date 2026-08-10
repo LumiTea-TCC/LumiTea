@@ -55,6 +55,93 @@
   <script>
     var GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
 
+    /* ── O QUE A TABELA `relatorios` ACEITA DE VERDADE ─────────
+       O insert vinha falhando com HTTP 400 e ninguém via: a versão antiga
+       (dentro de home-cuidador.html) mandava `insert(rel)` sem checar `error`,
+       então a tela dizia "sucesso" e o relatório sumia. Duas coisas derrubam o
+       insert, as duas vindas do JSON que a Lumi devolve:
+         1. chave que não é coluna → PostgREST responde 400/PGRST204
+            ("Could not find the 'x' column of 'relatorios' in the schema cache");
+         2. `humor_geral` fora do CHECK da coluna → 400/23514. O banco só aceita
+            'muito-bem'|'bem'|'neutro'|'mal'|'muito-mal', e a IA escreve
+            "triste", "misto", "difícil", "bom"…
+       Por isso o JSON da IA NUNCA vai direto pro banco: passa por montarPayload(),
+       que monta o objeto campo a campo (whitelist por construção) e normaliza os
+       tipos. Colunas reais, conferidas em produção: id_neurodivergente, resumo,
+       humor_geral, pontos_atencao, dicas_cuidador, sugestoes, visao_psicologica,
+       nivel_crise, periodo_inicio, periodo_fim, timestamp. */
+    var HUMOR_DB = ['muito-bem', 'bem', 'neutro', 'mal', 'muito-mal'];
+
+    /* Vocabulário da IA (e o das classes de cor do app) → vocabulário do banco. */
+    var HUMOR_SINONIMOS = {
+      'otimo': 'muito-bem', 'excelente': 'muito-bem', 'muito-bom': 'muito-bem',
+      'muito-positivo': 'muito-bem', 'feliz': 'muito-bem', 'alegre': 'muito-bem',
+      'bom': 'bem', 'positivo': 'bem', 'tranquilo': 'bem', 'calmo': 'bem', 'estavel': 'bem',
+      'medio': 'neutro', 'misto': 'neutro', 'regular': 'neutro', 'variado': 'neutro',
+      'indefinido': 'neutro', 'variavel': 'neutro',
+      'dificil': 'mal', 'ruim': 'mal', 'triste': 'mal', 'negativo': 'mal', 'baixo': 'mal',
+      'ansioso': 'mal', 'preocupante': 'mal', 'irritado': 'mal', 'tenso': 'mal',
+      'crise': 'muito-mal', 'muito-ruim': 'muito-mal', 'muito-dificil': 'muito-mal',
+      'muito-negativo': 'muito-mal', 'grave': 'muito-mal', 'critico': 'muito-mal', 'pessimo': 'muito-mal'
+    };
+
+    function normalizarHumor(v) {
+      var s = String(v == null ? '' : v).toLowerCase().trim()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // tira acento ("difícil" → "dificil")
+        .replace(/[\s_]+/g, '-');
+      if (HUMOR_DB.indexOf(s) !== -1) return s;
+      return HUMOR_SINONIMOS[s] || 'neutro';
+    }
+
+    /* O banco guarda o humor no vocabulário acima; as classes de cor do app
+       (app.css) usam outro: otimo/bom/neutro/dificil/crise. Sem esta tradução o
+       badge saía SEMPRE "Neutro" e sem cor, mesmo em relatório de crise. */
+    var HUMOR_UI = {
+      'muito-bem': { classe: 'otimo',   texto: 'Ótimo' },
+      'bem':       { classe: 'bom',     texto: 'Bom' },
+      'neutro':    { classe: 'neutro',  texto: 'Neutro' },
+      'mal':       { classe: 'dificil', texto: 'Difícil' },
+      'muito-mal': { classe: 'crise',   texto: 'Crise' }
+    };
+
+    function texto(v) { return (v === null || v === undefined) ? '' : String(v); }
+
+    /* A IA às vezes devolve uma string onde foi pedida uma lista, ou uma lista de
+       objetos onde foram pedidas frases. Nada disso pode virar erro na tela. */
+    function listaDeFrases(v) {
+      if (typeof v === 'string') v = v ? [v] : [];
+      if (!Array.isArray(v)) return [];
+      return v.map(function (item) {
+        if (item && typeof item === 'object') return texto(item.descricao || item.titulo || item.texto);
+        return texto(item);
+      }).filter(Boolean);
+    }
+
+    function listaDeDicas(v) {
+      if (typeof v === 'string') v = v ? [v] : [];
+      if (!Array.isArray(v)) return [];
+      return v.map(function (item) {
+        if (item && typeof item === 'object') {
+          return { titulo: texto(item.titulo || item.title), descricao: texto(item.descricao || item.description || item.texto) };
+        }
+        return { titulo: '', descricao: texto(item) };
+      }).filter(function (d) { return d.titulo || d.descricao; });
+    }
+
+    function montarPayload(rel, teenId) {
+      return {
+        id_neurodivergente: teenId,
+        resumo: texto(rel.resumo).slice(0, 4000) || 'Relatório gerado.',
+        humor_geral: normalizarHumor(rel.humor_geral),
+        pontos_atencao: listaDeFrases(rel.pontos_atencao),
+        dicas_cuidador: listaDeDicas(rel.dicas_cuidador),
+        sugestoes: listaDeFrases(rel.sugestoes),
+        visao_psicologica: texto(rel.visao_psicologica).slice(0, 4000) || null,
+        nivel_crise: rel.nivel_crise === true || rel.nivel_crise === 'true',
+        timestamp: new Date().toISOString()
+      };
+    }
+
     /* O botão do topo só depende do adolescente estar escolhido — nunca do
        resultado da consulta. Assim o cuidador sempre consegue gerar, mesmo se
        a lista falhar em carregar. */
@@ -103,26 +190,32 @@
         return;
       }
 
-      var labels = { otimo: 'Ótimo', bom: 'Bom', neutro: 'Neutro', dificil: 'Difícil', crise: 'Crise' };
       lista.innerHTML = rels.map(function (rel, idx) {
         var data = rel.timestamp ? new Date(rel.timestamp).toLocaleDateString('pt-BR', { dateStyle: 'long' }) : 'Sem data';
-        var hclass = 'humor-' + (rel.humor_geral || 'neutro');
+        /* normalizarHumor() aqui também serve pras linhas antigas, gravadas
+           quando o código ainda misturava os dois vocabulários de humor. */
+        var hum = HUMOR_UI[normalizarHumor(rel.humor_geral)];
         var id = 'rel-' + idx;
+        var pontos = listaDeFrases(rel.pontos_atencao);
+        var dicas = listaDeDicas(rel.dicas_cuidador);
+        var sugestoes = listaDeFrases(rel.sugestoes);
         var h = '<div class="relatorio-card" id="' + id + '">';
         h += '<div class="relatorio-header"><div class="relatorio-date">' + CUI.ic('calendar') + ' ' + data + '</div>';
-        h += '<span class="humor-badge ' + hclass + '">' + (labels[rel.humor_geral] || 'Neutro') + '</span></div>';
+        h += '<span class="humor-badge humor-' + hum.classe + '">' + hum.texto + '</span></div>';
         if (rel.resumo) h += '<div class="relatorio-resumo">' + CUI.esc(rel.resumo) + '</div>';
-        if (rel.pontos_atencao && rel.pontos_atencao.length) {
+        if (pontos.length) {
           h += '<div class="relatorio-section-title">' + CUI.ic('eye') + ' Pontos de atenção</div>';
-          h += '<ul class="relatorio-list">' + rel.pontos_atencao.map(function (p) { return '<li>' + CUI.esc(p) + '</li>'; }).join('') + '</ul>';
+          h += '<ul class="relatorio-list">' + pontos.map(function (p) { return '<li>' + CUI.esc(p) + '</li>'; }).join('') + '</ul>';
         }
-        if (rel.dicas_cuidador && rel.dicas_cuidador.length) {
+        if (dicas.length) {
           h += '<div class="relatorio-section-title">' + CUI.ic('lightbulb') + ' Orientações para o cuidador</div>';
-          h += '<ul class="relatorio-list">' + rel.dicas_cuidador.map(function (d) { return '<li><strong>' + CUI.esc(d.titulo || '') + ':</strong> ' + CUI.esc(d.descricao || d) + '</li>'; }).join('') + '</ul>';
+          h += '<ul class="relatorio-list">' + dicas.map(function (d) {
+            return '<li>' + (d.titulo ? '<strong>' + CUI.esc(d.titulo) + ':</strong> ' : '') + CUI.esc(d.descricao) + '</li>';
+          }).join('') + '</ul>';
         }
-        if (rel.sugestoes && rel.sugestoes.length) {
+        if (sugestoes.length) {
           h += '<div class="relatorio-section-title">' + CUI.ic('edit') + ' Sugestões</div>';
-          h += '<ul class="relatorio-list">' + rel.sugestoes.map(function (s) { return '<li>' + CUI.esc(s) + '</li>'; }).join('') + '</ul>';
+          h += '<ul class="relatorio-list">' + sugestoes.map(function (s) { return '<li>' + CUI.esc(s) + '</li>'; }).join('') + '</ul>';
         }
         if (rel.visao_psicologica) {
           h += '<div class="relatorio-section-title">' + CUI.ic('shield') + ' Visão psicológica (confidencial)</div>';
@@ -201,18 +294,23 @@
           }
         } catch (e) {}
 
-        rel.id_neurodivergente = teenId;
-        var ins = await CUI.sb.from('relatorios').insert(rel);
+        /* O JSON cru da IA não vai pro banco: montarPayload() escolhe as colunas
+           uma a uma e normaliza os valores (ver comentário no topo do arquivo). */
+        var payload = montarPayload(rel, teenId);
+        var ins = await CUI.sb.from('relatorios').insert(payload);
         if (ins.error) {
           LumiUI.toast('O relatório foi gerado, mas não foi possível salvar. Tente de novo.', { type: 'error' });
-          console.error('[relatorios] insert falhou:', ins.error);
+          /* Loga code/message/details separados: o objeto de erro do PostgREST
+             aparece colapsado no console e esconde justamente o que interessa. */
+          console.error('[relatorios] insert falhou:', ins.error.code, '|', ins.error.message,
+                        '| details:', ins.error.details, '| hint:', ins.error.hint, '| payload:', payload);
         } else {
           await carregarRelatorios(teenId);
         }
 
         // Alerta de crise. A coluna da tabela `alertas` é "descricao" — usar
         // "desc" fazia o insert inteiro falhar (coluna inexistente).
-        if (rel.nivel_crise) {
+        if (payload.nivel_crise) {
           var insAlerta = await CUI.sb.from('alertas').insert({
             id_neurodivergente: teenId,
             tipo: 'crise',
@@ -242,7 +340,7 @@
     /* ── PDF (janela de impressão do navegador) ────────────────
        Montado com createElement/appendChild de propósito. A versão anterior
        usava um document.write() de 1500+ caracteres numa linha só, com uma tag
-       <script> escapada dentro da string — o parser do navegador tropeçava
+       de script escapada dentro da string — o parser do navegador tropeçava
        nisso e derrubava o arquivo inteiro com "Invalid or unexpected token".
        Aqui não existe nenhuma tag dentro de string, e quem manda imprimir é
        esta página, não um script injetado na janela nova. */

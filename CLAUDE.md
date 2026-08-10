@@ -158,6 +158,36 @@ uma página de verdade. **Não recriar abas.**
   lados (teen e cuidador) — corrigido com `window.LUMITEA.esc()` em `calendario.html` e um `esc()` local em
   `calendario-cuidador.html` (essa página não carrega `config.js`).
 
+## 📝 Relatórios da IA: o JSON da Lumi nunca vai direto pro banco (2026-08-10)
+`relatorios-cuidador.html` gerava o relatório, mandava `insert(rel)` com o objeto **cru** que a IA devolveu e
+tomava **HTTP 400**. Duas causas, as duas no JSON da IA:
+1. **Chave que não é coluna** → PostgREST responde `400/PGRST204` ("Could not find the 'x' column of
+   'relatorios' in the schema cache"). A Lumi inventa campo extra com frequência.
+2. **`humor_geral` fora do CHECK** → `400/23514`. A coluna só aceita
+   `'muito-bem'|'bem'|'neutro'|'mal'|'muito-mal'`, e a IA escreve "triste", "misto", "difícil", "bom"…
+O bug é **antigo**: a versão anterior (dentro de `home-cuidador.html`, commit `ffb1292`) fazia
+`await sb.from('relatorios').insert(rel)` **sem checar `error`** — falhava calada e a tela dizia sucesso.
+Só apareceu quando `relatorios-cuidador.html` passou a checar o `error`.
+- **Correção:** `montarPayload(rel, teenId)` monta o objeto campo a campo (whitelist por construção) e
+  normaliza tipos; `normalizarHumor()` traduz o vocabulário da IA (sem acento, `_`/espaço → `-`, + tabela de
+  sinônimos) pro do banco, caindo em `'neutro'` no desconhecido. `listaDeFrases()`/`listaDeDicas()` aceitam
+  string onde era lista e objeto onde era frase. **Qualquer código novo que grave em `relatorios` deve passar
+  por esse mesmo caminho — nunca `insert` do JSON cru da IA.**
+- **De quebra:** o badge de humor mostrava **sempre "Neutro" e sem cor**. O banco guarda
+  `muito-bem/bem/neutro/mal/muito-mal`, mas as classes de `app.css` são `humor-otimo/bom/neutro/dificil/crise`
+  — só `neutro` coincidia. Agora existe o mapa `HUMOR_UI` (banco → classe + rótulo), e o render passa pelo
+  `normalizarHumor()` antes, então linha antiga gravada no vocabulário errado também aparece certa.
+- O `console.error` do insert agora loga `code | message | details | hint | payload` separados (o objeto de
+  erro do PostgREST aparece colapsado no console e escondia justamente o que interessava).
+- **Como conferir schema de produção sem PAT:** o PostgREST valida a *schema cache* **antes** da RLS. Um
+  `POST /rest/v1/<tabela>` com a **anon key** e `{"coluna":null}` devolve `PGRST204` se a coluna não existe e
+  `42501` (RLS) se existe — nada é gravado. Foi assim que as 11 colunas de `relatorios` foram confirmadas em
+  produção nesta investigação. Cuidado: **CHECK constraint roda DEPOIS da RLS**, então esse truque não valida
+  valor, só nome de coluna.
+- ⚠️ `js/cuidador.js` tem um `salvarRelatorioSupabase()` com o mesmo defeito (`Object.assign` do objeto cru),
+  mas o arquivo está **órfão** (nenhum `.html` o carrega) — sem efeito em produção. Se algum dia voltar a ser
+  usado, corrigir junto.
+
 ## 🔐 Segurança (estado atual e regras)
 - **Chaves de IA/voz são gated por origem** (`js/core/config.js` + `js/core/secrets.js`): só carregam em DEV
   (localhost / `file://` / IP privado). Em domínio público ficam vazias → IA/voz passam pelos **proxies**.
@@ -213,6 +243,8 @@ uma página de verdade. **Não recriar abas.**
   pendentes. RLS/schema de `eventos_calendario`, `relatorios`, `alertas` e `neurodivergente` foram conferidos
   em produção nessa investigação e estão OK (não eram a causa). `calendario-cuidador.html` **já existia** como
   página separada do calendário do cuidador desde antes (criada mais cedo no mesmo dia) — não foi recriada.
+- **Insert de relatório falhando com 400 + badge de humor sempre "Neutro" (2026-08-10)** — ver a seção
+  "Relatórios da IA: o JSON da Lumi nunca vai direto pro banco".
 
 ## 📋 Backlog (próximos passos, sem quebrar nada)
 1. Migrar os ~27 `alert/confirm` nativos restantes (conta, diário, calendário, conversa) para `LumiUI`.
