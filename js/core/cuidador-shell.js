@@ -58,7 +58,7 @@
     { id: 'estatisticas', label: 'Estatísticas',           icone: 'bar-chart',      href: 'estatisticas-cuidador.html' },
     { secao: 'Conta' },
     { id: 'vinculos',     label: 'Vínculos',               icone: 'link',           href: 'vinculos-cuidador.html' },
-    { id: 'consultoria',  label: 'Consultoria com a Lumi', icone: 'message-circle', href: 'consultoria-cuidador.html' },
+    { id: 'consultoria',  label: 'Consultoria com o Lumi Theo', icone: 'message-circle', href: 'consultoria-cuidador.html' },
     { id: 'conta',        label: 'Configurações',          icone: 'settings',       href: 'conta-cuidador.html' }
   ];
 

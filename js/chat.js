@@ -5,7 +5,7 @@
    Usado por comunidade.html e comunidade-cuidador.html.
    Tabela: comunidade_chat (ver db/CHAT_SCHEMA.sql).
 
-   IA (Lumi) participa: ajuda a escrever com gentileza, responde
+   IA (Lumi Theo) participa: ajuda a escrever com gentileza, responde
    perguntas em particular, resume a conversa e dá um aceno de apoio
    se perceber sinais de sofrimento. Degrada com elegância se a
    tabela/Realtime/IA não estiverem disponíveis.
@@ -38,7 +38,7 @@ var Chat = (function () {
     { id: 'desabafos',   nome: 'Desabafos',       desc: 'Um espaço de respiro entre cuidadores.' }
   ];
 
-  // sinais de sofrimento → aceno de apoio privado da Lumi (não alarma a sala)
+  // sinais de sofrimento → aceno de apoio privado do Lumi Theo (não alarma a sala)
   var SINAIS = ['me matar', 'suicíd', 'suicid', 'não aguento mais', 'nao aguento mais', 'me cortar',
     'queria morrer', 'quero morrer', 'vou morrer', 'sumir do mundo', 'acabar com tudo', 'me machucar',
     'tirar minha vida', 'não quero viver', 'nao quero viver'];
@@ -70,13 +70,13 @@ var Chat = (function () {
             '<div class="ch-head-info"><b id="ch-room-nome">—</b><span id="ch-room-desc"></span></div>' +
             '<span class="grow"></span>' +
             '<span class="ch-live">' + '<span class="ch-dot"></span>ao vivo</span>' +
-            '<button class="cm-btn cm-btn-ghost" id="ch-resumo" type="button" title="Resumo da Lumi">' + icon('sparkles') + ' Resumo</button>' +
+            '<button class="cm-btn cm-btn-ghost" id="ch-resumo" type="button" title="Resumo do Lumi Theo">' + icon('sparkles') + ' Resumo</button>' +
           '</div>' +
           '<div class="ch-msgs" id="ch-msgs"></div>' +
           '<div class="ch-compose">' +
-            '<button class="ch-ic-btn lumi" id="ch-lumi" type="button" title="Perguntar à Lumi (só você vê)">' + icon('sparkles') + '</button>' +
+            '<button class="ch-ic-btn lumi" id="ch-lumi" type="button" title="Perguntar ao Lumi Theo (só você vê)">' + icon('sparkles') + '</button>' +
             '<input class="ch-input" id="ch-input" maxlength="1000" placeholder="Escreva uma mensagem...">' +
-            '<button class="ch-ic-btn lumi" id="ch-ajuda" type="button" title="Lumi me ajuda a escrever">' + icon('edit') + '</button>' +
+            '<button class="ch-ic-btn lumi" id="ch-ajuda" type="button" title="Lumi Theo me ajuda a escrever">' + icon('edit') + '</button>' +
             '<button class="ch-ic-btn send" id="ch-send" type="button" aria-label="Enviar">' + icon('send') + '</button>' +
           '</div>' +
         '</div>' +
@@ -211,7 +211,7 @@ var Chat = (function () {
   function adicionarLumi(texto) {
     var div = document.createElement('div');
     div.className = 'ch-msg lumi';
-    div.innerHTML = '<div class="ch-bolha"><span class="ch-lumi-tag">' + icon('sparkles') + 'Lumi</span>' +
+    div.innerHTML = '<div class="ch-bolha"><span class="ch-lumi-tag">' + icon('sparkles') + 'Lumi Theo</span>' +
       escBr(texto) + '<div class="ch-lumi-priv">' + icon('eye') + ' só você está vendo esta mensagem</div></div>';
     el.msgs.appendChild(div); hydrate(div); rolarFim();
     return div;
@@ -250,15 +250,15 @@ var Chat = (function () {
     } catch (e) { console.warn('[chat] apagar:', e.message); }
   }
 
-  /* ---------- IA (Lumi) ---------- */
+  /* ---------- IA (Lumi Theo) ---------- */
   function sysLumi() {
     if (cfg.publico === 'cuidador') {
-      return 'Você é a Lumi, orientadora do LumiTEA falando em particular com um cuidador de um adolescente autista, ' +
+      return 'Você é o Lumi Theo, orientador do LumiTEA falando em particular com um cuidador de um adolescente autista, ' +
         'dentro de um chat de comunidade. Seja prática, acolhedora e baseada em boas práticas (validação, ' +
         'previsibilidade, comunicação clara, reforço positivo, redução de sobrecarga). Não diagnostique; em crise, ' +
         'oriente buscar ajuda profissional. Português do Brasil, frases curtas, sem markdown, sem emojis.';
     }
-    return 'Você é a Lumi, ajudante do LumiTEA falando em particular com um adolescente autista, dentro de um chat ' +
+    return 'Você é o Lumi Theo, ajudante do LumiTEA falando em particular com um adolescente autista, dentro de um chat ' +
       'de comunidade entre adolescentes. Seja gentil, simples e concreta; valide o sentimento primeiro. Você NÃO ' +
       'substitui acompanhamento profissional; em sofrimento intenso, oriente procurar um adulto de confiança. ' +
       'Português do Brasil, frases curtas, sem markdown, sem emojis.';
@@ -293,18 +293,18 @@ var Chat = (function () {
       btns.innerHTML = '<button class="cm-btn cm-btn-primary" style="min-height:38px;padding:7px 14px;">Usar este texto</button>';
       bal.querySelector('.ch-bolha').appendChild(btns);
       btns.querySelector('button').addEventListener('click', function () { el.input.value = t; el.input.focus(); bal.remove(); });
-    } catch (e) { mostrarErro('A ajuda da Lumi não está disponível agora.'); }
+    } catch (e) { mostrarErro('A ajuda do Lumi Theo não está disponível agora.'); }
     el.ajuda.disabled = false;
   }
 
-  // pergunta privada à Lumi (resposta só pra quem perguntou; não vai pra sala)
+  // pergunta privada ao Lumi Theo (resposta só pra quem perguntou; não vai pra sala)
   async function perguntarLumi() {
     var texto = (el.input.value || '').trim();
     if (!texto) { mostrarErro('Escreva sua pergunta e toque na estrelinha — só você verá a resposta.'); return; }
     el.input.value = '';
     var meu = document.createElement('div');
     meu.className = 'ch-msg eu';
-    meu.innerHTML = '<div class="ch-bolha">' + escBr(texto) + '<span class="ch-hora">para a Lumi</span></div>';
+    meu.innerHTML = '<div class="ch-bolha">' + escBr(texto) + '<span class="ch-hora">para o Lumi Theo</span></div>';
     el.msgs.appendChild(meu);
     var pensando = adicionarLumi('pensando...');
     try {

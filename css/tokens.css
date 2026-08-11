@@ -36,6 +36,7 @@
   --ambar:        #e08e30;
   --verde:        #3aa39f;
   --rosa:         #d95bb5;
+  --rosa-dark:    #9c3b7f;  /* texto sobre branco: 6.2:1 */
 
   /* ── Calor da marca (refresh v3): tons quentes suaves, calmos ── */
   --cream:        #fff7ef;   /* creme quase branco — fundo acolhedor   */
@@ -67,6 +68,7 @@
   --panel-2:      #d6eaf8;   /* bordas/chips suaves              */
   --panel-3:      #eef4fc;   /* trilhas (xp-bar), fundos frios   */
   --tint-violet:  #f5f0ff;   /* gradientes lúdicos (stop violeta)*/
+  --tint-rose:    #fdf0f8;   /* fundo tintado rosa (lousa de pintar)*/
   --tint-green:   #eaf7f2;   /* gradientes calma (stop verde)    */
   --tint-green-2: #e3f6ee;   /* verde calma — 2º stop            */
 

@@ -45,7 +45,7 @@
                qualquer falha no caminho deixava o cuidador sem como gerar nada. -->
           <button class="btn-primary" id="btn-gerar-relatorio" disabled><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar relatório</button>
         </div>
-        <p class="cui-hint cui-rel-explica">A Lumi lê as conversas recentes do adolescente e monta um resumo com pontos de atenção e orientações para você.</p>
+        <p class="cui-hint cui-rel-explica">O Lumi Theo lê as conversas recentes do adolescente e monta um resumo com pontos de atenção e orientações para você.</p>
         <div id="relatorios-list"><div class="empty-state"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i><p>Carregando relatórios...</p></div></div>
       </div>
 
@@ -59,7 +59,7 @@
        O insert vinha falhando com HTTP 400 e ninguém via: a versão antiga
        (dentro de home-cuidador.html) mandava `insert(rel)` sem checar `error`,
        então a tela dizia "sucesso" e o relatório sumia. Duas coisas derrubam o
-       insert, as duas vindas do JSON que a Lumi devolve:
+       insert, as duas vindas do JSON que o Lumi Theo devolve:
          1. chave que não é coluna → PostgREST responde 400/PGRST204
             ("Could not find the 'x' column of 'relatorios' in the schema cache");
          2. `humor_geral` fora do CHECK da coluna → 400/23514. O banco só aceita
@@ -238,7 +238,7 @@
       var teenId = CUI.teenId;
       if (!teenId) { LumiUI.toast('Selecione um adolescente primeiro.', { type: 'error' }); return; }
 
-      /* Trava os DOIS botões (topo e estado vazio) enquanto a Lumi escreve:
+      /* Trava os DOIS botões (topo e estado vazio) enquanto o Lumi Theo escreve:
          gerar duas vezes criaria relatórios duplicados. */
       var btns = [document.getElementById('btn-gerar-relatorio'),
                   document.getElementById('btn-gerar-primeiro')].filter(Boolean);
@@ -265,7 +265,7 @@
         var res = await window.LUMITEA.groqFetch({
           model: GROQ_MODEL,
           messages: [
-            { role: 'system', content: 'Você é a Lumi, especialista em TEA. Gere um relatório para o cuidador. RESPONDA SOMENTE COM JSON VÁLIDO: {"resumo":"","humor_geral":"neutro","pontos_atencao":[],"dicas_cuidador":[],"sugestoes":[],"nivel_crise":false}. - resumo: 2-3 frases. - pontos_atencao: o que observar. - dicas_cuidador: [{titulo,descricao}]. - sugestoes: ações práticas. Português brasileiro. SOMENTE JSON.' },
+            { role: 'system', content: 'Você é o Lumi Theo, especialista em TEA. Gere um relatório para o cuidador. RESPONDA SOMENTE COM JSON VÁLIDO: {"resumo":"","humor_geral":"neutro","pontos_atencao":[],"dicas_cuidador":[],"sugestoes":[],"nivel_crise":false}. - resumo: 2-3 frases. - pontos_atencao: o que observar. - dicas_cuidador: [{titulo,descricao}]. - sugestoes: ações práticas. Português brasileiro. SOMENTE JSON.' },
             { role: 'user', content: 'Sessão de ' + nomeTeen + ':\n\n' + resumoMsgs }
           ],
           max_tokens: 700, temperature: 0.4
@@ -283,7 +283,7 @@
           var res2 = await window.LUMITEA.groqFetch({
             model: GROQ_MODEL,
             messages: [
-              { role: 'system', content: 'Você é psicóloga especialista em TEA. Com base neste relatório de sessão de um adolescente autista, escreva uma análise psicológica CONFIDENCIAL (apenas para o cuidador) de 3-4 frases. Foco em padrões emocionais, áreas de atenção e recursos internos do jovem. Português brasileiro. Sem markdown.' },
+              { role: 'system', content: 'Você é o Lumi Theo, psicólogo especialista em TEA. Com base neste relatório de sessão de um adolescente autista, escreva uma análise psicológica CONFIDENCIAL (apenas para o cuidador) de 3-4 frases. Foco em padrões emocionais, áreas de atenção e recursos internos do jovem. Português brasileiro. Sem markdown.' },
               { role: 'user', content: JSON.stringify(rel) }
             ],
             max_tokens: 350, temperature: 0.5
@@ -399,7 +399,7 @@
 
       var rodape = doc.createElement('div');
       rodape.className = 'footer';
-      rodape.textContent = 'LumiTEA © 2026 — Relatório gerado pela IA Lumi. Documento confidencial destinado ao cuidador responsável.';
+      rodape.textContent = 'LumiTEA © 2026 — Relatório gerado pela IA Lumi Theo. Documento confidencial destinado ao cuidador responsável.';
 
       [titulo, meta, regua, corpo, rodape].forEach(function (el) { doc.body.appendChild(el); });
 

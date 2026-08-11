@@ -68,9 +68,10 @@ Sem Node/CLI (ver acima), deploy de Edge Function e secrets são feitos direto n
 - Escape de HTML: **`window.LUMITEA.esc()` / `.escBr()`** (em `js/core/config.js`). SEMPRE escapar dado de
   usuário/IA/teen antes de injetar via `innerHTML`.
 
-## 🎮 Jogos do Theo (`games.html` = hub + 4 páginas)
+## 🎮 Jogos do Theo (`games.html` = hub + 5 páginas)
 Substituiu o antigo "Mundo Gelado do Theo" (mundo aberto em canvas), **removido do projeto em 2026-08-04**.
-- `games.html` (hub) → `jogo-memoria.html`, `jogo-classificar.html`, `jogo-encaixe.html`, `jogo-imagem-palavra.html`.
+- `games.html` (hub) → `jogo-memoria.html`, `jogo-classificar.html`, `jogo-encaixe.html`, `jogo-imagem-palavra.html`
+  e **`lousa-pintar.html`** (ver seção própria abaixo).
 - Estilo comum: `css/jogos.css` (prefixo `.jg-`). Motor comum: **`js/jogos/base.js`** (`window.LUMIJOGOS`):
   `boot()`, `pronto()`, `prefs(jogoId)`, `montarAjustes()`, `arrastar()`, `salvarSessao()`, `ganharXP()`, `som`, `embaralhar()`.
 - **XP/nível dos jogos (implementado 2026-08-05):** cada `finalizar()` chama `J.ganharXP(pontuacao)` (pontuação
@@ -134,6 +135,29 @@ uma página de verdade. **Não recriar abas.**
   apareceram.
 - `js/cuidador.js` e `js/lumi-ia.js` **não são mais carregados** por `home-cuidador.html` (o painel usa
   `LUMITEA.groqFetch`). `js/cuidador.js` ficou órfão — `lumi-ia.js` ainda é usado pelas páginas do teen.
+
+## 🎨 Lousa de pintar (`lousa-pintar.html`, 2026-08-11)
+5º item do hub, mas **não é uma partida**: folha em branco, sem objetivo, sem placar, sem progresso e sem
+fim de rodada. Não existe estado de erro porque não há como fazer errado — não reintroduzir nenhum.
+- Motor em `js/jogos/lousa.js`; reusa `js/jogos/base.js` (sessão/nav/som/XP/`salvarSessao`) como os outros.
+- Tema `.jg-tema-lousa` (rosa) + classes `.lo-*` em `css/jogos.css`. Tokens novos: `--rosa-dark`, `--tint-rose`.
+- **`--lo-papel` (branco quente, `#fffdf9`) mora no CSS e o JS LÊ o valor** por `getComputedStyle`: a borracha
+  pinta com ele e o PNG exportado nasce com ele. Mudar num lugar só quebra o outro.
+- **Três caminhos para desenhar** (motricidade varia, mesma regra do `arrastar()`): ponteiro/dedo, mouse e
+  **teclado** (setas movem, espaço encosta/levanta). O canvas é `role="application"` + `tabindex="0"` para as
+  setas chegarem nele. `pointermove`/`pointerup` ficam no **document**, não no canvas: sair da folha no meio
+  do traço e voltar não corta o traço, e soltar o dedo fora não deixa o traço preso.
+- **Nada vai para o servidor além de `sessoes_jogo` + XP.** "Guardar desenho" baixa o PNG em tamanho cheio e
+  guarda uma **miniatura de 560px** em `localStorage['lt-lousa-galeria']` (máx. 8; `guardarNaGaleria` trata
+  `QuotaExceededError` sacrificando o mais antigo e tentando de novo). Ao ler a galeria, só entra no `src`
+  string que começa com `data:image/`.
+- XP: 20 por desenho guardado, **teto de 3 por dia** (`localStorage['lt-lousa-xp']`), pela mesma
+  `J.ganharXP` dos outros jogos — não criar segunda fonte de XP. `jogo_id` = `lousa` (a coluna é TEXT puro,
+  sem CHECK — conferido em `db/LUMITEA_SCHEMA.sql`).
+- ⚠️ **`lumitea.css` dá `padding: 72px 56px` + `max-width: 1100px` a TODO `<section>` sem classe própria**
+  (regra da landing, linha ~422). Qualquer `<section>` novo numa tela interna nasce com um buraco de 72px em
+  cima e desalinhado das outras caixas. As seções da lousa zeram isso explicitamente; os outros jogos
+  escapavam por acaso, porque `.jg-palco`/`.jg-ajustes`/`.jg-fim` já declaram o próprio `padding`.
 
 ## 🔗 Vínculo cuidador↔teen e Calendário compartilhado
 - **Vínculo**: vive em `neurodivergente.codigo_vinculo` (gerado no signup) + `.id_responsavel` (NULL = sem

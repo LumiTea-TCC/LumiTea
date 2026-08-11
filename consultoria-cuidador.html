@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LumiTEA — Consultoria com a Lumi</title>
+  <title>LumiTEA — Consultoria com o Lumi Theo</title>
   <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
@@ -34,7 +34,7 @@
 
   <!-- Topo mobile, gaveta e sidebar vêm da casca (js/core/cuidador-shell.js).
        Esta página não tem barra de adolescente: a consultoria é uma conversa
-       do cuidador com a Lumi, sem ler dados do teen. -->
+       do cuidador com o Lumi Theo, sem ler dados do teen. -->
   <div class="cui-layout">
     <div class="cui-main">
 
@@ -43,12 +43,12 @@
           <div class="cui-chat-hd">
             <div class="cui-chat-av"><img src="img/urso-joia.png" alt="Lumi"></div>
             <div class="cui-chat-hd-info">
-              <h4>Lumi — Consultoria TEA</h4>
+              <h4>Lumi Theo — Consultoria TEA</h4>
               <p><span class="cui-status-dot cui-status-dot--pq"></span> Online agora</p>
             </div>
           </div>
 
-          <div class="cui-chat-msgs" id="chat-msgs-cuidador" role="log" aria-live="polite" aria-label="Conversa com a Lumi"></div>
+          <div class="cui-chat-msgs" id="chat-msgs-cuidador" role="log" aria-live="polite" aria-label="Conversa com o Lumi Theo"></div>
 
           <div class="cui-pills" id="chat-pills-cuidador">
             <button type="button" class="cui-pill">Como lidar com crises?</button>
@@ -58,7 +58,7 @@
           </div>
 
           <div class="cui-chat-input-bar">
-            <textarea class="cui-chat-ta" id="cui-ta" rows="1" placeholder="Pergunte à Lumi sobre o adolescente..." aria-label="Mensagem para a Lumi"></textarea>
+            <textarea class="cui-chat-ta" id="cui-ta" rows="1" placeholder="Pergunte ao Lumi Theo sobre o adolescente..." aria-label="Mensagem para o Lumi Theo"></textarea>
             <button class="btn-send-icon" id="btn-send-cui" disabled aria-label="Enviar mensagem">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
@@ -125,7 +125,7 @@
       mostrarTyping();
 
       try {
-        var msgs = [{ role: 'system', content: 'Você é a Lumi, consultora especializada em TEA que orienta cuidadores e familiares de adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos profissionais quando necessário.' }].concat(_hist);
+        var msgs = [{ role: 'system', content: 'Você é o Lumi Theo, consultor especializado em TEA que orienta cuidadores e familiares de adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos profissionais quando necessário.' }].concat(_hist);
         var res = await window.LUMITEA.groqFetch({ model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 });
         var data = await res.json();
         var resposta = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
@@ -140,13 +140,13 @@
       _carregando = false;
     }
 
-    /* Boas-vindas só depois que a casca confirmou a sessão — assim a Lumi
+    /* Boas-vindas só depois que a casca confirmou a sessão — assim o Lumi Theo
        chama o cuidador pelo nome em vez de "cuidador". */
     CUI.aoTrocarTeen(function () {
       var msgs = document.getElementById('chat-msgs-cuidador');
       if (!msgs || msgs.children.length) return;
       var nome = (CUI.perfil && CUI.perfil.nome) ? CUI.perfil.nome.split(' ')[0] : 'cuidador';
-      renderMsg('assistant', 'Olá, ' + nome + '. Sou a Lumi, sua consultora especializada em TEA. Estou aqui para orientar você no apoio ao adolescente sob seus cuidados. Pode me perguntar sobre estratégias, rotinas, comunicação ou qualquer situação que esteja vivenciando.');
+      renderMsg('assistant', 'Olá, ' + nome + '. Sou o Lumi Theo, seu consultor especializado em TEA. Estou aqui para orientar você no apoio ao adolescente sob seus cuidados. Pode me perguntar sobre estratégias, rotinas, comunicação ou qualquer situação que esteja vivenciando.');
     });
 
     document.addEventListener('DOMContentLoaded', function () {

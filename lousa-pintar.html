@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>LumiTEA — Lousa de pintar</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/jogos.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/icons.js" defer></script>
+</head>
+<body class="app-body">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav class="app-nav">
+    <a class="logo" href="home-autista.html">
+      <div class="logo-icon"><img src="img/icon-urso.png" alt=""></div>
+      LumiTEA
+    </a>
+    <div class="app-nav-links">
+      <a href="home-autista.html">Início</a>
+      <a href="entrada-conv.html">Conversar com o Theo</a>
+      <a href="games.html" class="active">Jogos do Theo</a>
+      <a href="comunidade.html">Comunidade</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="diario.html">Diário</a>
+      <a href="conta.html">Conta</a>
+    </div>
+    <div class="app-nav-right">
+      <div class="user-badge">
+        <div class="user-badge-av"><img src="img/urso-coder.png" alt="" id="nav-avatar"></div>
+        <span id="nav-user-name">Carregando...</span>
+      </div>
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+    <label class="app-burger" for="burger-home">
+      <input type="checkbox" id="burger-home">
+      <span></span><span></span><span></span>
+    </label>
+  </nav>
+
+  <div id="mm-home" class="app-mobile-menu">
+    <a href="home-autista.html">Início</a>
+    <a href="entrada-conv.html">Conversar com o Theo</a>
+    <a href="games.html" class="active">Jogos do Theo</a>
+    <a href="comunidade.html">Comunidade</a>
+    <a href="calendario.html">Calendário</a>
+    <a href="diario.html">Diário</a>
+    <a href="conta.html">Conta</a>
+    <div class="app-mobile-menu-sair">
+      <button class="btn-logout" onclick="sairDaConta()">Sair</button>
+    </div>
+  </div>
+
+  <main class="jg-wrap jg-tema-lousa">
+    <a class="jg-voltar" href="games.html">
+      <i class="lt-i" data-lt-icon="chevron-left" aria-hidden="true"></i> Todos os jogos
+    </a>
+
+    <header class="jg-cabecalho">
+      <div class="jg-card-icone" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.6c-5.2 0-9.4 3.9-9.4 8.7 0 4.8 4.2 8.7 9.4 8.7 1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8h2.1c2.6 0 4.7-2 4.7-4.5 0-3.9-4-6.9-9.4-6.9z"/>
+          <circle cx="7.4" cy="10.4" r="1.15"/>
+          <circle cx="11.1" cy="6.9" r="1.15"/>
+          <circle cx="15.9" cy="8.2" r="1.15"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Lousa de pintar</h1>
+        <p>Expresse sua criatividade numa folha grande, só sua. Aqui não tem tema certo, não tem
+           relógio e ninguém corrige nada: desenhe o que vier à cabeça, apague quando quiser
+           e guarde no final, se você gostar.</p>
+      </div>
+    </header>
+
+    <div class="jg-barra lo-barra">
+      <div class="lo-grupo" role="group" aria-labelledby="rot-ferramenta">
+        <span class="lo-grupo-rot" id="rot-ferramenta">Ferramenta</span>
+        <div class="lo-botoes">
+          <button type="button" class="lo-ferr" data-ferr="pincel" data-rotulo="Pincel" aria-pressed="true"></button>
+          <button type="button" class="lo-ferr" data-ferr="borracha" data-rotulo="Borracha" aria-pressed="false"></button>
+        </div>
+      </div>
+
+      <div class="lo-grupo" role="group" aria-labelledby="rot-espessura">
+        <span class="lo-grupo-rot" id="rot-espessura">Espessura</span>
+        <div class="lo-botoes" id="espessuras"></div>
+      </div>
+
+      <div class="lo-acoes">
+        <button type="button" class="jg-icone-btn" id="btn-desfazer" title="Desfazer o último traço" aria-label="Desfazer o último traço"></button>
+        <button type="button" class="jg-icone-btn" id="btn-limpar" title="Começar uma folha nova" aria-label="Começar uma folha nova"></button>
+        <button type="button" class="jg-icone-btn" id="btn-som"></button>
+        <button type="button" class="jg-btn jg-btn-primario" id="btn-guardar"></button>
+      </div>
+    </div>
+
+    <p class="jg-instrucao">
+      <i class="lt-i" data-lt-icon="lightbulb" aria-hidden="true"></i>
+      <span>Desenhe com o dedo, com o mouse ou pelo teclado. Pelo teclado: entre na folha com o
+        Tab, use as <b>setas</b> para mover o pincel e o <b>espaço</b> para encostar e levantar.</span>
+    </p>
+
+    <section class="lo-estudio">
+      <div class="lo-mascote" aria-hidden="true">
+        <img src="img/urso-pintando.png" alt="">
+        <p class="lo-mascote-fala">Não existe desenho errado. A folha é sua.</p>
+      </div>
+
+      <div class="lo-cores" id="cores" role="group" aria-label="Cor da tinta"></div>
+
+      <div class="lo-tela-cx" id="tela-cx">
+        <!-- role="application": a folha trata as próprias teclas (setas e
+             espaço precisam chegar aqui, não navegar a página) -->
+        <canvas id="tela" class="lo-tela" tabindex="0" role="application"
+                aria-label="Folha de desenho. Use as setas para mover o pincel e o espaço para encostar e levantar."></canvas>
+        <div class="lo-cursor" id="cursor" hidden></div>
+      </div>
+    </section>
+
+    <p class="jg-aviso" id="aviso" role="status" aria-live="polite"></p>
+
+    <section class="lo-galeria">
+      <h2>Seus desenhos</h2>
+      <p class="lo-galeria-sub">Guardados só neste aparelho, sem passar por nenhum servidor — nem o
+        seu cuidador vê. Cabem 8 desenhos aqui; ao guardar o nono, o mais antigo sai. O arquivo
+        baixado no aparelho continua seu, para sempre.</p>
+      <div class="lo-galeria-grid" id="galeria"></div>
+    </section>
+  </main>
+
+  <script src="js/core/ui.js"></script>
+  <script src="js/jogos/base.js"></script>
+  <script src="js/jogos/lousa.js"></script>
+
+  <!-- Widgets globais -->
+  <script src="js/sobrecarga.js"></script>
+</body>
+</html>

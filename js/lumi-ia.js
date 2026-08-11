@@ -25,7 +25,7 @@ var LumiIA = (function () {
   }
 
   var PERSONALIDADE_BASE =
-    'Você é a Lumi (também chamada de LumiTheo), psicóloga especializada em TEA ' +
+    'Você é o Lumi Theo, psicólogo especializado em TEA ' +
     'que acompanha um adolescente autista.\n\n' +
     'PERSONALIDADE FIXA (não mude nunca):\n' +
     '- Fala simples e direta, sem termos técnicos\n' +
@@ -42,7 +42,7 @@ var LumiIA = (function () {
   function montarSystemPrompt(perfil, contextoExtra) {
     var partes = [PERSONALIDADE_BASE];
     var apelido = (perfil && (perfil.apelido || perfil.nome)) || 'amigo';
-    var nomeMascote = (perfil && perfil.nome_mascote) || 'Lumi';
+    var nomeMascote = (perfil && perfil.nome_mascote) || 'Lumi Theo';
     partes.push(''); partes.push('SOBRE O ADOLESCENTE:');
     partes.push('- Como ele(a) prefere ser chamado(a): ' + apelido);
     partes.push('- Como ele(a) chama você: ' + nomeMascote);
@@ -93,7 +93,7 @@ var LumiIA = (function () {
   }
 
   function indisponivelTexto() {
-    return 'A Lumi não está conseguindo conectar agora. Verifique sua conexão e tente de novo em alguns segundos. 🐻';
+    return 'O Lumi Theo não está conseguindo conectar agora. Verifique sua conexão e tente de novo em alguns segundos. 🐻';
   }
 
   async function responder(historico, opts, perfil) {
@@ -122,7 +122,7 @@ var LumiIA = (function () {
     if (!temChave()) return indisponivelTexto();
     var ctx = '';
     if (cenario) {
-      ctx = 'CONTEXTO DE ROLEPLAY:\nCENÁRIO: ' + (cenario.nome || '') + '\nCONTEXTO: ' + (cenario.contexto || '') + '\nSEU PAPEL: ' + (cenario.personagem || '') + '\nVocê está fazendo um PERSONAGEM, não a Lumi. Máximo 2-3 frases.';
+      ctx = 'CONTEXTO DE ROLEPLAY:\nCENÁRIO: ' + (cenario.nome || '') + '\nCONTEXTO: ' + (cenario.contexto || '') + '\nSEU PAPEL: ' + (cenario.personagem || '') + '\nVocê está fazendo um PERSONAGEM, não o Lumi Theo. Máximo 2-3 frases.';
     }
     var r = await responder(historico, { contextoExtra: ctx, maxTokens: 400, temperature: 0.85 }, perfil);
     return r.texto;
@@ -132,7 +132,7 @@ var LumiIA = (function () {
     if (!temChave()) return null;
     try {
       var t = await chamarGroq([
-        { role: 'system', content: 'Você é a Lumi. Analise o diário e responda em até 3 parágrafos, validando sentimentos antes. PT-BR sem markdown.' },
+        { role: 'system', content: 'Você é o Lumi Theo. Analise o diário e responda em até 3 parágrafos, validando sentimentos antes. PT-BR sem markdown.' },
         { role: 'user', content: textoDiario }
       ], { maxTokens: 500, temperature: 0.7 });
       return t.trim();
@@ -143,7 +143,7 @@ var LumiIA = (function () {
     if (!temChave()) return null;
     try {
       var t = await chamarGroq([
-        { role: 'system', content: 'Você é a Lumi. Gere relatório breve para o cuidador. Tom acolhedor. Máx 4 parágrafos.' },
+        { role: 'system', content: 'Você é o Lumi Theo. Gere relatório breve para o cuidador. Tom acolhedor. Máx 4 parágrafos.' },
         { role: 'user', content: JSON.stringify(dados).slice(0, 4000) }
       ], { maxTokens: 700, temperature: 0.6 });
       return t.trim();
@@ -153,7 +153,7 @@ var LumiIA = (function () {
   async function sugerirRespostasRapidas(historico) {
     if (!temChave()) return [];
     var ultimas = (historico || []).slice(-4).map(function (m) {
-      return (m.role === 'user' ? 'Adolescente: ' : 'Lumi: ') + m.content;
+      return (m.role === 'user' ? 'Adolescente: ' : 'Lumi Theo: ') + m.content;
     }).join('\n');
     try {
       var t = await chamarGroq([

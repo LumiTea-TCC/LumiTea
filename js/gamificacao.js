@@ -17,10 +17,10 @@ var Gamificacao = (function () {
 
   var CONQUISTAS = [
     /* Conversas */
-    { id: "primeira_conversa",  emoji: "💬", nome: "Primeira Conversa",  desc: "Conversou com a Lumi pela primeira vez", xp: 20,  cond: function(s){return s.conversas>=1;} },
-    { id: "5_conversas",        emoji: "🗣️", nome: "Conversador",        desc: "Trocou 5 mensagens com a Lumi",          xp: 50,  cond: function(s){return s.conversas>=5;} },
-    { id: "20_conversas",       emoji: "💭", nome: "Tagarela",            desc: "20 mensagens com a Lumi",                 xp: 120, cond: function(s){return s.conversas>=20;} },
-    { id: "50_conversas",       emoji: "🌐", nome: "Confidente",          desc: "50 mensagens com a Lumi",                 xp: 250, cond: function(s){return s.conversas>=50;} },
+    { id: "primeira_conversa",  emoji: "💬", nome: "Primeira Conversa",  desc: "Conversou com o Lumi Theo pela primeira vez", xp: 20,  cond: function(s){return s.conversas>=1;} },
+    { id: "5_conversas",        emoji: "🗣️", nome: "Conversador",        desc: "Trocou 5 mensagens com o Lumi Theo",          xp: 50,  cond: function(s){return s.conversas>=5;} },
+    { id: "20_conversas",       emoji: "💭", nome: "Tagarela",            desc: "20 mensagens com o Lumi Theo",                 xp: 120, cond: function(s){return s.conversas>=20;} },
+    { id: "50_conversas",       emoji: "🌐", nome: "Confidente",          desc: "50 mensagens com o Lumi Theo",                 xp: 250, cond: function(s){return s.conversas>=50;} },
 
     /* Roleplay */
     { id: "roleplay1",          emoji: "🎭", nome: "Ator Iniciante",      desc: "Completou 1 roleplay",                    xp: 30,  cond: function(s){return s.roleplays>=1;} },
@@ -57,11 +57,11 @@ var Gamificacao = (function () {
   /* Pool de missões diárias — sorteia 3 por dia */
   var POOL_MISSOES = [
     { id: "m_humor",     emoji: "😊", nome: "Registrar humor",            desc: "Marque como você está hoje",         xp: 15, meta: 1, evento: "humor" },
-    { id: "m_conversa",  emoji: "💬", nome: "Conversar com a Lumi",       desc: "Mande pelo menos 3 mensagens",       xp: 25, meta: 3, evento: "conversa" },
+    { id: "m_conversa",  emoji: "💬", nome: "Conversar com o Lumi Theo",       desc: "Mande pelo menos 3 mensagens",       xp: 25, meta: 3, evento: "conversa" },
     { id: "m_roleplay",  emoji: "🎭", nome: "Praticar 1 roleplay",        desc: "Complete um cenário social",         xp: 30, meta: 1, evento: "roleplay" },
     { id: "m_diario",    emoji: "📓", nome: "Escrever no diário",         desc: "Compartilhe um momento do seu dia",  xp: 20, meta: 1, evento: "diario" },
     { id: "m_evento",    emoji: "📅", nome: "Adicionar evento",           desc: "Coloque algo na sua rotina",          xp: 15, meta: 1, evento: "evento" },
-    { id: "m_conversa5", emoji: "💭", nome: "Conversa longa",             desc: "Troque 5 mensagens com a Lumi",      xp: 40, meta: 5, evento: "conversa" }
+    { id: "m_conversa5", emoji: "💭", nome: "Conversa longa",             desc: "Troque 5 mensagens com o Lumi Theo",      xp: 40, meta: 5, evento: "conversa" }
   ];
 
   /* Pool de missões semanais */

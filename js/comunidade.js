@@ -236,7 +236,7 @@ var Comunidade = (function () {
   function mostrarSugestao(sug) {
     if (!el.aviso) return;
     el.aviso.hidden = false;
-    el.aviso.innerHTML = '<div class="cm-sug"><b>Sugestão da Lumi:</b><p>' + escBr(sug) + '</p>' +
+    el.aviso.innerHTML = '<div class="cm-sug"><b>Sugestão do Lumi Theo:</b><p>' + escBr(sug) + '</p>' +
       '<div class="cm-sug-btns"><button class="cm-sug-usar">Usar este texto</button>' +
       '<button class="cm-sug-ignorar">Manter o meu</button></div></div>';
     el.aviso.querySelector('.cm-sug-usar').addEventListener('click', function () {

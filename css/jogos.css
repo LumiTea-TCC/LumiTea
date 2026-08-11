@@ -18,6 +18,11 @@
 .jg-tema-classificar { --jg-cor: var(--verde); --jg-cor-ink: #1f7570;           --jg-cor-bg: var(--tint-green); }
 .jg-tema-encaixe   { --jg-cor: var(--violeta); --jg-cor-ink: var(--violeta-dark); --jg-cor-bg: var(--tint-violet); }
 .jg-tema-palavra   { --jg-cor: var(--ambar);   --jg-cor-ink: var(--warning);    --jg-cor-bg: var(--warning-bg); }
+.jg-tema-lousa     { --jg-cor: var(--rosa);    --jg-cor-ink: var(--rosa-dark);  --jg-cor-bg: var(--tint-rose);
+                     /* Papel: branco levemente quente, menos ofuscante que #fff.
+                        js/jogos/lousa.js LÊ este valor (a borracha pinta com ele e
+                        o PNG exportado nasce com ele) — mudar aqui muda nos dois. */
+                     --lo-papel: #fffdf9; }
 
 /* ============================================================
    LAYOUT BASE
@@ -716,6 +721,256 @@ html[data-modo-calmo="true"] .jg-carta { perspective: none; }
   .jg-ligacao { grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
   .jg-meio { display: none; }
   .jg-item-palavra { font-size: .98rem; }
+}
+
+/* ============================================================
+   JOGO 5 — LOUSA DE PINTAR
+   Não é uma partida: é uma folha em branco. Por isso não há
+   barra de progresso, placar nem fim de rodada aqui.
+   ============================================================ */
+
+/* ── Barra de ferramentas ─────────────────────────────────── */
+.lo-barra { align-items: flex-end; row-gap: var(--sp-4); }
+.lo-grupo { display: flex; flex-direction: column; gap: 6px; }
+.lo-grupo-rot {
+  color: var(--text-muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.lo-botoes { display: flex; gap: var(--sp-2); }
+.lo-acoes { display: flex; gap: var(--sp-2); align-items: flex-end; margin-left: auto; }
+
+.lo-ferr {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding: 8px 15px;
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+  border: 1.5px solid var(--border-soft);
+  color: var(--text-soft);
+  font-family: 'Nunito', sans-serif;
+  font-size: .86rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.lo-ferr svg { width: 20px; height: 20px; }
+.lo-ferr:hover { border-color: var(--jg-cor, var(--brand)); }
+.lo-ferr[aria-pressed="true"] {
+  background: var(--jg-cor-bg, var(--panel-1));
+  border-color: var(--jg-cor, var(--brand));
+  color: var(--jg-cor-ink, var(--brand-dark));
+}
+
+/* Espessura: o botão mostra o próprio traço, não um número. */
+.lo-esp {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+  border: 1.5px solid var(--border-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.lo-esp:hover { border-color: var(--jg-cor, var(--brand)); }
+.lo-esp span {
+  display: block;
+  width: var(--lo-ponto, 10px);
+  height: var(--lo-ponto, 10px);
+  border-radius: 50%;
+  background: var(--text-soft);
+}
+.lo-esp[aria-pressed="true"] {
+  background: var(--jg-cor-bg, var(--panel-1));
+  border-color: var(--jg-cor, var(--brand));
+}
+.lo-esp[aria-pressed="true"] span { background: var(--jg-cor-ink, var(--brand-dark)); }
+
+/* ── Estúdio: mascote · tintas · folha ────────────────────── */
+/* lumitea.css dá `padding: 72px 56px` e `max-width` a TODO <section>
+   (regra da landing). As seções da lousa desenham a própria caixa. */
+.lo-estudio, .lo-galeria { max-width: none; padding: 0; }
+
+.lo-estudio {
+  display: grid;
+  grid-template-columns: 152px 72px minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+.lo-mascote { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); }
+.lo-mascote img { display: block; width: 100%; max-width: 152px; height: auto; }
+.lo-mascote-fala {
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  margin: 0;
+  color: var(--text-soft);
+  font-size: .8rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.lo-cores {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-pill);
+  padding: var(--sp-3) var(--sp-2);
+  box-shadow: var(--shadow-1);
+}
+.lo-cor {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--lo-tinta, var(--brand));
+  box-shadow: 0 0 0 1.5px var(--border-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+.lo-cor:hover { box-shadow: 0 0 0 3px var(--border); }
+/* Selecionada: anel + marca de confirmação. Nunca só a cor —
+   a seleção precisa se ver sem depender de enxergar cor. */
+.lo-cor[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--jg-cor-ink, var(--brand-dark)); }
+.lo-cor svg { width: 22px; height: 22px; stroke-width: 2.6; }
+
+/* ── A folha ──────────────────────────────────────────────── */
+.lo-tela-cx {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--lo-papel, #fffdf9);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.lo-tela {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+/* outline (e não box-shadow): num <canvas> a sombra interna fica
+   escondida atrás do bitmap e o foco sumiria */
+.lo-tela:focus-visible { outline: 3px solid rgba(25, 118, 210, .55); outline-offset: -3px; }
+
+/* Ponteiro do modo teclado (posição vem do JS) */
+.lo-cursor {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 2.5px solid var(--jg-cor-ink, var(--brand-dark));
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .4);
+  pointer-events: none;
+}
+.lo-cursor.baixo { background: var(--jg-cor, var(--brand)); }
+
+/* ── Galeria (fica só neste aparelho) ─────────────────────── */
+.lo-galeria { margin-top: var(--sp-8); }
+.lo-galeria h2 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.15rem;
+  color: var(--text-main);
+  margin: 0 0 4px;
+}
+.lo-galeria-sub {
+  color: var(--text-muted);
+  font-size: .85rem;
+  line-height: 1.55;
+  margin: 0 0 var(--sp-4);
+  max-width: 62ch;
+}
+.lo-galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: var(--sp-4);
+}
+.lo-item {
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+.lo-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--lo-papel, #fffdf9);
+  border-bottom: 1px solid var(--border-faint);
+}
+.lo-item-pe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 6px 6px 6px 12px;
+}
+.lo-item-data { color: var(--text-muted); font-size: .74rem; font-weight: 800; }
+.lo-mini-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.lo-mini-btn:hover { background: var(--bg-2); color: var(--jg-cor-ink, var(--brand-dark)); }
+.lo-mini-btn svg { width: 19px; height: 19px; }
+
+.lo-vazio {
+  border: 2px dashed var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-2);
+  padding: var(--sp-6);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .88rem;
+  line-height: 1.6;
+}
+
+/* ── Responsivo ───────────────────────────────────────────── */
+@media (max-width: 1040px) {
+  /* o mascote é decorativo: sai primeiro para a folha ficar grande */
+  .lo-estudio { grid-template-columns: 72px minmax(0, 1fr); }
+  .lo-mascote { display: none; }
+}
+@media (max-width: 620px) {
+  .lo-estudio { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  .lo-cores { flex-direction: row; flex-wrap: wrap; justify-content: center; border-radius: var(--r-lg); }
+  .lo-tela-cx { aspect-ratio: 1 / 1; }
+  .lo-acoes { margin-left: 0; width: 100%; }
+  .lo-acoes .jg-btn { flex: 1; }
 }
 
 /* ============================================================

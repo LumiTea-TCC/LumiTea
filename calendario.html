@@ -344,14 +344,14 @@
       <!-- Roleplay pré-evento -->
       <div class="rp-prep">
         <div class="rp-title"><i class="lt-i" data-lt-icon="play" aria-hidden="true"></i> Preparar com Roleplay</div>
-        <div class="rp-sub">Escolha um evento e pratique com a Lumi antes do grande dia!</div>
+        <div class="rp-sub">Escolha um evento e pratique com o Lumi Theo antes do grande dia!</div>
         <div class="rp-list" id="rp-list">
           <div class="empty-rp">Adicione um evento com roleplay ativado para começar!</div>
         </div>
         <div class="rp-chat" id="rp-chat">
           <div class="rp-msgs" id="rp-msgs"></div>
           <div class="rp-input-row">
-            <textarea class="rp-ta" id="rp-ta" rows="1" placeholder="Responda a Lumi..."></textarea>
+            <textarea class="rp-ta" id="rp-ta" rows="1" placeholder="Responda o Lumi Theo..."></textarea>
             <button class="rp-send" onclick="enviarRP()">
               <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
@@ -548,7 +548,7 @@
       document.getElementById('rp-msgs').appendChild(typ);
       document.getElementById('rp-msgs').scrollTop=99999;
       try{
-        var msgs=[{role:'system',content:'Você é a Lumi, ajudando o adolescente autista a se preparar para o evento "'+(_rpEv?_rpEv.titulo:'evento')+'". Use roleplay para simular situações do evento. Seja gentil, encorajador e use linguagem simples. Máximo 3 frases. Português brasileiro.'}].concat(_rpHist);
+        var msgs=[{role:'system',content:'Você é o Lumi Theo, ajudando o adolescente autista a se preparar para o evento "'+(_rpEv?_rpEv.titulo:'evento')+'". Use roleplay para simular situações do evento. Seja gentil, encorajador e use linguagem simples. Máximo 3 frases. Português brasileiro.'}].concat(_rpHist);
         var res=await window.LUMITEA.groqFetch({model:GROQ_MODEL,messages:msgs,max_tokens:280,temperature:.8});
         var data=await res.json();
         var resp=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'Ótimo! Continue praticando!';

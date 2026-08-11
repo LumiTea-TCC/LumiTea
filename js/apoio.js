@@ -1,6 +1,6 @@
 /* ============================================================
    LumiTEA — apoio.js
-   Aba "Apoio": dicas, conselhos e conceitos. A IA (Lumi) atua
+   Aba "Apoio": dicas, conselhos e conceitos. A IA (Lumi Theo) atua
    como ajudante — gera dicas do dia e responde perguntas.
    Conteúdo e tom mudam por público (teen | cuidador).
    ============================================================ */
@@ -63,7 +63,7 @@ var Apoio = (function () {
 
   function sysPrompt() {
     if (cfg.publico === 'cuidador') {
-      return 'Você é a Lumi, orientadora do LumiTEA falando com um pai/mãe/cuidador de um adolescente autista. ' +
+      return 'Você é o Lumi Theo, orientador do LumiTEA falando com um pai/mãe/cuidador de um adolescente autista. ' +
         'Dê conselhos práticos, respeitosos e baseados em boas práticas (validação emocional, previsibilidade, ' +
         'comunicação clara e literal, redução de sobrecarga sensorial, reforço positivo). Nunca diagnostique nem ' +
         'prometa resultados; em sinais de crise, oriente buscar ajuda profissional. Português do Brasil, tom ' +
@@ -74,7 +74,7 @@ var Apoio = (function () {
       var labels = ['com raiva', 'ansioso(a)', 'triste', 'mais ou menos', 'bem', 'ótimo'];
       humorTxt = ' O humor recente dele(a) é "' + (labels[cfg.humor] || 'neutro') + '"; leve isso em conta sem citar diretamente.';
     }
-    return 'Você é a Lumi, ajudando um adolescente autista chamado ' + cfg.nome + ' a se ajudar.' + humorTxt +
+    return 'Você é o Lumi Theo, ajudando um adolescente autista chamado ' + cfg.nome + ' a se ajudar.' + humorTxt +
       ' Dê conselhos práticos e calmos, validando o sentimento primeiro, com passos simples e concretos. ' +
       'Você NÃO substitui acompanhamento profissional; em sofrimento intenso, oriente procurar um adulto de ' +
       'confiança. Português do Brasil, linguagem simples, frases curtas, sem markdown, sem emojis.';
@@ -96,7 +96,7 @@ var Apoio = (function () {
   async function gerarDicas() {
     if (!el.dicas) return;
     el.gerar.disabled = true; var orig = el.gerar.innerHTML; el.gerar.textContent = 'Gerando...';
-    el.dicas.innerHTML = '<div class="ap-load">' + icon('clock') + ' a Lumi está pensando em dicas pra você...</div>';
+    el.dicas.innerHTML = '<div class="ap-load">' + icon('clock') + ' o Lumi Theo está pensando em dicas pra você...</div>';
     if (window.LUMI) LUMI.hydrateIcons(el.dicas);
     var pedido = cfg.publico === 'cuidador'
       ? 'Liste 3 dicas curtas e práticas que eu (cuidador) posso aplicar hoje para apoiar meu adolescente autista. Cada dica em 1 frase. Responda só as 3 dicas, uma por linha, começando com "- ".'
@@ -127,16 +127,16 @@ var Apoio = (function () {
     el.pergunta.value = '';
     addBolha(cfg.publico === 'cuidador' ? 'Você' : 'Você', q, 'ap-eu');
     historico.push({ role: 'user', content: q });
-    var pensando = addBolha('Lumi', 'pensando...', 'ap-lumi ap-pensando');
+    var pensando = addBolha('Lumi Theo', 'pensando...', 'ap-lumi ap-pensando');
     try {
       var msgs = [{ role: 'system', content: sysPrompt() }].concat(historico.slice(-10));
       var t = await chamar(msgs, 600, 0.7);
       pensando.remove();
-      addBolha('Lumi', t, 'ap-lumi');
+      addBolha('Lumi Theo', t, 'ap-lumi');
       historico.push({ role: 'assistant', content: t });
     } catch (e) {
       pensando.remove();
-      addBolha('Lumi', 'Não consegui responder agora. Tenta de novo daqui a pouco?', 'ap-lumi');
+      addBolha('Lumi Theo', 'Não consegui responder agora. Tenta de novo daqui a pouco?', 'ap-lumi');
     }
   }
 

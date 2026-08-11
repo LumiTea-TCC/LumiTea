@@ -2,7 +2,7 @@
    LumiTEA — aba.js
    Ferramentas baseadas na Análise do Comportamento Aplicada (ABA).
    Método com base científica para apoio ao aprendizado e à
-   autorregulação de pessoas autistas. A IA (Lumi) está em TODAS as
+   autorregulação de pessoas autistas. A IA (Lumi Theo) está em TODAS as
    ferramentas: personaliza, gera e adapta o conteúdo ao usuário.
 
    Usada por ferramentas-aba.html. Adapta-se por público:
@@ -27,7 +27,7 @@ var Aba = (function () {
   /* ---------- IA ---------- */
   function baseSistema() {
     if (cfg.publico === 'cuidador') {
-      return 'Você é a Lumi, orientadora do LumiTEA especializada em Análise do Comportamento Aplicada (ABA), ' +
+      return 'Você é o Lumi Theo, orientador do LumiTEA especializado em Análise do Comportamento Aplicada (ABA), ' +
         'falando com um cuidador de um adolescente autista. Use os princípios da ABA de forma prática e ética: ' +
         'análise funcional (ABC), reforço positivo, comportamento substituto, encadeamento/análise de tarefa, ' +
         'apoios visuais e antecedentes, histórias sociais. NÃO diagnostique, não prometa resultados e não ' +
@@ -39,7 +39,7 @@ var Aba = (function () {
       var labels = ['com raiva', 'ansioso(a)', 'triste', 'mais ou menos', 'bem', 'ótimo'];
       humorTxt = ' O humor recente dele(a) é "' + (labels[cfg.humor] || 'neutro') + '"; considere isso sem citar diretamente.';
     }
-    return 'Você é a Lumi, ajudante do LumiTEA, falando com um adolescente autista chamado ' + cfg.nome + '.' + humorTxt +
+    return 'Você é o Lumi Theo, ajudante do LumiTEA, falando com um adolescente autista chamado ' + cfg.nome + '.' + humorTxt +
       ' Use ideias da Análise do Comportamento Aplicada de forma gentil: passos pequenos e concretos, primeiro/depois, ' +
       'reforço do esforço, autorregulação. Valide o sentimento primeiro. Você NÃO substitui acompanhamento profissional; ' +
       'em sofrimento intenso, oriente procurar um adulto de confiança. Português do Brasil, linguagem simples, ' +
@@ -66,11 +66,11 @@ var Aba = (function () {
   /* ---------- utilidades ---------- */
   function elFrom(html) { var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
   function lumiTag(txt) {
-    return '<div class="aba-lumi-tag">' + icon('sparkles') + (txt || 'Lumi') + '</div>';
+    return '<div class="aba-lumi-tag">' + icon('sparkles') + (txt || 'Lumi Theo') + '</div>';
   }
   function loading(box, msg) {
     box.hidden = false;
-    box.innerHTML = '<div class="aba-load">' + icon('clock') + (msg || 'A Lumi está pensando...') + '</div>';
+    box.innerHTML = '<div class="aba-load">' + icon('clock') + (msg || 'O Lumi Theo está pensando...') + '</div>';
     hydrate(box);
   }
   function erro(box, msg) {
@@ -153,7 +153,7 @@ var Aba = (function () {
         corpo.querySelectorAll('.aba-chip').forEach(function (x) { x.classList.remove('on'); });
         c.classList.add('on');
         var v = c.getAttribute('data-v');
-        loading(box, 'A Lumi está pensando num passo pra você...');
+        loading(box, 'O Lumi Theo está pensando num passo pra você...');
         try {
           var pedido = 'Estou num nível ' + v + ' de 5 de agitação (5 = no limite). ' +
             'Valide em 1 frase curta e me dê UM passo concreto de autorregulação que eu consiga fazer agora, ' +
@@ -384,7 +384,7 @@ var Aba = (function () {
         '<textarea class="aba-textarea" id="aba-abc-b" maxlength="500" placeholder="Ex: gritou e jogou o tablet no chão"></textarea></div>' +
       '<div class="aba-field"><label>Consequência — o que aconteceu DEPOIS?</label>' +
         '<textarea class="aba-textarea" id="aba-abc-c" maxlength="500" placeholder="Ex: deixei ele(a) usar mais 5 minutos pra acalmar"></textarea></div>' +
-      '<div class="aba-btn-row"><button class="cm-btn cm-btn-primary" id="aba-abc-go">' + icon('target') + ' Analisar com a Lumi</button></div>' +
+      '<div class="aba-btn-row"><button class="cm-btn cm-btn-primary" id="aba-abc-go">' + icon('target') + ' Analisar com o Lumi Theo</button></div>' +
       '<div class="aba-result" hidden></div>' +
       '<div class="aba-hist" id="aba-abc-hist"></div>';
     hydrate(corpo);
@@ -431,7 +431,7 @@ var Aba = (function () {
           'DEPOIS (consequência): (como responder para não reforçar o comportamento difícil)';
         var t = await chamarIA(pedido, { maxTokens: 500, temp: 0.6 });
         box.hidden = false;
-        box.innerHTML = lumiTag('Análise da Lumi') + formatarSecoes(t);
+        box.innerHTML = lumiTag('Análise do Lumi Theo') + formatarSecoes(t);
         hydrate(box);
         // salva no histórico: cache local + banco (Supabase)
         var h = lsGet('abc', []);
@@ -558,15 +558,15 @@ var Aba = (function () {
       d.innerHTML = (quem ? '<b>' + esc(quem) + '</b><br>' : '') + escBr(txt);
       chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d;
     }
-    bolha('Lumi', 'Oi! Me conte uma situação concreta e eu te ajudo com estratégias de ABA — análise do que acontece antes e depois, reforço e o que ensinar no lugar.', 'lumi');
+    bolha('Lumi Theo', 'Oi! Me conte uma situação concreta e eu te ajudo com estratégias de ABA — análise do que acontece antes e depois, reforço e o que ensinar no lugar.', 'lumi');
     async function enviar() {
       var q = input.value.trim(); if (!q) return; input.value = '';
       bolha(null, q, 'eu'); hist.push({ role: 'user', content: q });
-      var pensando = bolha('Lumi', 'pensando...', 'lumi');
+      var pensando = bolha('Lumi Theo', 'pensando...', 'lumi');
       try {
         var t = await chamarIA(null, { historico: hist.slice(-10), maxTokens: 600, temp: 0.7 });
-        pensando.remove(); bolha('Lumi', t, 'lumi'); hist.push({ role: 'assistant', content: t });
-      } catch (e) { pensando.remove(); bolha('Lumi', 'Não consegui responder agora. Tenta de novo daqui a pouco?', 'lumi'); }
+        pensando.remove(); bolha('Lumi Theo', t, 'lumi'); hist.push({ role: 'assistant', content: t });
+      } catch (e) { pensando.remove(); bolha('Lumi Theo', 'Não consegui responder agora. Tenta de novo daqui a pouco?', 'lumi'); }
     }
     send.addEventListener('click', enviar);
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); enviar(); } });
@@ -579,16 +579,16 @@ var Aba = (function () {
     { id: 'regua', icone: 'activity', titulo: 'Régua da calma', sub: 'Marque como você está e receba um passo pra se regular agora.', render: ferRegua },
     { id: 'respiracao', icone: 'heart', titulo: 'Respiração guiada', sub: 'Respire no ritmo 4-7-8 pra acalmar o corpo. Tela calma, sem pressa.', render: ferRespiracao },
     { id: 'primeiro-depois', icone: 'chevron-right', titulo: 'Primeiro, depois', sub: 'Transforme algo difícil em "primeiro isto, depois sua recompensa".', render: ferPrimeiroDepois },
-    { id: 'passo-a-passo', icone: 'list', titulo: 'Passo a passo', sub: 'A Lumi quebra qualquer tarefa em passos pequenos pra você marcar.', render: ferPassoAPasso },
+    { id: 'passo-a-passo', icone: 'list', titulo: 'Passo a passo', sub: 'O Lumi Theo quebra qualquer tarefa em passos pequenos pra você marcar.', render: ferPassoAPasso },
     { id: 'fichas', icone: 'star', titulo: 'Quadro de fichas', sub: 'Junte fichas pelo seu esforço e troque por uma recompensa.', render: ferFichas },
     { id: 'cantinho', icone: 'shield', titulo: 'Cantinho da calma', sub: 'Monte um kit pessoal com o que acalma você.', render: ferCantinho }
   ];
   var TOOLS_CUID = [
-    { id: 'abc', icone: 'target', titulo: 'Análise ABC', sub: 'Registre Antecedente, Comportamento e Consequência — a Lumi sugere a função e estratégias.', render: ferABC },
+    { id: 'abc', icone: 'target', titulo: 'Análise ABC', sub: 'Registre Antecedente, Comportamento e Consequência — o Lumi Theo sugere a função e estratégias.', render: ferABC },
     { id: 'reforco', icone: 'award', titulo: 'Plano de reforço positivo', sub: 'Reforçadores e plano para incentivar um comportamento, ligados aos interesses dele(a).', render: ferReforco },
     { id: 'historia', icone: 'book-open', titulo: 'História social', sub: 'Gere uma história social para preparar uma situação nova ou difícil.', render: ferHistoria },
     { id: 'tarefa', icone: 'list', titulo: 'Análise de tarefa', sub: 'Quebre uma habilidade em passos ensináveis, com hierarquia de ajuda.', render: ferTarefaCuid },
-    { id: 'consultor', icone: 'message-circle', titulo: 'Consultor ABA', sub: 'Converse com a Lumi sobre uma situação concreta e receba estratégias.', render: ferConsultor }
+    { id: 'consultor', icone: 'message-circle', titulo: 'Consultor ABA', sub: 'Converse com o Lumi Theo sobre uma situação concreta e receba estratégias.', render: ferConsultor }
   ];
 
   function iniciar(opts) {
