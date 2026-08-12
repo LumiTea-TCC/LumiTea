@@ -4474,6 +4474,42 @@ body.conv-v2 .suggestion-chip:hover {
 }
 
 /* ================================================================
+   HERO COM BOLHAS — recorte compacto do fundo azul da conversa.html
+   (círculos translúcidos + Theo orbitando) para cabeçalhos como
+   .jg-hero / .cap-hero / .agenda-header. Markup injetado por
+   js/core/hero-bolhas.js em qualquer elemento .lt-hero-bolhas — só
+   incluir o script e pôr a classe no cabeçalho, nada de HTML repetido
+   em cada página. Gated por calmo/reduced-motion como o original.
+   ================================================================ */
+.lt-hero-bolhas { position: relative; overflow: hidden; }
+.lt-hero-bolhas > *:not(.hb-camada) { position: relative; z-index: 1; }
+.hb-camada { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.hb-bolha { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
+.hb-bolha.b1 { width: 100px; height: 100px; top: -40px;  left: -30px; }
+.hb-bolha.b2 { width: 56px;  height: 56px;  bottom: -24px; left: 16%; background: rgba(255,255,255,0.10); }
+.hb-bolha.b3 { width: 76px;  height: 76px;  top: -34px;  right: 9%;  background: rgba(255,255,255,0.10); }
+.hb-bolha.b4 { width: 44px;  height: 44px;  bottom: -16px; right: -10px; background: rgba(255,255,255,0.16); }
+.hb-urso {
+  position: absolute;
+  width: 30px;
+  height: auto;
+  opacity: 0.55;
+  filter: drop-shadow(0 3px 6px rgba(20, 60, 110, 0.25));
+  animation: hbOrbita 20s linear infinite;
+}
+@keyframes hbOrbita {
+  0%   { left: 5%;  top: 14%; }
+  25%  { left: 93%; top: 14%; }
+  50%  { left: 93%; top: 78%; }
+  75%  { left: 5%;  top: 78%; }
+  100% { left: 5%;  top: 14%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hb-urso { animation: none; left: 5%; top: 14%; }
+}
+html[data-modo-calmo="true"] .hb-camada { display: none; }
+
+/* ================================================================
    HOME DO ADOLESCENTE — layout "Cena"
    Estrutura vinda do Claude Design (projeto "Redesign página inicial
    Lumi", arquivo Home-A-Cena.dc.html), recolorida e re-arredondada
