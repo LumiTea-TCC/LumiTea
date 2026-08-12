@@ -199,6 +199,26 @@ html[data-modo-calmo="true"] .lt-theme-ic svg { animation: none !important; }
 
     /* Confirmação "humor registrado": entra com leve fade/subida. */
     .humor-saved { transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+
+    /* Cards numerados da home "Cena": elevam 3px no hover. Substitui o
+       hover do antigo .feature-card, que morava no app.css sem gate. */
+    .th-card {
+      transition: transform var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out),
+                  border-color var(--dur-base) var(--ease-out);
+    }
+    .th-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-2);
+      border-color: rgba(74,126,181,0.34);
+    }
+
+    /* Botões da cena e "Mudar" do check-in: só cor, sem deslocamento. */
+    .th-btn, .th-eco-mudar {
+      transition: background var(--dur-base) var(--ease-out),
+                  border-color var(--dur-base) var(--ease-out),
+                  color var(--dur-base) var(--ease-out);
+    }
   }
 }
 
@@ -276,8 +296,11 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
   border-radius: 13px;
   background: linear-gradient(135deg, var(--primary), var(--brand-dark));
 }
-.app-nav-links a { border-radius: var(--r-pill); }
-.app-nav-links a.active { background: var(--primary-pale); color: var(--primary-dark); }
+/* Links da nav: mantêm a moldura de 1px do app.css (modelo "Home A — Cena").
+   Cantos levemente arredondados em vez da pílula — a moldura precisa ler
+   como caixa, não como botão. */
+.app-nav-links a { border-radius: 10px; }
+.app-nav-links a.active { background: var(--primary-pale); color: var(--primary-dark); border-color: rgba(33,150,243,.45); }
 .user-badge { border-radius: var(--r-pill); }
 .app-mobile-menu { border-radius: 0 0 var(--r-lg) var(--r-lg); }
 

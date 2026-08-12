@@ -36,8 +36,8 @@
     </a>
     <div class="app-nav-links">
       <a href="home-autista.html">Início</a>
-      <a href="entrada-conv.html">Conversar com o Theo</a>
-      <a href="games.html">Jogos do Theo</a>
+      <a href="entrada-conv.html">Conversar</a>
+      <a href="games.html">Jogos</a>
       <a href="comunidade.html">Comunidade</a>
       <a href="calendario.html">Calendário</a>
       <a href="diario.html">Diário</a>
@@ -63,13 +63,13 @@
   <!-- Mobile menu dropdown -->
   <div id="mm-home" class="app-mobile-menu">
     <a href="home-autista.html" class="active">Início</a>
-    <a href="entrada-conv.html">Conversar com o Theo</a>
-    <a href="games.html">Jogos do Theo</a>
+    <a href="entrada-conv.html">Conversar</a>
+    <a href="games.html">Jogos</a>
     <a href="comunidade.html">Comunidade</a>
     <a href="calendario.html">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html">Conta</a>
-    <div style="padding:10px 8px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px;">
+    <div class="app-mobile-menu-sair">
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
   </div>
@@ -115,129 +115,151 @@
   })();
   </script>
 
-  <div class="app-main-presentation">
-    <div style="display:flex;flex-direction:column;gap:28px;">
-
-      <!-- HERO -->
-      <section class="teen-hero">
-        <div class="teen-hero-bear">
-          <img class="lumi-float" src="img/urso-nogelo-pe.png" alt="Urso mascote Lumi">
-        </div>
-        <div class="teen-hero-text">
-          <div class="teen-hero-tag"><i class="lt-i lt-i--sm" data-lt-icon="sparkles" aria-hidden="true"></i> Seu espaço seguro</div>
-          <h1>Olá, <span id="greeting-name">amigo</span>! <br>Bem-vindo ao <span>LumiTEA</span></h1>
-          <p>Este é seu espaço seguro. Aqui você encontra o Lumi Theo para conversar, jogos de roleplay e ferramentas para tornar sua rotina mais leve e divertida.</p>
-
-          <div class="xp-banner">
-            <div class="nivel-ball" id="nivel-icon"><i class="lt-i" data-lt-icon="star" aria-hidden="true"></i></div>
-            <div class="xp-details">
-              <div class="xp-title">Nível <span id="xp-nivel">1</span> — Continue evoluindo!</div>
-              <div class="xp-bar-bg" id="xp-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de XP para o próximo nível"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
-              <div class="xp-nums"><span id="xp-info">0 / 100 XP</span> para o próximo nível</div>
-            </div>
-          </div>
-
-          <div class="hero-btns">
-            <a class="btn-hero-primary" href="entrada-conv.html">Falar com o Lumi Theo</a>
-            <a class="btn-hero-secondary" href="games.html">Ir para os jogos</a>
-          </div>
-        </div>
-      </section>
-
-      <!-- HUMOR RÁPIDO -->
-      <div class="humor-card lt-reveal">
-        <h3>Como você está agora?</h3>
-        <div class="humor-chips">
-          <button class="humor-chip" onclick="registrarHumor(this, 5)">😄 Ótimo</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 4)">🙂 Bem</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 3)">😐 Mais ou menos</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 2)">😔 Triste</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 1)">😰 Ansioso</button>
-          <button class="humor-chip" onclick="registrarHumor(this, 0)">😤 Com raiva</button>
-        </div>
-        <div class="humor-saved" id="humor-saved"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Humor registrado! Obrigado por compartilhar.</div>
-      </div>
-
-      <!-- VÍNCULO -->
-      <div id="vinculo-wrapper" class="lt-reveal">
-        <div class="vinculo-section" id="vinculo-card">
-          <div class="v-icon"><i class="lt-i lt-i--lg" data-lt-icon="link" aria-hidden="true"></i></div>
-          <div class="v-info">
-            <h4>Conecte-se com seu cuidador</h4>
-            <p>Compartilhe este código com quem cuida de você para ficarem conectados no LumiTEA.</p>
-          </div>
-          <div class="codigo-badge" id="meu-codigo" onclick="copiarCodigoVinculo()" title="Clique para copiar">------</div>
-        </div>
-        <div id="vinculo-ativo-teen">
-          <i class="lt-i lt-i--lg" data-lt-icon="heart" aria-hidden="true" style="color:#2e7d32"></i>
-          Você está conectado com seu cuidador! Ele acompanha seu progresso com carinho.
-        </div>
-      </div>
-
-      <!-- FUNCIONALIDADES -->
-      <section class="lt-reveal">
-        <div class="section-heading">
-          <div class="tag">FUNCIONALIDADES</div>
-          <h2>Tudo que o LumiTEA oferece para você</h2>
-          <p>Cada ferramenta foi pensada com cuidado para tornar seu dia mais fácil, seguro e divertido.</p>
-        </div>
-        <div class="features-grid">
-          <div class="feature-card" style="--feature-color:#4a7eb5;--feature-bg:#eaf1fb;">
-            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="message-circle" aria-hidden="true"></i></div>
-            <h3>Conversar com o Lumi Theo</h3>
-            <p>O Lumi Theo é seu assistente virtual e parceiro de conversas. Fale sobre qualquer coisa: ansiedade, escola, amigos ou como foi o seu dia. Ele nunca julga e está sempre aqui.</p>
-            <a class="feature-link" href="entrada-conv.html">
-              Ir para o chat<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-            </a>
-          </div>
-          <div class="feature-card" style="--feature-color:#2e5fa3;--feature-bg:#e9f0fb;">
-            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="play" aria-hidden="true"></i></div>
-            <h3>Jogos do Theo</h3>
-            <p>Quatro jogos para treinar memória, atenção, lógica e vocabulário: jogo da memória, classificar por cor e forma, encaixe e ligar imagem à palavra. Sem cronômetro, sem placar negativo e sem como perder — você escolhe o tamanho do desafio.</p>
-            <a class="feature-link" href="games.html">
-              Ver os jogos<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-            </a>
-          </div>
-          <div class="feature-card" style="--feature-color:#e08e30;--feature-bg:#fff8ee;">
-            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>
-            <h3>Calendário de Rotina</h3>
-            <p>Monte sua rotina semanal de forma visual e colorida. Defina lembretes para atividades, compromissos e momentos de autocuidado. A previsibilidade traz mais tranquilidade ao seu dia.</p>
-            <a class="feature-link" href="calendario.html">
-              Organizar minha rotina<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-            </a>
-          </div>
-          <div class="feature-card" style="--feature-color:#d95bb5;--feature-bg:#fdf0f9;">
-            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="award" aria-hidden="true"></i></div>
-            <h3>XP e Conquistas</h3>
-            <p>A cada conversa, roleplay completo ou rotina cumprida, você ganha pontos de experiência (XP) e sobe de nível. Desbloqueie conquistas especiais e veja seu progresso!</p>
-            <a class="feature-link" href="conta.html">
-              Ver minhas conquistas<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-            </a>
-          </div>
-          <div class="feature-card" style="--feature-color:#5a8fa0;--feature-bg:#eef6f8;">
-            <div class="feature-icon-wrap"><i class="lt-i lt-i--lg" data-lt-icon="user" aria-hidden="true"></i></div>
-            <h3>Meu Perfil</h3>
-            <p>Gerencie suas preferências, informações de acesso e personalize como o LumiTEA se comporta para você. Tudo configurado no seu ritmo e do jeito que faz mais sentido.</p>
-            <a class="feature-link" href="conta.html">
-              Acessar minha conta<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-            </a>
-          </div>
-        </div>
-      </section>
-
-
-      <!-- CTA FINAL -->
-      <section class="cta-section lt-reveal">
-        <h2>Pronto para começar? </h2>
-        <p>Escolha por onde quer começar hoje. O Lumi Theo já está esperando por você com um grande abraço de urso!</p>
-        <div class="cta-buttons">
-          <a class="btn-cta-white" href="entrada-conv.html">Falar com o Lumi Theo agora</a>
-          <a class="btn-cta-outline" href="games.html">Jogar com o Theo</a>
-        </div>
-      </section>
-
+  <!-- ══ CENA (hero) ══════════════════════════════════════════════
+       Arranjo do Claude Design "Home-A-Cena": saudação pela hora do
+       dia, mascote em pé sobre o gelo e o check-in encaixado na base.
+       Luzes de fundo estáticas — sem a aurora animada do mock. -->
+  <section class="th-cena">
+    <div class="th-cena-fx" aria-hidden="true">
+      <span class="th-cena-aurora"></span>
+      <span class="th-cena-estrelas"></span>
+      <span class="th-cena-serra"></span>
     </div>
-  </div>
+
+    <div class="th-cena-corpo">
+      <div class="th-cena-texto">
+        <span class="th-kicker" id="th-momento">Seu espaço seguro</span>
+        <h1 class="th-saudacao"><span id="th-saudacao">Olá</span>,<br><span id="greeting-name">amigo</span>.</h1>
+        <p class="th-cena-sub">O Lumi Theo está aqui com você. Sem pressa, sem cronômetro — comece por onde fizer sentido hoje.</p>
+        <div class="th-cena-btns">
+          <a class="th-btn th-btn--solido" href="entrada-conv.html">Conversar com o Theo</a>
+          <button class="th-btn th-btn--linha" type="button" onclick="pedirPausa()">Preciso de uma pausa</button>
+        </div>
+      </div>
+      <div class="th-cena-urso">
+        <img class="lumi-float" src="img/urso-nogelo-pe.png" alt="Lumi Theo, o urso mascote, em pé sobre o gelo">
+      </div>
+    </div>
+
+    <div class="th-cena-rodape">
+      <div class="th-checkin">
+        <div class="th-checkin-hd">
+          <span class="th-kicker">Check-in</span>
+          <strong>Como você está agora?</strong>
+        </div>
+        <div class="th-checkin-chips">
+          <button class="humor-chip" type="button" onclick="registrarHumor(this, 5)">Ótimo</button>
+          <button class="humor-chip" type="button" onclick="registrarHumor(this, 4)">Bem</button>
+          <button class="humor-chip" type="button" onclick="registrarHumor(this, 3)">Mais ou menos</button>
+          <button class="humor-chip" type="button" onclick="registrarHumor(this, 2)">Triste</button>
+          <button class="humor-chip" type="button" onclick="registrarHumor(this, 1)">Ansioso</button>
+          <button class="humor-chip" type="button" onclick="registrarHumor(this, 0)">Com raiva</button>
+        </div>
+        <div class="th-eco" id="humor-eco" role="status">
+          <img src="img/urso-joia.png" alt="">
+          <p id="humor-eco-msg"></p>
+          <button class="th-eco-mudar" type="button" onclick="limparHumor()">Mudar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="th-corpo">
+
+    <!-- LINHA DE STATUS -->
+    <div class="th-status lt-reveal">
+      <div class="th-status-col">
+        <span class="th-kicker">Nível <span id="xp-nivel">1</span></span>
+        <div class="th-status-xp">
+          <strong class="th-status-num" id="xp-atual">0</strong>
+          <span class="th-status-de">/ <span id="xp-alvo">100</span> XP</span>
+        </div>
+        <div class="xp-bar-bg" id="xp-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de XP para o próximo nível">
+          <div class="xp-bar-fill" id="xp-bar"></div>
+        </div>
+      </div>
+
+      <div class="th-status-col">
+        <span class="th-kicker">Próximo na rotina</span>
+        <strong class="th-status-forte" id="th-proximo">Nada marcado por enquanto</strong>
+        <a class="feature-link" href="calendario.html">
+          Ver calendário<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </a>
+      </div>
+
+      <div class="th-status-col">
+        <span class="th-kicker">Acompanhamento</span>
+        <div class="th-vinculo" id="th-vinculo">
+          <p>Compartilhe este código com quem cuida de você.</p>
+          <button class="codigo-badge" type="button" id="meu-codigo" onclick="copiarCodigoVinculo()" aria-label="Copiar meu código de vínculo">------</button>
+        </div>
+        <div class="th-vinculo-ok" id="th-vinculo-ok">
+          <i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i>
+          Conectado com seu cuidador. Ele acompanha seu progresso com carinho.
+        </div>
+      </div>
+    </div>
+
+    <!-- FERRAMENTAS -->
+    <section class="th-secao lt-reveal">
+      <div class="th-secao-hd">
+        <h2>O que você pode fazer aqui</h2>
+        <span class="th-kicker">05 ferramentas</span>
+      </div>
+
+      <div class="th-cards">
+        <article class="th-card">
+          <span class="th-card-num">01</span>
+          <img class="th-card-urso" src="img/urso-conersando.png" alt="">
+          <h3>Conversar com o Theo</h3>
+          <p>Fale sobre a escola, os amigos ou como foi o seu dia. Ele nunca julga e está sempre aqui.</p>
+          <a class="feature-link" href="entrada-conv.html">
+            Abrir chat<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </a>
+        </article>
+
+        <article class="th-card">
+          <span class="th-card-num">02</span>
+          <img class="th-card-urso" src="img/urso-jogando.png" alt="">
+          <h3>Jogos do Theo</h3>
+          <p>Memória, cores, encaixe, palavras e a lousa de pintar. Sem cronômetro e sem placar negativo.</p>
+          <a class="feature-link" href="games.html">
+            Ver jogos<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </a>
+        </article>
+
+        <article class="th-card">
+          <span class="th-card-num">03</span>
+          <img class="th-card-urso" src="img/urso-aponta-lado.png" alt="">
+          <h3>Calendário de rotina</h3>
+          <p>Monte sua semana de forma visual e receba lembretes previsíveis. Saber o que vem traz calma.</p>
+          <a class="feature-link" href="calendario.html">
+            Organizar rotina<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </a>
+        </article>
+
+        <article class="th-card">
+          <span class="th-card-num">04</span>
+          <img class="th-card-urso" src="img/urso-estrelhinha.png" alt="">
+          <h3>XP e conquistas</h3>
+          <p>Cada conversa, jogo e rotina cumprida rende pontos. Você sobe de nível no seu tempo.</p>
+          <a class="feature-link" href="conta.html">
+            Ver conquistas<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </a>
+        </article>
+
+        <article class="th-card">
+          <span class="th-card-num">05</span>
+          <img class="th-card-urso" src="img/urso-pintando.png" alt="">
+          <h3>Diário e perfil</h3>
+          <p>Registre o que sentiu e ajuste como o LumiTEA se comporta com você.</p>
+          <a class="feature-link" href="diario.html">
+            Abrir diário<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </a>
+        </article>
+      </div>
+    </section>
+  </main>
 
   <!-- Modal acolhedor para humor difícil (substitui confirm() nativo) -->
   <div id="mascote-modal" role="dialog" aria-modal="true" aria-labelledby="humor-modal-titulo">
@@ -264,9 +286,25 @@
     var _userId = null;
     var _perfil = null;
     var NIVEL_XP = [0,100,250,450,700,1000,1400,1900,2500,3200,4000];
-    var NIVEL_ICONES = ['star','star','star','star','sparkles','sparkles','sparkles','award','award','award','award'];
+
+    /* Saudação e rótulo do momento, iguais aos do mock (manhã/tarde/noite). */
+    function _momentoDoDia() {
+      var h = new Date().getHours();
+      if (h < 12) return { saudacao: 'Bom dia',   rotulo: 'Manhã' };
+      if (h < 18) return { saudacao: 'Boa tarde', rotulo: 'Tarde' };
+      return { saudacao: 'Boa noite', rotulo: 'Noite' };
+    }
+
+    function _pintarMomento() {
+      var m = _momentoDoDia();
+      var data = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('th-saudacao').textContent = m.saudacao;
+      document.getElementById('th-momento').textContent = m.rotulo + ' — ' + data;
+    }
 
     async function iniciarPagina() {
+      _pintarMomento();
+
       const { data: { session } } = await sb.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
       _userId = session.user.id;
@@ -284,6 +322,7 @@
 
       try { _atualizarXP(); } catch(e) { console.warn('Falha ao atualizar XP:', e); }
       try { _atualizarVinculo(); } catch(e) { console.warn('Falha ao atualizar vínculo:', e); }
+      try { await _carregarProximoEvento(); } catch(e) { console.warn('Falha ao ler o calendário:', e); }
     }
 
     function _atualizarXP() {
@@ -294,16 +333,40 @@
       var next = NIVEL_XP[nivel] || NIVEL_XP[NIVEL_XP.length - 1];
       var pct = next > base ? Math.min(Math.round((xp - base) / (next - base) * 100), 100) : 100;
       document.getElementById('xp-nivel').textContent = _perfil.nivel || 1;
-      document.getElementById('xp-info').textContent = (xp - base) + ' / ' + (next - base) + ' XP';
+      document.getElementById('xp-atual').textContent = Math.max(xp - base, 0);
+      document.getElementById('xp-alvo').textContent = next - base;
       document.getElementById('xp-bar').style.width = pct + '%';
       var track = document.getElementById('xp-bar-track');
       if (track) track.setAttribute('aria-valuenow', pct);
-      var ni = document.getElementById('nivel-icon');
-      if (ni) {
-        var icone = NIVEL_ICONES[Math.min((_perfil.nivel||1) - 1, NIVEL_ICONES.length - 1)] || 'star';
-        ni.innerHTML = '<i class="lt-i" data-lt-icon="' + icone + '" aria-hidden="true"></i>';
-        if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(ni);
-      }
+    }
+
+    /* "Próximo na rotina": primeiro evento de hoje em diante. A RLS de
+       eventos_calendario já limita ao próprio teen (e ao cuidador dele). */
+    async function _carregarProximoEvento() {
+      var el = document.getElementById('th-proximo');
+      if (!el || !_userId) return;
+      /* Data LOCAL, não a de toISOString(): no fuso do Brasil, depois das
+         21h a data UTC já virou e os eventos de hoje sumiriam da lista. */
+      var d = new Date();
+      var hoje = d.getFullYear() + '-' +
+                 String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                 String(d.getDate()).padStart(2, '0');
+      const { data, error } = await sb.from('eventos_calendario')
+        .select('titulo, data_evento, hora_evento')
+        .eq('id_neurodivergente', _userId)
+        .gte('data_evento', hoje)
+        .order('data_evento', { ascending: true })
+        .order('hora_evento', { ascending: true, nullsFirst: true })
+        .limit(1);
+      if (error || !data || !data.length) return;
+
+      var ev = data[0];
+      var quando = ev.data_evento === hoje
+        ? 'hoje'
+        : new Date(ev.data_evento + 'T12:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+      if (ev.hora_evento) quando += ', ' + String(ev.hora_evento).slice(0, 5);
+      /* textContent: título vem do banco e pode ter sido escrito pelo cuidador. */
+      el.textContent = (ev.titulo || 'Compromisso') + ' — ' + quando;
     }
 
     function _atualizarVinculo() {
@@ -311,10 +374,13 @@
       var el = document.getElementById('meu-codigo');
       if (el) el.textContent = _perfil.codigoVinculo || '------';
       if (_perfil.idResponsavel) {
-        var card = document.getElementById('vinculo-card');
-        if (card) card.style.display = 'none';
-        var ativo = document.getElementById('vinculo-ativo-teen');
-        if (ativo) ativo.style.display = 'flex';
+        var pendente = document.getElementById('th-vinculo');
+        if (pendente) pendente.style.display = 'none';
+        var ok = document.getElementById('th-vinculo-ok');
+        if (ok) {
+          ok.classList.add('show');
+          if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(ok);
+        }
       }
       _avisarSeVinculoEncerrado();
     }
@@ -342,19 +408,43 @@
       });
     }
 
+    /* Botão "Preciso de uma pausa" da cena: mesma ação do FAB global
+       "Estou sobrecarregado", só que visível sem precisar procurar. */
+    function pedirPausa() {
+      if (window.LTCalmo && window.LTCalmo.ativar) LTCalmo.ativar();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* O Theo devolve uma frase para o humor escolhido (texto do mock). */
+    var HUMOR_ECO = {
+      5: 'Que bom saber. Guardei isso com você.',
+      4: 'Anotado. Bom te ver assim hoje.',
+      3: 'Tudo bem estar assim. Vá no seu ritmo.',
+      2: 'Obrigado por contar. Estou aqui com você.',
+      1: 'Respire fundo. Podemos fazer uma pausa junto.',
+      0: 'Sentir raiva é normal. Fico aqui até passar.'
+    };
+
     async function registrarHumor(btn, nivel) {
       document.querySelectorAll('.humor-chip').forEach(function(c) { c.classList.remove('selected'); });
       btn.classList.add('selected');
+
+      var eco = document.getElementById('humor-eco');
+      document.getElementById('humor-eco-msg').textContent = HUMOR_ECO[nivel] || 'Obrigado por contar.';
+      eco.classList.add('show');
+
       if (_userId) {
         try { await sb.from('humores').insert({ id_neurodivergente: _userId, nivel: nivel, timestamp: new Date().toISOString() }); }
         catch(e) { console.warn('Humor não salvo:', e); }
       }
-      var saved = document.getElementById('humor-saved');
-      saved.classList.add('show');
-      setTimeout(function() { saved.classList.remove('show'); }, 3000);
       if (nivel <= 2) {
         setTimeout(abrirHumorModal, 500);
       }
+    }
+
+    function limparHumor() {
+      document.querySelectorAll('.humor-chip').forEach(function(c) { c.classList.remove('selected'); });
+      document.getElementById('humor-eco').classList.remove('show');
     }
 
     var _humorModalAntesFoco = null;
