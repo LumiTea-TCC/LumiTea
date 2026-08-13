@@ -139,6 +139,7 @@
     .empty-rp{text-align:center;padding:16px;font-size:.76rem;color:var(--text-muted);font-weight:700}
   </style>
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/hero-bolhas.js" defer></script>
 </head>
 <body class="app-body">
   <div class="bg-layer">
@@ -154,8 +155,8 @@
     </a>
     <div class="app-nav-links">
       <a href="home-autista.html">Início</a>
-      <a href="entrada-conv.html">Conversar com o Theo</a>
-      <a href="games.html">Jogos do Theo</a>
+      <a href="entrada-conv.html">Conversar</a>
+      <a href="games.html">Jogos</a>
       <a href="comunidade.html">Comunidade</a>
       <a href="calendario.html" class="active">Calendário</a>
       <a href="diario.html">Diário</a>
@@ -175,13 +176,13 @@
   </nav>
   <div id="mm-cl" class="app-mobile-menu">
     <a href="home-autista.html">Início</a>
-    <a href="entrada-conv.html">Conversar com o Theo</a>
-    <a href="games.html">Jogos do Theo</a>
+    <a href="entrada-conv.html">Conversar</a>
+    <a href="games.html">Jogos</a>
     <a href="comunidade.html">Comunidade</a>
     <a href="calendario.html" class="active">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html">Conta</a>
-    <div style="padding:10px 8px 4px;display:flex;justify-content:flex-end;border-top:1px solid rgba(74,126,181,0.12);margin-top:6px">
+    <div class="app-mobile-menu-sair">
       <button class="btn-logout" onclick="sair()">Sair</button>
     </div>
   </div>
@@ -309,7 +310,7 @@
     <div class="cal-right">
 
       <!-- Header agenda -->
-      <div class="agenda-header">
+      <div class="agenda-header lt-hero-bolhas">
         <div>
           <div class="ah-date" id="ah-date">Selecione um dia</div>
           <div class="ah-sub">Sua agenda pessoal</div>

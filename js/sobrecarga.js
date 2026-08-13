@@ -51,4 +51,12 @@
   } else {
     montar();
   }
+
+  /* Modo calmo também é acionável de dentro da página (a home teen tem
+     um "Preciso de uma pausa" no hero — o FAB é fácil de não ver). */
+  window.LTCalmo = {
+    ativar:   function () { aplicarModoCalmo(true); },
+    desativar: function () { aplicarModoCalmo(false); },
+    ativo:    function () { return document.documentElement.getAttribute('data-modo-calmo') === 'true'; }
+  };
 })();

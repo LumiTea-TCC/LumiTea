@@ -66,30 +66,48 @@
  gap: 2px;
  }
  
+ /* Modelo de link da nav (design "Home A — Cena"): caixa alta espaçada em
+    Baloo 2, dentro de uma moldura de 1px que nasce transparente e só aparece
+    no hover/ativo. Só cor e borda mudam — nada se move, então continua
+    válido sob modo calmo / prefers-reduced-motion. */
  .app-nav-links a {
- font-family: 'Nunito', sans-serif;
- font-size: 0.9rem;
+ font-family: 'Baloo 2', sans-serif;
+ font-size: 0.82rem;
  font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 0.06em;
  color: var(--text-soft);
  text-decoration: none;
- padding: 8px 18px;
- border-radius: 8px;
- transition: background 0.18s, color 0.18s;
+ padding: 8px 14px;
+ border: 1px solid transparent;
+ border-radius: 10px;
+ transition: background 0.18s, color 0.18s, border-color 0.18s;
  white-space: nowrap;
- letter-spacing: 0.01em;
  }
- 
+
  .app-nav-links a:hover {
- background: rgba(74,126,181,0.08);
+ background: rgba(74,126,181,0.10);
+ border-color: rgba(74,126,181,0.38);
  color: var(--primary-dark);
  }
- 
+
  .app-nav-links a.active {
- background: rgba(74,126,181,0.13);
+ background: var(--primary-pale);
+ border-color: rgba(33,150,243,0.45);
  color: var(--primary-dark);
  font-weight: 800;
  }
- 
+
+ /* Faixa entre o burger (≤900px) e a tela larga: a caixa alta é mais larga
+    que a caixa normal. Aperta o respiro primeiro e só depois o corpo da
+    letra — encolher a fonte cedo demais pesaria na leitura. */
+ @media (max-width: 1180px) {
+ .app-nav-links a { padding: 8px 10px; letter-spacing: 0.04em; }
+ }
+ @media (max-width: 1040px) {
+ .app-nav-links a { padding: 7px 7px; font-size: 0.78rem; }
+ }
+
  .app-nav-right {
  display: flex;
  align-items: center;
@@ -1481,23 +1499,36 @@
  border-bottom: 2px solid rgba(74,126,181,0.18);
  z-index: 199;
  padding: 6px 16px 12px;
+ gap: 3px;
  box-shadow: 0 8px 32px rgba(74,126,181,0.12);
  }
+ /* Mesmo modelo da nav do topo, em coluna: a moldura de 1px substitui o
+    antigo filete divisório entre os itens. */
  .app-mobile-menu a {
- font-family: 'Nunito', sans-serif;
- font-size: 0.95rem;
+ font-family: 'Baloo 2', sans-serif;
+ font-size: 0.88rem;
  font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 0.06em;
  color: var(--text-soft);
  text-decoration: none;
- padding: 12px 10px;
- border-bottom: 1px solid rgba(74,126,181,0.10);
+ padding: 12px 14px;
  display: block;
- border-radius: 8px;
- transition: color 0.18s, background 0.18s;
+ border: 1px solid transparent;
+ border-radius: 10px;
+ transition: color 0.18s, background 0.18s, border-color 0.18s;
  }
- .app-mobile-menu a:last-of-type { border-bottom: none; }
- .app-mobile-menu a:hover { color: var(--primary-dark); background: rgba(74,126,181,0.07); }
- .app-mobile-menu a.active { color: var(--primary-dark); font-weight: 800; background: rgba(74,126,181,0.11); }
+ /* Rodapé do menu mobile (era um style="" repetido em 14 páginas). */
+ .app-mobile-menu-sair {
+ display: flex;
+ align-items: center;
+ justify-content: flex-end;
+ padding: 10px 8px 4px;
+ margin-top: 6px;
+ border-top: 1px solid rgba(74,126,181,0.12);
+ }
+ .app-mobile-menu a:hover { color: var(--primary-dark); background: rgba(74,126,181,0.10); border-color: rgba(74,126,181,0.38); }
+ .app-mobile-menu a.active { color: var(--primary-dark); font-weight: 800; background: var(--primary-pale); border-color: rgba(33,150,243,0.45); }
 
  /* On mobile, hide user-badge and logout from app-nav-right (shown inside mobile menu) */
  @media (max-width: 900px) {
@@ -4440,4 +4471,472 @@ body.conv-v2 .suggestion-chip:hover {
     max-width: none;
     padding: var(--sp-4) var(--sp-4) var(--sp-5);
   }
+}
+
+/* ================================================================
+   HERO COM BOLHAS — recorte compacto do fundo azul da conversa.html
+   (círculos translúcidos + Theo orbitando) para cabeçalhos como
+   .jg-hero / .cap-hero / .agenda-header. Markup injetado por
+   js/core/hero-bolhas.js em qualquer elemento .lt-hero-bolhas — só
+   incluir o script e pôr a classe no cabeçalho, nada de HTML repetido
+   em cada página. Gated por calmo/reduced-motion como o original.
+   ================================================================ */
+.lt-hero-bolhas { position: relative; overflow: hidden; }
+.lt-hero-bolhas > *:not(.hb-camada) { position: relative; z-index: 1; }
+.hb-camada { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.hb-bolha { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
+.hb-bolha.b1 { width: 100px; height: 100px; top: -40px;  left: -30px; }
+.hb-bolha.b2 { width: 56px;  height: 56px;  bottom: -24px; left: 16%; background: rgba(255,255,255,0.10); }
+.hb-bolha.b3 { width: 76px;  height: 76px;  top: -34px;  right: 9%;  background: rgba(255,255,255,0.10); }
+.hb-bolha.b4 { width: 44px;  height: 44px;  bottom: -16px; right: -10px; background: rgba(255,255,255,0.16); }
+.hb-urso {
+  position: absolute;
+  width: 30px;
+  height: auto;
+  opacity: 0.55;
+  filter: drop-shadow(0 3px 6px rgba(20, 60, 110, 0.25));
+  animation: hbOrbita 20s linear infinite;
+}
+@keyframes hbOrbita {
+  0%   { left: 5%;  top: 14%; }
+  25%  { left: 93%; top: 14%; }
+  50%  { left: 93%; top: 78%; }
+  75%  { left: 5%;  top: 78%; }
+  100% { left: 5%;  top: 14%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hb-urso { animation: none; left: 5%; top: 14%; }
+}
+html[data-modo-calmo="true"] .hb-camada { display: none; }
+
+/* ================================================================
+   HOME DO ADOLESCENTE — layout "Cena"
+   Estrutura vinda do Claude Design (projeto "Redesign página inicial
+   Lumi", arquivo Home-A-Cena.dc.html), recolorida e re-arredondada
+   para a identidade LumiTEA: nada de Barlow Condensed, canto vivo ou
+   moldura de planta baixa — só o arranjo (cena → check-in encaixado
+   → linha de status → cards numerados).
+
+   Contraste: a faixa de texto do hero fica inteira sobre
+   --brand-dark (#2e5fa3), onde branco dá 6.5:1 e --primary-pale dá
+   5.7:1. O degradê só clareia ABAIXO do texto, atrás do mascote e
+   da serra — por isso os stops de --brand/--sky começam em 55%.
+
+   Movimento: o mock tem uma aurora animada de 30s. Não foi portada
+   — "calma é função", movimento aqui é só de estado. As luzes do
+   fundo são estáticas.
+   ================================================================ */
+
+.th-cena {
+  /* vence a regra global de <section> do lumitea.css (72px/1100px) */
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 5;
+  background: linear-gradient(180deg,
+    var(--brand-dark) 0%,
+    var(--brand-dark) 55%,
+    var(--brand) 78%,
+    var(--sky) 100%);
+}
+
+/* Camada decorativa isolada: guarda o overflow das luzes sem cortar
+   o card de check-in, que precisa vazar pela base da cena. */
+.th-cena-fx {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.th-cena-aurora {
+  position: absolute;
+  top: -18%;
+  left: -10%;
+  width: 120%;
+  height: 78%;
+  filter: blur(52px);
+  background:
+    radial-gradient(48% 60% at 26% 40%, rgba(199,224,247,0.16), transparent 70%),
+    radial-gradient(40% 52% at 68% 26%, rgba(199,224,247,0.34), transparent 72%);
+}
+
+.th-cena-estrelas {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 31% 12%, #fff, transparent),
+    radial-gradient(1.6px 1.6px at 58% 18%, #fff, transparent),
+    radial-gradient(1.1px 1.1px at 77% 9%,  #fff, transparent),
+    radial-gradient(1.3px 1.3px at 89% 27%, #fff, transparent),
+    radial-gradient(1.1px 1.1px at 45% 32%, #fff, transparent);
+}
+
+.th-cena-serra {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  background: linear-gradient(180deg, transparent, var(--sky) 62%, var(--bg));
+  clip-path: polygon(0 62%, 14% 46%, 28% 58%, 43% 38%, 58% 55%, 72% 41%, 86% 56%, 100% 44%, 100% 100%, 0 100%);
+}
+
+.th-cena-corpo {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 40px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
+  gap: 32px;
+  align-items: end;
+}
+
+.th-cena-texto {
+  padding-bottom: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.th-kicker {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--primary-pale);
+}
+
+.th-saudacao {
+  margin: 0;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.1rem, 5.2vw, 3.6rem);
+  line-height: 1.06;
+  color: #fff;
+}
+
+.th-cena-sub {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #fff;
+}
+
+.th-cena-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.th-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  padding: 13px 24px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+}
+
+.th-btn--solido {
+  background: #fff;
+  border-color: #fff;
+  color: var(--brand-dark);
+}
+
+.th-btn--linha {
+  background: transparent;
+  border-color: rgba(255,255,255,0.55);
+  color: #fff;
+}
+
+.th-btn--linha:hover { background: rgba(255,255,255,0.14); border-color: #fff; }
+.th-btn--solido:hover { background: var(--primary-pale); border-color: var(--primary-pale); }
+
+.th-cena-urso {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.th-cena-urso img {
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 34px rgba(29,45,61,0.35));
+}
+
+/* ── Check-in encaixado na base da cena ──────────────────────── */
+.th-cena-rodape {
+  position: relative;
+  z-index: 3;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.th-checkin {
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-2);
+  padding: 22px 26px;
+  margin-bottom: -44px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px 26px;
+  align-items: center;
+}
+
+.th-checkin-hd { display: flex; flex-direction: column; gap: 2px; }
+.th-checkin-hd .th-kicker { color: var(--text-muted); }
+.th-checkin-hd strong {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.15;
+}
+
+.th-checkin-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 8px;
+}
+
+/* Os chips reusam .humor-chip (que já tem hover/active gated no
+   enhance.css); aqui só viram blocos de largura igual. */
+.th-checkin-chips .humor-chip {
+  justify-content: center;
+  text-align: center;
+  min-height: 46px;
+  padding: 8px 10px;
+}
+
+/* Eco do check-in: o Theo devolve uma frase para o humor escolhido. */
+.th-eco {
+  grid-column: 1 / -1;
+  display: none;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--primary-pale);
+  border: 1.5px solid rgba(33,150,243,0.22);
+  border-radius: var(--r-lg);
+}
+
+.th-eco.show { display: flex; }
+.th-eco img { width: 42px; height: 42px; object-fit: contain; flex-shrink: 0; }
+.th-eco p {
+  margin: 0;
+  flex: 1;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.th-eco-mudar {
+  background: transparent;
+  border: 1.5px solid rgba(33,150,243,0.35);
+  border-radius: var(--r-pill);
+  padding: 7px 16px;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary-dark);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.th-eco-mudar:hover { background: rgba(33,150,243,0.10); }
+
+/* ── Corpo abaixo da cena ────────────────────────────────────── */
+.th-corpo {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 76px 40px 72px;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Linha de status: nível/XP, próximo compromisso e vínculo. */
+.th-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 26px;
+  padding-bottom: 30px;
+  border-bottom: 1.5px solid var(--border-soft);
+}
+
+.th-status-col { display: flex; flex-direction: column; gap: 8px; }
+.th-status-col .th-kicker { color: var(--text-muted); letter-spacing: 0.16em; }
+
+.th-status-xp { display: flex; align-items: baseline; gap: 10px; }
+/* A trilha reusa .xp-bar-bg/.xp-bar-fill (transição de largura já gated
+   no enhance.css). O preenchimento nasce em zero e o JS escreve a
+   largura real — sem isso o div de bloco nasceria com 100%. */
+.th-status .xp-bar-fill { width: 0; }
+.th-status-num {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-main);
+}
+.th-status-de { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); }
+
+.th-status-forte {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-main);
+}
+
+.th-status-col p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-soft);
+  max-width: 36ch;
+}
+
+/* Vínculo mora na 3ª coluna do status (o mock tem só um texto de
+   "Acompanhamento"; aqui ele carrega a função real do código). */
+.th-vinculo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.th-vinculo-ok {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--success);
+}
+.th-vinculo-ok.show { display: flex; }
+
+/* ── Cabeçalho da seção de ferramentas ───────────────────────── */
+.th-secao {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.th-secao-hd {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.th-secao-hd h2 {
+  margin: 0;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-main);
+}
+
+.th-secao-hd .th-kicker { color: var(--text-muted); }
+
+/* ── Cards numerados 01–05 ───────────────────────────────────── */
+.th-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+  gap: 18px;
+}
+
+.th-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-1);
+  padding: 22px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 280px;
+}
+
+.th-card-num {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+}
+
+.th-card-urso {
+  width: 78px;
+  height: 78px;
+  object-fit: contain;
+  align-self: flex-start;
+}
+
+.th-card h3 {
+  margin: 0;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-main);
+}
+
+.th-card p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--text-soft);
+}
+
+.th-card .feature-link { margin-top: auto; }
+
+/* ── Responsivo ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .th-cena-corpo {
+    grid-template-columns: 1fr;
+    padding: 36px 20px 0;
+    gap: 8px;
+  }
+  .th-cena-texto { padding-bottom: 8px; order: 2; }
+  .th-cena-urso { order: 1; justify-content: flex-start; }
+  .th-cena-urso img { max-width: 190px; }
+  .th-cena-rodape { padding: 0 20px; }
+  .th-checkin { grid-template-columns: 1fr; padding: 20px; }
+  .th-corpo { padding: 68px 20px 56px; }
+  .th-eco { flex-wrap: wrap; }
+  .th-eco p { flex: 1 1 100%; order: 3; }
+}
+
+@media (max-width: 560px) {
+  .th-checkin-chips { grid-template-columns: 1fr 1fr; }
+  .th-cards { grid-template-columns: 1fr; }
+  .th-card { min-height: 0; }
 }
