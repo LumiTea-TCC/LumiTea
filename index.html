@@ -3,465 +3,512 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LumiTEA – Suporte para neurodivergentes</title>
+  <title>LumiTEA – Suporte para adolescentes no espectro autista</title>
+  <meta name="description" content="Suporte socioemocional para adolescentes no espectro autista — e um painel de acompanhamento para pais, cuidadores e terapeutas. Gratuito e sem anúncios.">
+
   <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
   <link rel="manifest" href="img/site.webmanifest">
 
-
-  <!-- Folha de estilos externa -->
+  <!-- Fontes do sistema visual: Baloo 2 (títulos) + Nunito (corpo) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Folha de estilos externa -->
-  <link rel="stylesheet" href="lumitea.css">
+  <!-- Esta página NÃO carrega lumitea.css de propósito: ver o cabeçalho
+       de css/landing.css. tokens → landing → enhance (enhance por último). -->
   <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/landing.css">
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/landing.js" defer></script>
 </head>
-<body>
+
+<body class="lp-body">
+
+  <a class="lp-skip" href="#conteudo">Pular para o conteúdo</a>
 
   <!-- ============================================================
-       FUNDO DECORATIVO
-       Blobs coloridos fixos que ficam por trás de todo o conteúdo.
-       Controlados por .bg-layer e .blob-* no CSS (seção 3).
+       TOPO — navegação + hero, sobre o fundo em degradê
        ============================================================ -->
-  <div class="bg-layer">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-  </div>
+  <header class="lp-topo">
 
+    <div class="lp-deco lp-deco--pontos" aria-hidden="true"></div>
+    <div class="lp-deco lp-deco--blob lp-deco--blob-1" aria-hidden="true"></div>
+    <div class="lp-deco lp-deco--blob lp-deco--blob-2" aria-hidden="true"></div>
 
-  <!-- ============================================================
-       NAVEGAÇÃO
-       Barra fixa no topo com logo, links e botões de ação.
-       Em telas ≤ 768px os links do meio ficam ocultos.
-       ============================================================ -->
-  <nav>
+    <!-- ── Navegação ─────────────────────────────────────────── -->
+    <nav class="lp-nav" aria-label="Navegação principal">
+      <div class="lp-nav-in">
 
-    <!-- Logo: ícone + nome do app -->
-    <a class="logo" href="#">
-      <div class="logo-icon">
-        <img src="img/icon-urso.png" alt="Ícone LumiTEA">
-      </div>
-      LumiTEA
-    </a>
+        <a class="lp-logo" href="index.html">
+          <span class="lp-logo-ic"><img src="img/icon-urso.png" alt=""></span>
+          LumiTEA
+        </a>
 
-    <!-- Links de navegação (ocultos em celular) -->
-    <div class="nav-links">
-      <a href="#funcionalidades">Funcionalidades</a>
-      <a href="#como-funciona">Como funciona</a>
-      <a href="#app">O App</a>
-    </div>
+        <div class="lp-nav-links">
+          <a href="#funcionalidades">Funcionalidades</a>
+          <a href="#como-funciona">Como funciona</a>
+          <a href="#cuidador">Para cuidadores</a>
+        </div>
 
-    <!-- Botões de ação -->
-    <div class="nav-actions">
-      <a href="login.html"><button class="btn-nav-ghost">Entrar</button></a>
-      <a href="cadastro.html"><button class="btn-nav-solid">Criar</button></a>
-    </div>
+        <div class="lp-nav-acoes">
+          <a class="lp-btn lp-btn--ghost" href="login.html">Entrar</a>
+          <a class="lp-btn lp-btn--solid" href="cadastro.html">Criar conta</a>
+        </div>
 
-    <!-- Burger menu (mobile) -->
-    <label class="burger" for="burger-index">
-      <input type="checkbox" id="burger-index">
-      <span></span>
-      <span></span>
-      <span></span>
-    </label>
+        <button class="lp-burger" id="lp-burger" type="button"
+                aria-expanded="false" aria-controls="lp-menu" aria-label="Abrir menu">
+          <i class="lt-i lp-burger-abrir"  data-lt-icon="list" aria-hidden="true"></i>
+          <i class="lt-i lp-burger-fechar" data-lt-icon="x"    aria-hidden="true"></i>
+        </button>
 
-  </nav>
-
-  <!-- Menu mobile vertical -->
-  <div id="mobile-nav-index" class="mobile-menu">
-    <a href="#funcionalidades">Funcionalidades</a>
-    <a href="#como-funciona">Como funciona</a>
-    <a href="#app">O App</a>
-    <div class="mobile-menu-actions">
-      <a href="login.html"><button class="btn-nav-ghost" style="width:100%">Entrar</button></a>
-      <a href="cadastro.html"><button class="btn-nav-solid" style="width:100%">Criar conta</button></a>
-    </div>
-  </div>
-  <script>
-  (function(){
-    var cb   = document.getElementById('burger-index');
-    var menu = document.getElementById('mobile-nav-index');
-    cb.addEventListener('change', function(){ menu.style.display = cb.checked ? 'flex' : 'none'; });
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', function(){ cb.checked=false; menu.style.display='none'; });
-    });
-  })();
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  const revealEls = document.querySelectorAll('section, .divider, footer');
-  revealEls.forEach((el) => {
-    el.classList.add('reveal-section');
-  });
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
-
-  revealEls.forEach((el) => observer.observe(el));
-});
-
-  </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const revealEls = document.querySelectorAll('section, .divider, footer, .how-section, .app-section');
-      revealEls.forEach((el) => {
-        el.classList.add('reveal-section');
-      });
-    
-      document.querySelectorAll('.app-section').forEach((el) => {
-        el.classList.add('reveal-scale');
-      });
-    
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
-    
-      revealEls.forEach((el) => observer.observe(el));
-    });
-    </script>
-
-
-  <!-- ============================================================
-       HERO — SEÇÃO PRINCIPAL
-       Texto, botões e estatísticas à esquerda.
-       Imagem à direita (substitua o <img> pela sua imagem real).
-       ============================================================ -->
-  <div class="hero">
-
-    <!-- Coluna de conteúdo (esquerda) -->
-    <div class="hero-content">
-
-      <!-- Badge de categoria -->
-      <div class="badge">
-        <div class="badge-dot"></div>
-        Criado para neurodivergentes
       </div>
 
-      <!-- Título principal -->
-      <h1>LumiTea. <span>Aprender e se adaptar nunca foi</span> tão fácil</h1>
+      <!-- Menu mobile (dentro do <nav> sticky, acompanha a rolagem) -->
+      <div class="lp-menu" id="lp-menu">
+        <a href="#funcionalidades">Funcionalidades</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#cuidador">Para cuidadores</a>
+        <div class="lp-menu-acoes">
+          <a class="lp-btn lp-btn--ghost" href="login.html">Entrar</a>
+          <a class="lp-btn lp-btn--solid" href="cadastro.html">Criar conta</a>
+        </div>
+      </div>
+    </nav>
 
-      <!-- Parágrafo descritivo -->
-      <p class="hero-sub">
-        LumiTEA é um aplicativo de suporte e aprendizado pensado especialmente
-        para crianças e adolescentes no espectro autista. Aqui, cada pessoa
-        aprende no seu próprio ritmo e consegue se adaptar à sua rotina diária
-        de maneira mais fácil.
-      </p>
+    <!-- ── Hero ──────────────────────────────────────────────── -->
+    <div class="lp-hero" id="conteudo">
 
-      <!-- Botões de ação -->
-      <div class="hero-actions">
-        <a href="cadastro.html"><button class="btn-primary">Criar conta — Acesse ao nosso suporte</button></a>
-        <a href="login.html"><button class="btn-secondary">Já tenho uma conta</button></a>
+      <div class="lp-hero-txt">
+
+        <span class="lp-badge">
+          <span class="badge-dot" aria-hidden="true"></span>
+          <span class="lp-badge-txt">CRIADO PARA NEURODIVERGENTES</span>
+        </span>
+
+        <h1 class="lp-h1">
+          Aprender e se adaptar<br>nunca foi <span class="lp-marca">tão fácil</span>
+        </h1>
+
+        <p class="lp-hero-sub">
+          Suporte socioemocional para adolescentes no espectro autista — e um painel
+          de acompanhamento para quem cuida. Cada pessoa no seu próprio ritmo, sem
+          pressa e sem sobrecarga.
+        </p>
+
+        <div class="lp-hero-acoes">
+          <a class="lp-btn lp-btn--cta" href="cadastro.html">
+            Criar conta gratuita
+            <i class="lt-i" data-lt-icon="arrow-right" aria-hidden="true"></i>
+          </a>
+          <a class="lp-btn lp-btn--linha" href="login.html">Já tenho conta</a>
+        </div>
+
+        <div class="lp-provas">
+          <span class="lp-prova lp-prova--verde">
+            <i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i>
+            Sem anúncios, sempre
+          </span>
+          <span class="lp-prova lp-prova--ambar">
+            <i class="lt-i" data-lt-icon="clock" aria-hidden="true"></i>
+            Modo calmo em 1 toque
+          </span>
+          <span class="lp-prova lp-prova--violeta">
+            <i class="lt-i" data-lt-icon="users" aria-hidden="true"></i>
+            Painel para cuidadores
+          </span>
+        </div>
+
       </div>
 
-     
-    </div>
+      <div class="lp-hero-art">
+        <div class="lp-deco lp-hero-glow" aria-hidden="true"></div>
+        <div class="lp-deco lp-hero-placa" aria-hidden="true"></div>
 
-    <!-- Coluna de imagem (direita)
-         Substitua o <img> pela imagem real do app ou mascote. -->
-    <div class="hero-image-wrap">
-      <div class="hero-glow" aria-hidden="true"></div>
-      <img class="lumi-float" src="img/urso-nogelo-pe.png" alt="Mascote LumiTEA">
-    </div>
+        <img class="lp-hero-urso lumi-float" src="img/urso-nogelo-pe.png"
+             alt="Lumi Theo, o urso mascote do LumiTEA, em pé sobre o gelo">
 
-  </div><!-- /hero -->
+        <!-- Amostra do check-in de humor -->
+        <div class="lp-flut lp-flut--checkin">
+          <span class="lp-rotulo">Check-in</span>
+          <strong class="lp-flut-t">Como você está agora?</strong>
+          <div class="lp-humores">
+            <span class="lp-humor lp-humor--on">Bem</span>
+            <span class="lp-humor">Mais ou menos</span>
+            <span class="lp-humor">Ansioso</span>
+          </div>
+        </div>
+
+        <!-- Amostra da barra de XP -->
+        <div class="lp-flut lp-flut--xp">
+          <div class="lp-xp-topo">
+            <span class="lp-rotulo">Nível 4</span>
+            <span class="lp-xp-val">320<small> / 450 XP</small></span>
+          </div>
+          <div class="lp-xp-trilha"><div class="lp-xp-fill"></div></div>
+          <p class="lp-flut-nota">Conversa registrada · +15 XP</p>
+        </div>
+      </div>
+
+    </div><!-- /lp-hero -->
+  </header>
 
 
   <!-- ============================================================
-       DIVISOR DECORATIVO
-       Linha com texto centralizado separando o hero das features.
+       TRÊS PILARES
        ============================================================ -->
-  <div class="divider">
-    <div class="divider-line"></div>
-    <div class="divider-text">POR QUE O LUMITEA É DIFERENTE</div>
-    <div class="divider-line"></div>
-  </div>
+  <section class="lp-tiras lt-reveal" aria-label="Princípios do LumiTEA">
+    <div class="lp-tiras-in">
+
+      <div class="lp-tira">
+        <span class="lp-tira-ic lp-ic--violeta">
+          <i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i>
+        </span>
+        <div>
+          <strong class="lp-tira-t">Conversa que não julga</strong>
+          <p>O Lumi Theo responde no ritmo de quem escreve, sem pressa nem cobrança.</p>
+        </div>
+      </div>
+
+      <div class="lp-tira">
+        <span class="lp-tira-ic lp-ic--verde">
+          <i class="lt-i" data-lt-icon="calendar" aria-hidden="true"></i>
+        </span>
+        <div>
+          <strong class="lp-tira-t">Rotina previsível</strong>
+          <p>Saber o que vem a seguir reduz a ansiedade — o calendário mostra sempre o próximo passo.</p>
+        </div>
+      </div>
+
+      <div class="lp-tira">
+        <span class="lp-tira-ic lp-ic--ambar">
+          <i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i>
+        </span>
+        <div>
+          <strong class="lp-tira-t">Modo calmo soberano</strong>
+          <p>Um toque desliga todo movimento e baixa o brilho da tela inteira.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
 
   <!-- ============================================================
        FUNCIONALIDADES
-       Grid de 6 cards descrevendo os principais recursos do app.
-       Em telas menores vira 2 colunas e depois 1 coluna.
        ============================================================ -->
-  <section id="funcionalidades">
+  <section class="lp-secao" id="funcionalidades">
 
-    <!-- Cabeçalho da seção -->
-    <div class="section-header">
-      <div class="section-label">Funcionalidades</div>
-      <div class="section-title">Tudo pensado para o seu conforto</div>
-      <p class="section-sub">
-        Cada detalhe do LumiTEA foi desenvolvido junto com pesquisas de
-        especialistas em TEA para garantir uma experiência verdadeiramente útil.
+    <div class="lp-secao-hd lt-reveal">
+      <div>
+        <span class="lp-label">Funcionalidades</span>
+        <h2 class="lp-h2">Tudo pensado para o seu conforto</h2>
+      </div>
+      <p>
+        Cada detalhe foi desenvolvido junto com pesquisas de especialistas em TEA —
+        nada aqui existe só para enfeitar a tela.
       </p>
     </div>
 
-    <!-- Grid de cards -->
-    <div class="features-grid">
+    <div class="lp-grade">
 
-      <!-- Card 1: Ritmo personalizado -->
-      <div class="feat-card-wrap">
-        <div class="feat-content">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M13 2.05V4.06c3.95.49 7 3.85 7 7.94 0 3.21-1.81 6-4.5 7.54L13 17v5h5l-1.22-1.22C19.91 19.07 22 15.76 22 12c0-5.18-3.95-9.45-9-9.95zM11 2.05C5.95 2.55 2 6.82 2 12c0 3.76 2.09 7.07 5.22 8.78L6 22h5v-5l-2.5 2.54C6.81 18 5 15.21 5 12c0-4.09 3.05-7.45 7-7.94V2.05z"/></svg>
-          <p class="feat-para"><strong>Ritmo personalizado</strong><br>O app se adapta ao desempenho e ao humor do usuário, propondo lições curtas, sem pressão por tempo.</p>
-          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+      <!-- Destaque: conversar com o Theo -->
+      <article class="lp-chat lt-reveal">
+        <div class="lp-deco lp-deco--pontos-claro" aria-hidden="true"></div>
+        <div class="lp-chat-in">
+
+          <div class="lp-chat-txt">
+            <span class="lp-chat-tag">IA acolhedora</span>
+            <h3 class="lp-chat-h">Conversar com o Theo</h3>
+            <p>
+              Fale sobre a escola, os amigos ou como foi o dia. Ele nunca julga,
+              não tem pressa e está sempre aqui.
+            </p>
+            <a class="lp-chat-btn" href="cadastro.html">
+              Conhecer o chat
+              <i class="lt-i" data-lt-icon="chevron-right" aria-hidden="true"></i>
+            </a>
+          </div>
+
+          <div class="lp-bolhas" aria-hidden="true">
+            <span class="lp-bolha lp-bolha--teen">Hoje foi difícil na escola.</span>
+            <span class="lp-bolha lp-bolha--lumi">Obrigado por me contar. Quer falar sobre o que aconteceu?</span>
+            <span class="lp-bolha lp-bolha--teen">Acho que sim.</span>
+          </div>
+
+        </div>
+      </article>
+
+      <!-- Rotinas -->
+      <article class="lp-card lp-card--5 lt-reveal">
+        <span class="lp-card-ic lp-ic--azul">
+          <i class="lt-i" data-lt-icon="calendar" aria-hidden="true"></i>
+        </span>
+        <h3 class="lp-card-t">Rotinas previsíveis</h3>
+        <p>Monte a semana de forma visual e receba lembretes suaves. Estrutura clara em cada dia.</p>
+        <div class="lp-dias" aria-hidden="true">
+          <span class="lp-dia">SEG</span>
+          <span class="lp-dia">TER</span>
+          <span class="lp-dia lp-dia--on">QUA</span>
+          <span class="lp-dia">QUI</span>
+          <span class="lp-dia">SEX</span>
+        </div>
+        <p class="lp-evento">14:00 — Terapia com a Ana</p>
+      </article>
+
+      <!-- Recompensas -->
+      <article class="lp-card lp-card--4 lt-reveal">
+        <span class="lp-card-ic lp-ic--violeta">
+          <i class="lt-i" data-lt-icon="award" aria-hidden="true"></i>
+        </span>
+        <h3 class="lp-card-t">Recompensas gentis</h3>
+        <p>Conquistas celebradas com calma — sem sons estridentes, sem placar negativo.</p>
+        <div class="lp-chips">
+          <span class="lp-chip lp-chip--violeta">7 dias seguidos</span>
+          <span class="lp-chip lp-chip--ambar">Nível 4</span>
+        </div>
+      </article>
+
+      <!-- Acessibilidade -->
+      <article class="lp-card lp-card--4 lt-reveal">
+        <span class="lp-card-ic lp-ic--verde">
+          <i class="lt-i" data-lt-icon="eye" aria-hidden="true"></i>
+        </span>
+        <h3 class="lp-card-t">Visual acessível</h3>
+        <p>Contraste validado AA, alvos de toque grandes e espaçamento generoso em toda tela.</p>
+        <div class="lp-selo">
+          <i class="lt-i" data-lt-icon="check" aria-hidden="true"></i>
+          <span>WCAG 2.1 AA</span>
+        </div>
+      </article>
+
+      <!-- Lembretes -->
+      <article class="lp-card lp-card--4 lt-reveal">
+        <span class="lp-card-ic lp-ic--ambar">
+          <i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i>
+        </span>
+        <h3 class="lp-card-t">Lembretes suaves</h3>
+        <p>Notificações configuráveis que mantêm a regularidade sem criar pressão.</p>
+        <div class="lp-linha-cfg">
+          <span>Avisar 10 min antes</span>
+          <span class="lp-switch" aria-hidden="true"></span>
+        </div>
+      </article>
+
+    </div><!-- /lp-grade -->
+  </section>
+
+
+  <!-- ============================================================
+       PAINEL DO CUIDADOR
+       ============================================================ -->
+  <section class="lp-cuidador" id="cuidador">
+    <div class="lp-deco lp-deco--pontos-claro" aria-hidden="true"></div>
+
+    <div class="lp-cuidador-in">
+
+      <div class="lt-reveal">
+        <span class="lp-label lp-label--claro">Modo família</span>
+        <h2 class="lp-h2 lp-h2--claro">Do outro lado, quem cuida acompanha</h2>
+        <p class="lp-cuidador-sub">
+          Pais, cuidadores e terapeutas recebem humor, rotina e relatórios de evolução —
+          com alertas quando algo precisa de atenção imediata. Acompanhar, nunca vigiar.
+        </p>
+
+        <div class="lp-checks">
+          <span class="lp-check">
+            <i class="lt-i" data-lt-icon="check" aria-hidden="true"></i>
+            Alerta de crise vence qualquer outro elemento da tela
+          </span>
+          <span class="lp-check">
+            <i class="lt-i" data-lt-icon="check" aria-hidden="true"></i>
+            Relatórios semanais escritos em linguagem humana
+          </span>
+          <span class="lp-check">
+            <i class="lt-i" data-lt-icon="check" aria-hidden="true"></i>
+            Vínculo por código — o adolescente decide quando compartilhar
+          </span>
         </div>
       </div>
 
-      <!-- Card 2: Rotinas previsíveis -->
-      <div class="feat-card-wrap">
-        <div class="feat-content">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-          <p class="feat-para"><strong>Rotinas previsíveis</strong><br>Estrutura clara em cada sessão. O usuário sempre sabe o que vem a seguir, reduzindo ansiedade no dia a dia.</p>
-          <a class="feat-link" href="cadastro.html">Começar agora →</a>
+      <!-- Amostra do painel -->
+      <div class="lp-painel-wrap lt-reveal">
+        <div class="lp-painel">
+
+          <div class="lp-alerta">
+            <i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i>
+            <div>
+              <strong>Humor baixo 3 dias seguidos</strong>
+              <span>Hoje, 19:04 · sugerimos conversar</span>
+            </div>
+          </div>
+
+          <div class="lp-painel-hd">
+            <strong>Humor da semana</strong>
+            <span>média 3,4</span>
+          </div>
+
+          <div class="lp-barras" role="img"
+               aria-label="Gráfico do humor da semana: bom de segunda a terça, mais difícil de quarta a sexta, melhorando no fim de semana.">
+            <span class="lp-barra lp-barra--d1"></span>
+            <span class="lp-barra lp-barra--d2"></span>
+            <span class="lp-barra lp-barra--d3 lp-barra--medio"></span>
+            <span class="lp-barra lp-barra--d4 lp-barra--medio"></span>
+            <span class="lp-barra lp-barra--d5 lp-barra--baixo"></span>
+            <span class="lp-barra lp-barra--d6"></span>
+            <span class="lp-barra lp-barra--d7"></span>
+          </div>
+          <div class="lp-barras-leg" aria-hidden="true">
+            <span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span>
+            <span>SEX</span><span>SÁB</span><span>DOM</span>
+          </div>
+
+        </div>
+
+        <div class="lp-relat">
+          <span class="lp-rotulo">Relatório de IA</span>
+          <p>“Semana mais estável nas manhãs. As noites de quinta e sexta concentram os registros difíceis.”</p>
         </div>
       </div>
 
-      <!-- Card 3: Recompensas gentis -->
-      <div class="feat-card-wrap">
-        <div class="feat-content">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-          <p class="feat-para"><strong>Recompensas gentis</strong><br>Conquistas celebradas de forma calma, sem sons estridentes ou animações excessivas. Cada progresso valorizado.</p>
-          <a class="feat-link" href="cadastro.html">Começar agora →</a>
-        </div>
-      </div>
-
-      <!-- Card 4: Visual acessível -->
-      <div class="feat-card-wrap">
-        <div class="feat-content">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-          <p class="feat-para"><strong>Visual acessível</strong><br>Paleta de cores calmantes, fontes legíveis e espaçamento generoso. Sem informações em excesso na tela.</p>
-          <a class="feat-link" href="cadastro.html">Começar agora →</a>
-        </div>
-      </div>
-
-      <!-- Card 5: Modo família -->
-      <div class="feat-card-wrap">
-        <div class="feat-content">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-          <p class="feat-para"><strong>Modo família</strong><br>Pais, cuidadores e terapeutas acompanham o progresso e recebem relatórios detalhados de evolução.</p>
-          <a class="feat-link" href="cadastro.html">Começar agora →</a>
-        </div>
-      </div>
-
-      <!-- Card 6: Lembretes inteligentes -->
-      <div class="feat-card-wrap">
-        <div class="feat-content">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-          <p class="feat-para"><strong>Lembretes inteligentes</strong><br>Notificações suaves e configuráveis para manter a regularidade sem criar pressão ou sobrecarga sensorial.</p>
-          <a class="feat-link" href="cadastro.html">Começar agora →</a>
-        </div>
-      </div>
-
-    </div><!-- /features-grid -->
-  </section><!-- /funcionalidades -->
+    </div>
+  </section>
 
 
   <!-- ============================================================
        COMO FUNCIONA
-       4 passos numerados mostrando o fluxo de uso do app.
-       Cada passo tem número, texto e espaço para uma imagem de tela.
        ============================================================ -->
-  <div class="alt-bg how-section" id="como-funciona">
-    <div class="alt-inner">
+  <section class="lp-como" id="como-funciona">
+    <div class="lp-como-in">
 
-      <!-- Cabeçalho da seção -->
-      <div class="section-header">
-        <div class="section-label">Como funciona</div>
-        <div class="section-title">Entenda como o LumiTEA funciona.</div>
-        <p class="section-sub">
-          Cadastre-se para ter acesso ao nosso suporte.
+      <div class="lp-como-hd lt-reveal">
+        <span class="lp-label">Como funciona</span>
+        <h2 class="lp-h2">Três passos até o primeiro “oi”</h2>
+      </div>
+
+      <div class="lp-passos">
+        <div class="lp-passo lt-reveal">
+          <span class="lp-num">01</span>
+          <strong>Crie a conta</strong>
+          <p>Escolha se você é adolescente ou cuidador. Leva menos de dois minutos.</p>
+        </div>
+        <div class="lp-passo lt-reveal">
+          <span class="lp-num">02</span>
+          <strong>Conecte o vínculo</strong>
+          <p>O adolescente compartilha um código de 6 dígitos com quem cuida — e pode desfazer quando quiser.</p>
+        </div>
+        <div class="lp-passo lt-reveal">
+          <span class="lp-num">03</span>
+          <strong>Use no seu ritmo</strong>
+          <p>Conversa, diário, jogos e rotina. Nada é obrigatório, tudo é registrado com carinho.</p>
+        </div>
+      </div>
+
+      <div class="lp-video lt-reveal">
+        <div class="lp-video-prop">
+          <video src="img/LumiTEA%20Comercial.mp4"
+                 title="Como funciona o LumiTEA"
+                 controls preload="metadata" playsinline></video>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       CHAMADA FINAL
+       ============================================================ -->
+  <section class="lp-cta">
+    <div class="lp-cta-in lt-reveal">
+
+      <img class="lp-cta-urso lumi-float lumi-float--slow" src="img/urso-joia.png" alt="" aria-hidden="true">
+
+      <span class="lp-badge">
+        <span class="badge-dot" aria-hidden="true"></span>
+        <span class="lp-badge-txt">TOTALMENTE GRATUITO</span>
+      </span>
+
+      <h2 class="lp-h2 lp-h2--cta">Pronto para começar a <span>jornada</span>?</h2>
+
+      <p class="lp-cta-sub">
+        Sem cartão de crédito, sem compromisso e sem anúncio nenhum. Só um espaço
+        seguro para conversar, organizar a rotina e ser acompanhado por quem se importa.
+      </p>
+
+      <a class="lp-btn lp-btn--cta lp-btn--xl" href="cadastro.html">
+        Criar conta gratuita
+        <i class="lt-i" data-lt-icon="arrow-right" aria-hidden="true"></i>
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       RODAPÉ
+       ============================================================ -->
+  <footer class="lp-rodape">
+    <div class="lp-deco lp-deco--pontos-claro" aria-hidden="true"></div>
+
+    <div class="lp-rodape-in">
+
+      <div>
+        <span class="lp-rodape-marca">
+          <span class="lp-rodape-ic"><img src="img/icon-urso.png" alt=""></span>
+          LumiTEA
+        </span>
+        <p class="lp-rodape-sobre">
+          Suporte acessível, acolhedor e inteligente para adolescentes no espectro
+          autista e seus cuidadores.
         </p>
       </div>
 
-      <!-- Vídeo demonstrativo -->
-      <div class="how-video-wrap">
-        <div class="how-video-inner">
-          <div class="how-video-frame">
-            <video
-              class="how-video-iframe"
-              src="img/LumiTEA%20Comercial.mp4"
-              title="Como funciona o LumiTEA"
-              controls
-              preload="metadata"
-              playsinline>
-            </video>
-          </div>
+      <div>
+        <div class="lp-rodape-t">Aplicativo</div>
+        <div class="lp-rodape-links">
+          <a href="#funcionalidades">Funcionalidades</a>
+          <a href="#como-funciona">Como funciona</a>
+          <a href="#cuidador">Painel do cuidador</a>
         </div>
-      </div><!-- /how-video-wrap -->
-    </div>
-  </div><!-- /como-funciona -->
+      </div>
 
-
-  <!-- ============================================================
-       APP PREVIEW
-       Lista de benefícios à esquerda + grid de prints do app à direita.
-       Em telas menores vira coluna única.
-       ============================================================ -->
-  <div class="alt-bg app-section" id="app">
-    <div class="alt-inner">
-      <div class="preview-wrap preview-wrap--solo">
-
-        <!-- Coluna de texto (esquerda) -->
-        <div class="preview-content">
-          <div class="section-label">O aplicativo</div>
-          <div class="section-title">Feito para funcionar em qualquer dispositivo</div>
-          <p class="section-sub">
-            Disponível para celular, tablet e computador.
-            Sincronização automática para você nunca perder seu progresso.
-          </p>
-
-          <!-- Lista de benefícios com ícone de check -->
-          <div class="preview-list">
-
-            <div class="preview-item">
-              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div>
-                <div class="preview-item-title">Funciona offline</div>
-                <div class="preview-item-desc">Baixe as lições e aprenda sem internet. Ideal para viagens e lugares com sinal ruim.</div>
-              </div>
-            </div>
-
-            <div class="preview-item">
-              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div>
-                <div class="preview-item-title">Sem anúncios, sempre</div>
-                <div class="preview-item-desc">O LumiTEA é 100% livre de publicidade. Nenhuma interrupção, nenhuma surpresa visual inesperada.</div>
-              </div>
-            </div>
-
-            <div class="preview-item">
-              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div>
-                <div class="preview-item-title">Múltiplos perfis</div>
-                <div class="preview-item-desc">Uma conta para toda a família. Cada membro tem seu próprio perfil e progresso independente.</div>
-              </div>
-            </div>
-
-            <div class="preview-item">
-              <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div>
-                <div class="preview-item-title">Controle de acessibilidade</div>
-                <div class="preview-item-desc">Ajuste texto, animações, volume e muito mais nas configurações para cada perfil.</div>
-              </div>
-            </div>
-
-          </div><!-- /preview-list -->
-        </div><!-- /preview-content -->
-
-
-
-      </div><!-- /preview-wrap -->
-    </div>
-  </div><!-- /app -->
-
-
-  <!-- ============================================================
-       CTA — CHAMADA PARA AÇÃO FINAL
-       Seção centralizada incentivando o usuário a criar conta.
-       ============================================================ -->
-  <div class="cta-bg">
-    <div class="cta-wrap">
-      <img class="cta-mascote lumi-float lumi-float--slow" src="img/urso-joia.png" alt="" aria-hidden="true">
-      <div class="badge"><div class="badge-dot"></div> Totalmente gratuito</div>
-      <h2>Pronto para começar a <span>jornada</span>?</h2>
-      <p>
-        Junte-se a milhares de famílias que já descobriram um jeito mais
-        tranquilo e eficaz de aprender. Sem cartão de crédito, sem compromisso
-        — só aprendizado de qualidade.
-      </p>
-      <button class="btn-primary-lg">Criar conta gratuita</button>
-    </div>
-  </div><!-- /cta -->
-
-
-  <!-- ============================================================
-       RODAPÉ (FOOTER)
-       Logo, links de navegação e copyright.
-       Em telas menores fica em coluna centralizada.
-       ============================================================ -->
-       <footer class="lumi-footer">
-        <div class="footer-inner">
-          <div class="footer-brand">
-            <h3>LumiTEA</h3>
-            <p>Suporte acessível, acolhedor e inteligente para adolescentes no espectro autista e seus cuidadores.</p>
-          </div>
-      
-          <div>
-            <div class="footer-title">Aplicativo</div>
-            <div class="footer-links-grid">
-              <a href="#hero">Início</a>
-              <a href="#funcionalidades">Funcionalidades</a>
-              <a href="#como-funciona">Como funciona</a>
-            </div>
-          </div>
-      
-          <div>
-            <div class="footer-title">Recursos</div>
-            <div class="footer-links-grid">
-              <a href="#app">O aplicativo</a>
-              <a href="#cta">Cadastro</a>
-              <a href="#cuidador">Painel do cuidador</a>
-            </div>
-          </div>
-      
-          <div>
-            <div class="footer-title">Suporte</div>
-            <div class="footer-links-grid">
-              <a href="#acessibilidade">Acessibilidade</a>
-              <a href="#privacidade">Privacidade</a>
-              <a href="#contato">Contato</a>
-            </div>
-          </div>
+      <div>
+        <div class="lp-rodape-t">Conta</div>
+        <div class="lp-rodape-links">
+          <a href="cadastro.html">Criar conta</a>
+          <a href="login.html">Entrar</a>
+          <a href="#funcionalidades">Acessibilidade</a>
         </div>
-      
-        <div class="footer-bottom">
-          <div>
-            <div class="footer-policy">
-              <a href="#privacidade">Privacy Policy</a>
-              <a href="#termos">Terms & Conditions</a>
-              <a href="#conduta">Code of Conduct</a>
-            </div>
-            <p class="footer-copy">
-              LumiTEA foi pensado para promover autonomia, conforto e aprendizado com acessibilidade.
-            </p>
-          </div>
-      
-          <div class="footer-social">
-            <a href="#" aria-label="Twitter">
-              <svg viewBox="0 0 24 24"><path d="M22 5.92c-.77.34-1.6.57-2.47.67.89-.53 1.57-1.37 1.9-2.37-.83.49-1.75.84-2.72 1.03A4.19 4.19 0 0 0 11.5 8.1a11.9 11.9 0 0 1-8.64-4.38 4.15 4.15 0 0 0 1.3 5.58c-.7-.02-1.36-.21-1.94-.54v.05a4.19 4.19 0 0 0 3.36 4.1c-.32.08-.66.13-1.01.13-.24 0-.47-.02-.7-.06a4.2 4.2 0 0 0 3.92 2.9A8.4 8.4 0 0 1 2 18.58 11.83 11.83 0 0 0 8.43 20.5c7.72 0 11.95-6.4 11.95-11.95v-.54c.82-.6 1.53-1.34 2.09-2.09Z"/></svg>
-            </a>
-            <a href="#" aria-label="Instagram">
-              <svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.2A4.8 4.8 0 1 1 7.2 12 4.8 4.8 0 0 1 12 7.2Zm0 2a2.8 2.8 0 1 0 2.8 2.8A2.8 2.8 0 0 0 12 9.2Zm5.6-3.1a1.1 1.1 0 1 1-1.1 1.1 1.1 1.1 0 0 1 1.1-1.1Z"/></svg>
-            </a>
-            <a href="#" aria-label="Facebook">
-              <svg viewBox="0 0 24 24"><path d="M14 9h3V6h-3c-1.66 0-3 1.34-3 3v2H8v3h3v8h3v-8h3l1-3h-4V9c0-.55.45-1 1-1Z"/></svg>
-            </a>
-            <a href="#" aria-label="Pinterest">
-              <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.64 19.32c-.05-.78-.1-1.98.02-2.84.11-.77.72-4.89.72-4.89s-.18-.37-.18-.92c0-.86.5-1.5 1.12-1.5.53 0 .78.4.78.88 0 .53-.34 1.34-.52 2.08-.15.62.32 1.12.94 1.12 1.13 0 2-1.2 2-2.94 0-1.54-1.11-2.6-2.69-2.6-1.83 0-2.91 1.37-2.91 2.79 0 .55.21 1.14.48 1.46.05.06.06.1.04.16l-.18.7c-.03.11-.1.13-.2.08-.75-.35-1.22-1.44-1.22-2.31 0-1.88 1.37-3.61 3.96-3.61 2.08 0 3.69 1.48 3.69 3.46 0 2.07-1.31 3.73-3.13 3.73-.61 0-1.19-.32-1.39-.7l-.38 1.44c-.14.56-.53 1.26-.8 1.69A10 10 0 1 0 12 2Z"/></svg>
-            </a>
-          </div>
-        </div>
+      </div>
 
-        <!-- Copyright -->
-        <div class="footer-copy footer-copy-final">© 2026 LumiTEA. Todos os direitos reservados.</div>
-      </footer><!-- /footer -->
+      <div>
+        <div class="lp-rodape-t">Suporte</div>
+        <div class="lp-rodape-links">
+          <a href="#cuidador">Para cuidadores</a>
+          <a href="#como-funciona">Primeiros passos</a>
+          <a href="mailto:contato@lumitea.app">Contato</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="lp-rodape-base">
+      <p>© 2026 LumiTEA. Todos os direitos reservados.</p>
+      <div class="lp-social">
+        <a href="#" aria-label="Instagram do LumiTEA">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.2A4.8 4.8 0 1 1 7.2 12 4.8 4.8 0 0 1 12 7.2Zm0 2a2.8 2.8 0 1 0 2.8 2.8A2.8 2.8 0 0 0 12 9.2Zm5.6-3.1a1.1 1.1 0 1 1-1.1 1.1 1.1 1.1 0 0 1 1.1-1.1Z"/></svg>
+        </a>
+        <a href="#" aria-label="Twitter do LumiTEA">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 5.92c-.77.34-1.6.57-2.47.67.89-.53 1.57-1.37 1.9-2.37-.83.49-1.75.84-2.72 1.03A4.19 4.19 0 0 0 11.5 8.1a11.9 11.9 0 0 1-8.64-4.38 4.15 4.15 0 0 0 1.3 5.58c-.7-.02-1.36-.21-1.94-.54v.05a4.19 4.19 0 0 0 3.36 4.1c-.32.08-.66.13-1.01.13-.24 0-.47-.02-.7-.06a4.2 4.2 0 0 0 3.92 2.9A8.4 8.4 0 0 1 2 18.58 11.83 11.83 0 0 0 8.43 20.5c7.72 0 11.95-6.4 11.95-11.95v-.54c.82-.6 1.53-1.34 2.09-2.09Z"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>

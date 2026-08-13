@@ -159,6 +159,43 @@ fim de rodada. Não existe estado de erro porque não há como fazer errado — 
   cima e desalinhado das outras caixas. As seções da lousa zeram isso explicitamente; os outros jogos
   escapavam por acaso, porque `.jg-palco`/`.jg-ajustes`/`.jg-fim` já declaram o próprio `padding`.
 
+## 🛬 Landing pública (`index.html`) — redesign "Landing-A produto" (2026-08-13)
+Importada do projeto Claude Design **LumiTEA-TCC redesign** (`43c671f9-f91d-43d2-beaa-1b560669d04b`,
+arquivo `Landing-A-produto.dc.html`) via MCP `claude_design`. O `.dc.html` é 100% estilo inline +
+atributos `style-hover` (convenção do design canvas) — **foi traduzido para classes + tokens**, não copiado.
+- **`index.html` NÃO carrega mais `lumitea.css`** (é a única página do projeto assim). O design substitui
+  toda a landing antiga, e a regra global `section { padding:72px 56px; max-width:1100px }` da `lumitea.css`
+  desalinharia as faixas de largura total. Ordem: `css/tokens.css` → **`css/landing.css`** → `css/enhance.css`.
+  As classes velhas da landing (`.hero`, `.features-grid`, `.divider`, `.cta-bg`, `.preview-*`, `.app-section`,
+  `footer.lumi-footer`) continuam na `lumitea.css` como código morto — **não removi**, porque outras 28 páginas
+  carregam esse arquivo e a checagem de quem usa o quê não foi feita.
+- **`css/landing.css`**, prefixo `.lp-`, zero `style=""` no HTML. Tons de apoio que não são token global
+  (`--lp-navy-1/2`, `--lp-sky-ink`, `--lp-chat-1/2`, `--lp-white-soft`, `--lp-blue-mist`, `--lp-cream-2`,
+  `--lp-verde-ink`, `--lp-video-bg`) vivem num `:root` no topo da folha. Paleta e mascote intactos.
+- **`js/landing.js`** só faz o menu mobile (o design veio sem responsivo; os breakpoints são adaptação minha).
+  Reveal e float vêm de `js/core/reveal.js` + `css/enhance.css` (`.lt-reveal`, `.lumi-float`, `.badge-dot`),
+  já gated por modo calmo/reduced-motion — **não duplicar observer na página** (a versão antiga tinha DOIS
+  IntersectionObserver inline fazendo a mesma coisa).
+- Ícones via `js/core/icons.js` (`data-lt-icon`) — o design usava o mesmo set Feather, os paths batiam. Foi
+  adicionado **`arrow-right`** ao `icons.js` (era o único que faltava).
+- ⚠️ **Duas armadilhas reais, pegas no render, não na leitura do código:**
+  1. `.lp-body a { color: … }` é (0,1,1) e **vencia** `.lp-btn--cta { color:#fff }`, que é (0,1,0) → texto azul
+     em botão azul, ilegível. Corrigido com `:where(.lp-body) a`, que zera o peso da classe (0,0,1).
+  2. `grid-template-columns: repeat(auto-fit, minmax(420px,1fr))` no hero: com `auto-fit` a coluna colapsa
+     para 1, **mas o mínimo de 420px continua valendo** e estourava a tela no celular (texto cortado à
+     direita, escondido pelo `overflow-x:hidden` do body). Corrigido com `minmax(min(420px,100%),1fr)`.
+- **Não pôr `overflow:hidden` em `.lp-topo`** para conter os blobs: ele é o ancestral do `.lp-nav`, que é
+  `position:sticky` — overflow em ancestral quebra sticky. O `overflow-x:hidden` do body já clipa (os blobs
+  vazam de propósito).
+- Decisões de conteúdo confirmadas com o usuário: "Abrir o chat" aponta pra `cadastro.html` (não
+  `entrada-conv.html`, que exige sessão e jogaria o visitante no login) e a seção "O App" antiga foi removida
+  junto com a promessa de **"Funciona offline"**, que não é verdade (o app depende do Supabase).
+- Como conferir visualmente: ver a memória `render-visual-com-chrome-headless` — Chrome headless para desktop
+  e **iframe de 390px** para mobile (no Windows o headless tem viewport mínimo de ~504px e só recorta a foto,
+  o que finge ser overflow). O reveal on scroll não dispara a tempo em screenshot com âncora: seções abaixo da
+  dobra saem em branco — **artefato da ferramenta**, confirme com uma janela alta (ex. 1440×4400) antes de
+  sair "corrigindo" um bug que não existe.
+
 ## 🔗 Vínculo cuidador↔teen e Calendário compartilhado
 - **Vínculo**: vive em `neurodivergente.codigo_vinculo` (gerado no signup) + `.id_responsavel` (NULL = sem
   cuidador). Não há coluna de status — o estado é 100% inferido dessas duas colunas. RPCs SECURITY DEFINER:
@@ -269,6 +306,7 @@ Só apareceu quando `relatorios-cuidador.html` passou a checar o `error`.
   página separada do calendário do cuidador desde antes (criada mais cedo no mesmo dia) — não foi recriada.
 - **Insert de relatório falhando com 400 + badge de humor sempre "Neutro" (2026-08-10)** — ver a seção
   "Relatórios da IA: o JSON da Lumi nunca vai direto pro banco".
+- Landing pública redesenhada a partir do Claude Design (2026-08-13) — ver a seção "Landing pública".
 
 ## 📋 Backlog (próximos passos, sem quebrar nada)
 1. Migrar os ~27 `alert/confirm` nativos restantes (conta, diário, calendário, conversa) para `LumiUI`.
