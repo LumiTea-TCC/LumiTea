@@ -309,7 +309,9 @@
         </div>
         <div class="f-group">
           <label class="f-label">Data de nascimento</label>
-          <input type="date" class="f-input" id="f-nascimento">
+          <!-- min/max: sem eles o campo aceita ano de 6 dígitos (foi assim que
+               entraram 275760 e 42132 no banco). O max real é posto por JS. -->
+          <input type="date" class="f-input" id="f-nascimento" min="1900-01-01" max="2100-12-31">
         </div>
         <div class="f-group">
           <label class="f-label">Como prefere ser chamado?</label>
@@ -497,7 +499,15 @@
         }
         if(p.tipo==='responsavel'){window.location.href='home-cuidador.html';return}
 
-        var {data:nd} = await sb.from('neurodivergente').select('xp,nivel,codigo_vinculo,id_responsavel,nascimento,apelido').eq('id',_uid).single();
+        /* ⚠️ Uma coluna inexistente aqui derruba o SELECT INTEIRO, e os `?? padrão`
+           da linha de baixo transformam isso em "XP 0, nível 1, código ------,
+           sem cuidador" — exatamente o que esta tela mostrou enquanto
+           `nascimento`/`apelido` não existiam no banco (migradas em 2026-08-13).
+           O erro precisa aparecer no console; antes ele sumia por completo. */
+        var {data:nd, error:ndErro} = await sb.from('neurodivergente').select('xp,nivel,codigo_vinculo,id_responsavel,nascimento,apelido').eq('id',_uid).single();
+        if(ndErro && ndErro.code!=='PGRST116'){
+          console.error('[Conta] carregar neurodivergente:',ndErro.code,'|',ndErro.message,'|',ndErro.details,'|',ndErro.hint);
+        }
 
         _perfil = {nome:p.nome||'',sobrenome:p.sobrenome||'',email:_email,tipo:p.tipo,criado_em:p.criado_em,xp:nd?.xp??0,nivel:nd?.nivel??1,codigo:nd?.codigo_vinculo??'------',id_resp:nd?.id_responsavel??null,nascimento:nd?.nascimento??'',apelido:nd?.apelido??''};
 
@@ -598,7 +608,11 @@
       document.getElementById('f-nome').value=_perfil.nome||'';
       document.getElementById('f-sobrenome').value=_perfil.sobrenome||'';
       document.getElementById('f-email').value=_perfil.email||'';
-      document.getElementById('f-nascimento').value=_perfil.nascimento||'';
+      /* Teto = hoje (ninguém nasce no futuro). Aqui e não no HTML porque um
+         `max` fixo envelhece; o do HTML é só rede de segurança. */
+      var cn=document.getElementById('f-nascimento'),h=new Date();
+      cn.max=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+      cn.value=_perfil.nascimento||'';
       document.getElementById('f-apelido').value=_perfil.apelido||'';
     }
 
@@ -607,15 +621,43 @@
       btn.disabled=true;btn.textContent='Salvando...';
       var nome=document.getElementById('f-nome').value.trim();
       var sob=document.getElementById('f-sobrenome').value.trim();
-      var nasc=document.getElementById('f-nascimento').value;
+      var campoNasc=document.getElementById('f-nascimento');
+      var nasc=campoNasc.value;
       var apel=document.getElementById('f-apelido').value.trim();
+
+      /* Data vazia é permitida (campo opcional), data impossível não. Um ano de
+         6 dígitos é "válido" para o input, então .value vem preenchido — é
+         preciso olhar o validity. Ver a nota do min/max no HTML. */
+      if(nasc && (campoNasc.validity.badInput||campoNasc.validity.rangeUnderflow||campoNasc.validity.rangeOverflow||!/^\d{4}-\d{2}-\d{2}$/.test(nasc))){
+        btn.disabled=false;btn.textContent='Salvar alterações';
+        if(window.LumiUI) LumiUI.toast('Confira a data de nascimento: ela precisa estar entre 1900 e hoje.',{type:'error'});
+        else alert('Confira a data de nascimento: ela precisa estar entre 1900 e hoje.');
+        campoNasc.focus();
+        return;
+      }
+
       try{
-        await sb.from('profiles').update({nome,sobrenome:sob}).eq('id',_uid);
-        await sb.from('neurodivergente').update({nascimento:nasc||null,apelido:apel||null}).eq('id',_uid);
+        /* supabase-js NÃO lança em erro do PostgREST: devolve {error}. O try/catch
+           sozinho nunca disparava e o "Salvo!" aparecia mesmo quando nada era
+           gravado — foi assim que a falha das colunas que não existiam passou
+           despercebida por tanto tempo. */
+        var r1=await sb.from('profiles').update({nome,sobrenome:sob}).eq('id',_uid);
+        var r2=await sb.from('neurodivergente').update({nascimento:nasc||null,apelido:apel||null}).eq('id',_uid);
+        var falha=r1.error||r2.error;
+        if(falha){
+          console.error('[Conta] salvar perfil:',falha.code,'|',falha.message,'|',falha.details,'|',falha.hint);
+          btn.disabled=false;btn.textContent='Salvar alterações';
+          if(window.LumiUI) LumiUI.toast('Não foi possível salvar agora. Tente de novo em instantes.',{type:'error'});
+          else alert('Não foi possível salvar agora. Tente de novo em instantes.');
+          return;
+        }
         _perfil.nome=nome;_perfil.sobrenome=sob;_perfil.nascimento=nasc;_perfil.apelido=apel;
         renderPerfil();
         var ok=document.getElementById('save-ok');ok.classList.add('show');setTimeout(function(){ok.classList.remove('show')},3000);
-      }catch(e){alert('Erro ao salvar. Tente novamente.')}
+      }catch(e){
+        console.error('[Conta] salvar perfil (exceção):',e);
+        alert('Erro ao salvar. Tente novamente.');
+      }
       btn.disabled=false;btn.textContent='Salvar alterações';
     }
 

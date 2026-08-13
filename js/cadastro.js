@@ -31,6 +31,27 @@
  ];
  const btnSubmit = document.getElementById('btn-submit');
 
+ /* Data de nascimento: limite superior = hoje (ninguém nasce no futuro).
+    Fica no JS porque um `max` fixo no HTML envelhece. */
+ const nascimentoInput = document.getElementById('nascimento');
+ if (nascimentoInput) {
+ const hoje = new Date();
+ nascimentoInput.max = hoje.getFullYear() + '-' +
+ String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
+ String(hoje.getDate()).padStart(2, '0');
+ }
+
+ /* `!nascimento` sozinho não basta: um ano de 6 dígitos (275760) é uma data
+    VÁLIDA para o input, então `.value` vem preenchido e passava direto. Foi
+    assim que entraram duas datas impossíveis no banco. */
+ function nascimentoInvalido() {
+ const el = document.getElementById('nascimento');
+ if (!el) return false;
+ if (!el.value) return true;
+ const v = el.validity;
+ return v.badInput || v.rangeUnderflow || v.rangeOverflow || !/^\d{4}-\d{2}-\d{2}$/.test(el.value);
+ }
+
  /* =============================================================
  NAVEGAÇÃO ENTRE ETAPAS (STEPPER)
  ============================================================= */
@@ -49,9 +70,8 @@
  if (!validarCampo('email', 'email-error', !email || !email.includes('@'))) ok = false;
  if (!validarCampo('celular', 'celular-error', celular.length < 10 || celular.length > 13)) ok = false;
  } else if (etapa === 2) {
- const nascimento = document.getElementById('nascimento').value;
  const tipo = document.getElementById('tipo').value;
- if (!validarCampo('nascimento', 'nascimento-error', !nascimento)) ok = false;
+ if (!validarCampo('nascimento', 'nascimento-error', nascimentoInvalido())) ok = false;
  if (!validarCampo('tipo', 'tipo-error', !tipo)) ok = false;
  }
  return ok;
@@ -202,7 +222,7 @@
  if (!validarCampo('sobrenome', 'sobrenome-error', !sobrenome)) valido = false;
  if (!validarCampo('email', 'email-error', !email || !email.includes('@'))) valido = false;
  if (!validarCampo('celular', 'celular-error', celular.length < 10 || celular.length > 13)) valido = false;
- if (!validarCampo('nascimento', 'nascimento-error', !nascimento)) valido = false;
+ if (!validarCampo('nascimento', 'nascimento-error', nascimentoInvalido())) valido = false;
  if (!validarCampo('tipo', 'tipo-error', !tipo)) valido = false;
  if (!validarCampo('senha', 'senha-error', senha.length < 6)) valido = false;
  if (!validarCampo('confirmar-senha','confirmar-senha-error', senha !== confirma || !confirma)) valido = false;

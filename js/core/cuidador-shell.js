@@ -191,6 +191,26 @@
      DOMContentLoaded: as páginas em modo "nav" resolvem a sessão delas em
      paralelo e podiam chegar aqui antes do elemento existir. Se ainda não
      existe, o nome fica guardado e é aplicado assim que a casca monta. */
+  /* Texto ao lado do pontinho verde da barra do adolescente. Padrão
+     "Monitorando"; o painel geral troca por "Atualizado há X min". */
+  CUI.definirStatus = function (texto) {
+    var el = document.getElementById('cui-teen-status');
+    if (el) el.textContent = texto;
+  };
+
+  /* Idade a partir de neurodivergente.nascimento (DATE). Devolve null quando
+     não há data cadastrada — nesse caso o seletor mostra só o nome. */
+  CUI.idade = function (nascimento) {
+    if (!nascimento) return null;
+    var p = String(nascimento).slice(0, 10).split('-');
+    if (p.length !== 3) return null;
+    var hoje = new Date();
+    var anos = hoje.getFullYear() - Number(p[0]);
+    var mes = hoje.getMonth() + 1 - Number(p[1]);
+    if (mes < 0 || (mes === 0 && hoje.getDate() < Number(p[2]))) anos--;
+    return (anos >= 0 && anos < 130) ? anos : null;
+  };
+
   var _nomePendente = null;
   CUI.definirNome = function (nome) {
     _nomePendente = nome || 'Cuidador';
@@ -293,15 +313,19 @@
     if (document.body.hasAttribute('data-cui-teen')) {
       var main = layout.querySelector('.cui-main');
       if (main) {
+        /* O chip de humor fica no grupo da ESQUERDA (colado no seletor): ele
+           descreve o adolescente escolhido, não o estado da página. Ficava
+           dentro de .cui-teen-bar-fim, e no painel geral disputava espaço com
+           os controles de período/exportar que a página injeta ali. */
         var bar = document.createElement('div');
         bar.className = 'cui-teen-bar';
         bar.innerHTML =
           '<label for="teen-sel">Adolescente:</label>' +
           '<select id="teen-sel" class="cui-teen-sel"><option value="">Carregando...</option></select>' +
+          '<div id="teen-humor-current" class="cui-teen-humor" hidden></div>' +
           '<div id="teen-link-area" class="cui-teen-aviso"></div>' +
           '<div class="cui-teen-bar-fim">' +
-            '<div id="teen-humor-current" class="cui-teen-humor" hidden></div>' +
-            '<div class="cui-teen-monitor"><div class="cui-status-dot cui-status-dot--mini"></div> Monitorando</div>' +
+            '<div class="cui-teen-monitor"><div class="cui-status-dot cui-status-dot--mini"></div> <span id="cui-teen-status">Monitorando</span></div>' +
           '</div>';
         main.insertBefore(bar, main.firstChild);
 
@@ -384,7 +408,8 @@
         sel.appendChild(opt0);
         CUI.teens.forEach(function (t) {
           var o = document.createElement('option');
-          o.value = t.id; o.textContent = t.nome;
+          o.value = t.id;
+          o.textContent = t.nome + (t.idade === null ? '' : ' · ' + t.idade + ' anos');
           sel.appendChild(o);
         });
         sel.value = CUI.teenId || '';
@@ -402,7 +427,19 @@
     CUI.teens = [];
     if (!sb || !CUI.uid) return;
 
-    var res = await sb.from('neurodivergente').select('id, codigo_vinculo, xp, nivel').eq('id_responsavel', CUI.uid);
+    /* ⚠️ Basta UMA coluna inexistente aqui para a consulta INTEIRA falhar (e não
+       só aquele campo vir vazio). Foi assim que o painel passou a dizer "nenhum
+       adolescente vinculado" com o vínculo intacto, quando `nascimento` entrou
+       no select antes de existir no banco. `nascimento` foi migrada em
+       2026-08-13 e está confirmada em produção; qualquer coluna NOVA daqui pra
+       frente precisa da mesma prova antes de entrar nesta linha. */
+    var res = await sb.from('neurodivergente').select('id, codigo_vinculo, xp, nivel, nascimento').eq('id_responsavel', CUI.uid);
+    if (res.error) {
+      /* Sem isto o erro era engolido pelo `|| []` e a tela mentia dizendo que
+         não havia ninguém vinculado. Falhar visivelmente > falhar em silêncio. */
+      console.error('[cuidador-shell] não foi possível carregar os vinculados:',
+        res.error.code, '|', res.error.message, '|', res.error.details, '|', res.error.hint);
+    }
     var linhas = res.data || [];
 
     for (var i = 0; i < linhas.length; i++) {
@@ -414,7 +451,9 @@
         sobrenome: (pr.data && pr.data.sobrenome) || '',
         codigo_vinculo: t.codigo_vinculo || '',
         xp: t.xp || 0,
-        nivel: t.nivel || 1
+        nivel: t.nivel || 1,
+        nascimento: t.nascimento || null,
+        idade: CUI.idade(t.nascimento)
       });
     }
 

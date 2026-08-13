@@ -331,27 +331,101 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
    COMUNIDADE & APOIO — componentes compartilhados
    (comunidade.html / comunidade-cuidador.html)
    ============================================================ */
-.cap-wrap { max-width: 880px; margin: 0 auto; padding: 24px 18px 96px; position: relative; z-index: 1; }
-.cap-hero { display: flex; align-items: center; gap: 18px; background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-  color: #fff; border-radius: var(--r-xl); padding: 22px 26px; margin-bottom: 18px; box-shadow: var(--shadow-2); }
-.cap-hero h1 { font-family: 'Baloo 2', sans-serif; font-size: 1.55rem; margin: 0 0 4px; }
-.cap-hero p { margin: 0; opacity: .92; font-size: .92rem; line-height: 1.5; }
-.cap-hero img { width: 96px; height: auto; flex-shrink: 0; }
-@media (max-width: 620px) { .cap-hero img { width: 64px; } .cap-hero h1 { font-size: 1.3rem; } }
+/* Largura subiu de 880 para 1180 (design Comunidade-A): tanto o chat quanto o
+   mural passaram a ter duas colunas, e em 880px a coluna de conteúdo ficava
+   estreita demais depois de descontar a lateral. */
+.cap-wrap { max-width: 1180px; margin: 0 auto; padding: 22px 24px 96px; position: relative; z-index: 1; }
 
-.cap-tabs { display: inline-flex; gap: 4px; padding: 5px; background: var(--bg-2); border: 1px solid var(--border-soft);
-  border-radius: var(--r-pill); margin-bottom: 18px; }
-.cap-tab { border: none; background: transparent; cursor: pointer; padding: 10px 20px; border-radius: var(--r-pill);
-  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .9rem; color: var(--text-muted);
-  display: inline-flex; align-items: center; gap: 8px; }
+/* Hero: gradiente navy + textura de pontinhos. Também é usado por
+   ferramentas-aba.html, que tem a mesma estrutura (título + texto + urso) —
+   os selos são filhos opcionais, então aquela página segue funcionando. */
+.cap-hero {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  background-color: #1b3a5c;
+  background-image:
+    radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1px),
+    linear-gradient(140deg, #1b3a5c 0%, var(--brand-dark) 60%, #3f86cd 100%);
+  background-size: 20px 20px, auto;
+  color: #fff; border-radius: 22px; padding: 22px 26px; margin-bottom: 16px;
+  box-shadow: 0 18px 40px rgba(21,42,69,.26), inset 0 1px 0 rgba(255,255,255,.18);
+}
+/* :not(.hb-camada) é obrigatório: js/core/hero-bolhas.js injeta a camada
+   decorativa como um <div> filho do hero, e ela é `position:absolute` (fora do
+   fluxo) por uma regra da app.css. Sem a exclusão, esta regra — que vem depois,
+   na enhance.css — a tornava `relative`, ela virava item de flex, comia ~420px
+   de largura e empurrava o título do hero para o meio da faixa. */
+.cap-hero > div:not(.hb-camada) { position: relative; flex: 1; min-width: 240px; }
+/* `color:#fff` explícito, e não herdado do .cap-hero: a lumitea.css declara
+   `h1 { color: var(--text-main) }` como regra de ELEMENTO, e uma regra de
+   elemento vence a herança do pai independentemente da especificidade. Sem
+   isto o título saía azul-escuro sobre o navy — ilegível. (Terceira regra de
+   elemento da lumitea.css a vazar para tela interna, junto de `section` e
+   `nav`: ao estilizar qualquer tag nua aqui, declare a cor.) */
+.cap-hero h1 { font-family: 'Baloo 2', sans-serif; font-size: 1.7rem; color: #fff; margin: 0 0 6px; }
+.cap-hero p { margin: 0; color: rgba(255,255,255,.84); font-size: .92rem; line-height: 1.6; max-width: 520px; }
+.cap-hero img { position: relative; width: 110px; height: auto; flex-shrink: 0; filter: drop-shadow(0 14px 24px rgba(8,22,40,.4)); }
+.cap-hero-selos { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.cap-selo {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: 99px;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28);
+  font-size: .76rem; font-weight: 800; color: #fff;
+}
+.cap-selo .lt-i { width: 1em; height: 1em; }
+.cap-selo-dot { width: 7px; height: 7px; border-radius: 50%; background: #7ee08a; flex-shrink: 0; }
+@media (max-width: 620px) { .cap-hero img { width: 72px; } .cap-hero h1 { font-size: 1.35rem; } }
+
+.cap-tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: 16px; box-shadow: var(--shadow-1); margin-bottom: 16px; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+.cap-tab { border: none; background: transparent; cursor: pointer; padding: 10px 18px; min-height: 44px; border-radius: 12px;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .88rem; color: var(--text-muted);
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
 .cap-tab .lt-i { width: 1.1em; height: 1.1em; }
-.cap-tab.active { background: #fff; color: var(--primary-dark); box-shadow: var(--shadow-1); }
-.cap-panel { display: none; }
+.cap-tab:hover:not(.active) { background: var(--panel-1); color: var(--primary-dark); }
+.cap-tab.active { background: var(--primary-action); color: #fff; box-shadow: 0 6px 14px rgba(25,118,210,.24); }
+/* Contador de não-lidas na aba Conversas (alimentado por Chat.aoMudarNaoLidas). */
+.cap-tab-cnt { background: var(--danger); color: #fff; border-radius: 99px; padding: 1px 7px; font-size: .72rem; font-weight: 900; }
+.cap-tab.active .cap-tab-cnt { background: rgba(255,255,255,.26); }
+/* padding/max-width/margin zerados: os painéis são <section>, e a lumitea.css
+   declara `section { max-width:1100px; margin:0 auto; padding:72px 56px }` para
+   a landing. A regra pegava as três abas — abria um vão de 72px abaixo dos
+   botões e comia 112px de largura do chat e do mural. Bug antigo, que só ficou
+   evidente quando o conteúdo passou a ter duas colunas. */
+.cap-panel { display: none; max-width: none; margin: 0; padding: 0; }
 .cap-panel.active { display: block; animation: lt-enter var(--dur-base) var(--ease-out) both; }
 
+/* ---- Mural: feed + coluna lateral (Conceitos / Pergunta pro Theo) ---- */
+.cm-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,320px); gap: 18px; align-items: start; }
+.cm-grid-main, .cm-grid-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+@media (max-width: 900px) { .cm-grid { grid-template-columns: minmax(0,1fr); } }
+
 /* ---- Compositor de post ---- */
-.cm-compose { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-xl);
-  padding: 16px 18px; box-shadow: var(--shadow-1); margin-bottom: 18px; }
+.cm-compose { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 20px;
+  padding: 18px 20px; box-shadow: var(--shadow-2); }
+/* Linha de cima: avatar + textarea, como no design. O recuo de 52px nas linhas
+   seguintes (chips e botões) alinha tudo à borda esquerda do textarea. */
+.cm-compose-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.cm-compose-av { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: flex;
+  flex-shrink: 0; border: 1px solid var(--border-soft); }
+.cm-compose-av img { width: 100%; height: 100%; object-fit: cover; }
+.cm-compose-top .cm-compose-area { margin: 0; }
+.cm-recuo { padding-left: 52px; }
+@media (max-width: 560px) { .cm-recuo { padding-left: 0; } .cm-compose-av { display: none; } }
+
+/* Chips de categoria (substituem o <select>; o valor vive em data-cat). */
+.cm-cats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.cm-cat {
+  padding: 7px 13px; border-radius: 99px; border: 1.5px solid var(--border-soft);
+  background: var(--bg-2); color: var(--text-soft); font-family: 'Nunito', sans-serif;
+  font-size: .78rem; font-weight: 800; cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.cm-cat:hover { border-color: var(--brand); color: var(--primary-dark); }
+.cm-cat[aria-pressed="true"] { border-color: var(--violeta); background: var(--tint-violet); color: var(--violeta-dark); font-weight: 900; }
+.cm-contador { margin-left: auto; font-size: .76rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.cm-contador.no-limite { color: var(--warning); }
+
 .cm-compose-area { width: 100%; min-height: 76px; resize: vertical; border: 1px solid var(--border);
   border-radius: var(--r-md); padding: 12px 14px; font-family: 'Nunito', sans-serif; font-size: .95rem;
   line-height: 1.5; color: var(--text-main); background: var(--bg-2); }
@@ -360,13 +434,17 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
 .cm-select { border: 1px solid var(--border); border-radius: var(--r-md); padding: 9px 12px; background: #fff;
   font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .82rem; color: var(--text-soft); }
 .cm-compose-row .grow { flex: 1; }
+
 .cm-btn { border: none; cursor: pointer; border-radius: var(--r-md); padding: 11px 18px; min-height: 44px;
   font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .9rem; display: inline-flex; align-items: center; gap: 7px; }
-.cm-btn-primary { background: var(--primary-action); color: #fff; }
-.cm-btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+.cm-btn-primary { background: linear-gradient(135deg, var(--primary-action), var(--primary-dark)); color: #fff;
+  box-shadow: 0 8px 18px rgba(25,118,210,.26); }
+.cm-btn-primary:hover:not(:disabled) { box-shadow: 0 12px 22px rgba(25,118,210,.34); }
 .cm-btn-primary:disabled { opacity: .6; cursor: progress; }
-.cm-btn-ghost { background: var(--bg-2); color: var(--brand); border: 1px solid var(--border-soft); }
-.cm-btn-ghost:hover:not(:disabled) { background: var(--primary-pale); }
+/* O "Theo me ajuda a escrever" é violeta (é ação de IA, não de publicação) —
+   assim o olho separa na hora o botão que publica do que só sugere. */
+.cm-btn-ghost { background: var(--tint-violet); color: var(--violeta-dark); border: 1px solid rgba(124,92,191,.3); }
+.cm-btn-ghost:hover:not(:disabled) { background: var(--violeta); color: #fff; border-color: var(--violeta); }
 
 .cm-aviso { margin-bottom: 16px; }
 .cm-sug { background: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--r-lg); padding: 14px 16px; }
@@ -382,6 +460,21 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
 
 /* ---- Feed ---- */
 .cm-feed { display: flex; flex-direction: column; gap: 14px; }
+/* Badge da categoria no canto do card (antes a categoria ia junto da data,
+   em texto pequeno, e era a primeira coisa que se perdia na leitura). */
+.cm-cat-badge { padding: 5px 12px; border-radius: 99px; font-size: .72rem; font-weight: 900; flex-shrink: 0;
+  background: var(--bg-2); border: 1px solid var(--border-soft); color: var(--text-soft); }
+.cm-cat-badge.c-vitoria    { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.cm-cat-badge.c-duvida     { background: var(--info-bg);    border-color: var(--info-border);    color: var(--info); }
+.cm-cat-badge.c-desabafo   { background: var(--tint-violet);border-color: rgba(124,92,191,.32);  color: var(--violeta-dark); }
+.cm-cat-badge.c-dica       { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+/* Prévia do comentário mais recente, sempre visível (o design mostra um sob o
+   post). Clicar em "Comentários" continua abrindo a lista inteira. */
+.cm-c-previa { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--border-faint); }
+.cm-c-previa b { display: block; font-size: .82rem; font-weight: 800; color: var(--text-main); margin-bottom: 3px; }
+.cm-c-previa span { font-size: .7rem; font-weight: 700; color: var(--text-muted); margin-left: 6px; }
+.cm-c-previa p { margin: 0; font-size: .88rem; line-height: 1.5; color: var(--text-soft); }
+
 .cm-post { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-xl);
   padding: 16px 18px; box-shadow: var(--shadow-1); }
 .cm-post-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -394,7 +487,7 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
 .cm-del { background: transparent; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; }
 .cm-del:hover { color: var(--danger); }
 .cm-texto { color: var(--text-soft); font-size: .96rem; line-height: 1.55; margin: 0 0 12px; white-space: pre-wrap; word-break: break-word; }
-.cm-acoes { display: flex; gap: 8px; }
+.cm-acoes { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border-faint); }
 .cm-apoio, .cm-coment-btn { border: 1px solid var(--border-soft); background: var(--bg-2); cursor: pointer;
   border-radius: var(--r-pill); padding: 7px 14px; min-height: 40px; font-family: 'Nunito', sans-serif; font-weight: 800;
   font-size: .8rem; color: var(--text-soft); display: inline-flex; align-items: center; gap: 6px; }
@@ -460,6 +553,44 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
 .ap-ask button { border: none; cursor: pointer; background: var(--primary-action); color: #fff; border-radius: var(--r-md);
   padding: 0 16px; min-width: 52px; display: inline-flex; align-items: center; justify-content: center; }
 .ap-ask button:hover { background: var(--primary-dark); }
+
+/* ---- Variante de barra lateral do Mural (design Comunidade-A) ----
+   "Conceitos que ajudam" e "Pergunta pro Lumi Theo" saíram da aba Apoio e
+   passaram a viver aqui. Mesmos ids (#ap-conceitos, #ap-conversa, #ap-ask),
+   então js/apoio.js continua achando tudo por getElementById — não foi preciso
+   tocar naquele arquivo. A aba Apoio ficou com Ferramentas + Dicas pra hoje. */
+.ap-bloco--side { padding: 18px 20px; margin-bottom: 0; border-radius: 20px; }
+.ap-bloco--side h2 { display: flex; align-items: center; gap: 8px; font-size: 1.02rem; }
+.ap-bloco--side h2 .lt-i { width: 1.05em; height: 1.05em; color: var(--brand); }
+.ap-bloco--side .ap-sub { font-size: .8rem; font-weight: 700; margin-bottom: 14px; }
+.ap-bloco--side .ap-conceitos { grid-template-columns: 1fr; gap: 9px; }
+.ap-bloco--side .ap-conceito { padding: 12px 14px; border-radius: 14px; gap: 11px; }
+.ap-bloco--side .ap-ic { width: 34px; height: 34px; border-radius: 11px; }
+.ap-bloco--side .ap-conceito b { font-size: .88rem; }
+.ap-bloco--side .ap-conceito p { font-size: .8rem; }
+
+/* Cartão do Theo: violeta, com o círculo decorativo do design. */
+.ap-bloco--theo {
+  position: relative; overflow: hidden;
+  background: linear-gradient(150deg, var(--tint-violet), var(--surface) 70%);
+  border-color: rgba(124,92,191,.28);
+}
+.ap-bloco--theo::before {
+  content: ""; position: absolute; top: -40px; right: -30px; width: 160px; height: 160px;
+  border-radius: 50%; background: rgba(124,92,191,.10); pointer-events: none;
+}
+.ap-bloco--theo > * { position: relative; }
+.ap-theo-tit { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.ap-theo-av { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; display: flex;
+  flex-shrink: 0; border: 2px solid rgba(124,92,191,.35); }
+.ap-theo-av img { width: 100%; height: 100%; object-fit: cover; }
+.ap-bloco--theo h2 { font-size: 1rem; color: var(--violeta-dark); margin: 0; }
+.ap-bloco--theo .ap-ask input { border-color: rgba(124,92,191,.3); border-radius: 12px; min-height: 44px; }
+.ap-bloco--theo .ap-ask button { background: linear-gradient(135deg, var(--violeta), var(--violeta-dark));
+  border-radius: 12px; width: 44px; min-width: 44px; padding: 0; }
+.ap-bloco--theo .ap-ask button:hover { background: var(--violeta-dark); }
+.ap-bloco--theo .ap-conversa { max-height: 260px; }
+.ap-bloco--theo .ap-eu { background: linear-gradient(135deg, var(--violeta), var(--violeta-dark)); }
 
 /* ============================================================
    TOAST & DIÁLOGO (LumiUI) — substitui alert()/confirm() nativos

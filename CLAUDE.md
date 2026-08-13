@@ -196,6 +196,130 @@ atributos `style-hover` (convenção do design canvas) — **foi traduzido para 
   dobra saem em branco — **artefato da ferramenta**, confirme com uma janela alta (ex. 1440×4400) antes de
   sair "corrigindo" um bug que não existe.
 
+## 📊 Painel geral do cuidador — redesign "Cuidador-A-painel" (2026-08-13)
+Importado do projeto Claude Design **LumiTEA-TCC redesign** (mesmo `43c671f9-…` da landing, arquivo
+`Cuidador-A-painel.dc.html`) via a ferramenta **DesignSync** (`list_files`/`get_file` com o `projectId`).
+O `.dc.html` é 100% estilo inline + `style-hover` — **traduzido para classes + tokens**, não copiado.
+- **Sidebar virou azul-marinho e isso vale para as 13 páginas** (decisão do usuário): o CSS mora em
+  `.cui-sidebar` & cia. em `app.css`, e a marcação continua vindo da `cuidador-shell.js`. A textura de
+  pontinhos é `background-image` na PRÓPRIA sidebar, e **não** um filho `position:absolute` como no design —
+  a sidebar é `overflow-y:auto` e um filho absoluto só cobriria a altura visível. Os brancos translúcidos do
+  design foram subidos pra passar WCAG AA sobre o navy (`.45`→`.66` nos rótulos de seção, `.6`→`.72` no
+  "Sair"), e o `:focus-visible` ganhou anel claro (o `--focus-ring` padrão é azul escuro, some no navy).
+- **`home-cuidador.html` foi reescrita** com prefixo `.pn-` (só ela usa). O bloco de boas-vindas com o urso
+  saiu (o design não tem; o urso segue no topo da sidebar). Conteúdo: 5 cartões de número, gráfico de linha
+  de humor, "Registros de hoje", Alertas, Último relatório e Próximos na rotina.
+- **A barra do adolescente ganhou um contrato novo:** a casca expõe `CUI.definirStatus(txt)` (troca o
+  "Monitorando") e `CUI.idade(nascimento)`; o `#teen-humor-current` **saiu de `.cui-teen-bar-fim`** pro grupo
+  da esquerda, e o seletor agora mostra "Nome · N anos" (`neurodivergente.nascimento`, coluna que
+  `conta.html` já usa em produção). A página injeta os próprios controles (período 7/14/30, Exportar) em
+  `.cui-teen-bar-fim` no `DOMContentLoaded` — a casca registra o listener dela antes, então a barra já existe.
+- **O que é dado real e o que não é** (combinado com o usuário, está comentado no topo do `<script>`):
+  - `conversas` **não aparece no painel**: a RLS só tem `conv_self`, o cuidador não lê nem a contagem. A
+    linha "Conversa com o Theo · N mensagens" do design foi deliberadamente omitida. Se um dia entrar, tem
+    que ser RPC devolvendo só o número.
+  - "XP em jogos (7d)" = soma de `sessoes_jogo.pontuacao`. **Subestima** (o XP do chat não é registrado em
+    lugar nenhum); some quando é zero.
+  - "Rotina cumprida" = eventos dos últimos 7 dias com check-in pós respondido em `lembretes_evento`
+    (`acao_tomada` ≠ `'dispensou'`). Não existe coluna de "concluído"; some quando não houve evento.
+  - "Exportar" baixa CSV dos humores do período (`;` + BOM, que é o que o Excel pt-BR abre limpo).
+- **O "falta X XP pro nível N" procura o limiar pelo XP, não indexando `CUI.NIVEL_XP` por
+  `neurodivergente.nivel`.** As duas colunas podem discordar (o `nivel` só é reescrito quando o teen ganha
+  XP), e indexando pelo nivel a tela dizia "nível máximo" com 1240 XP em nivel 4. Pego no teste.
+- ⚠️ **Texto de eixo dentro de `<svg>` encolhe junto com a coluna.** Os `<text>` do design saíam com ~7px no
+  desktop e ~5px no celular. Os rótulos dos eixos viraram HTML (`.pn-chart-y` / `.pn-chart-x`) posicionados
+  por % sobre o SVG — as porcentagens são as coordenadas do `viewBox` ("0 0 700 180"), mudar numa ponta
+  exige mudar na outra. Só apareceu no render, não na leitura do código.
+- ⚠️ Vale de novo a armadilha da lousa: `.pn-card` é `<section>` e **zera `padding`/`max-width`/`margin`**
+  por causa da regra `section { padding:72px 56px; max-width:1100px }` da `lumitea.css`.
+- ⚠️ **A `lumitea.css` também tem uma regra de elemento `nav { … }`** (linha ~105, a barra do topo da
+  landing): `position:sticky; z-index:100; background:rgba(242,246,251,.9); backdrop-filter:blur(12px);
+  border-bottom:1px solid; padding:14px 56px`. Ela pegava o `<nav class="cui-nav">` do menu do cuidador, que
+  só sobrescrevia `display`/`gap` — então o menu vinha **com um painel quase opaco por cima e 56px de recuo
+  lateral** (era isso que quebrava "Histórico de humor" e "Consultoria com o Lumi Theo" em três linhas). Era
+  um bug **antigo**, invisível enquanto a sidebar era branca; só apareceu com o fundo navy. `.cui-nav` agora
+  anula tudo isso explicitamente. **Todo elemento `nav`/`section` novo numa tela interna precisa da mesma
+  checagem** — as barras `.app-nav` das telas do teen convivem bem com a regra, mas menu vertical não.
+- Verificado com **jsdom** (48 asserções: casca, controles, cartões, gráfico sem NaN, XSS escapado, troca de
+  período, exportar, estado vazio) + fumaça nas 13 páginas + Chrome headless em 1440/768/390 e medição de
+  overflow horizontal (`scrollWidth` ≤ viewport em 360/390/768).
+
+## 💥 A lição do `nascimento`: coluna faltando derruba o SELECT inteiro (2026-08-13)
+`neurodivergente.nascimento` e `.apelido` estavam no `db/LUMITEA_SCHEMA.sql` mas **nunca tinham sido
+migradas** pro banco real. **RESOLVIDO** (ver "o que foi feito" abaixo), mas a lição fica:
+- **Uma coluna inexistente faz a consulta INTEIRA falhar**, não só aquele campo vir vazio. E como quase todo
+  lugar do projeto faz `res.data || []` ou `nd?.campo ?? padrão`, o erro sumia e a tela mentia. Dois
+  sintomas reais que vieram daí: o painel do cuidador dizendo **"nenhum adolescente vinculado"** com o
+  vínculo intacto, e a `conta.html` do teen mostrando **XP 0, nível 1, código `------` e "sem cuidador"**
+  com tudo cadastrado. **Antes de pôr coluna nova em qualquer `select`, provar que ela existe no banco**
+  (truque do PGRST204 com a anon key — ver a seção de Relatórios; não precisa de PAT).
+- **`supabase-js` NÃO lança exceção em erro do PostgREST**, devolve `{error}`. `try/catch` em volta de um
+  `.update()` nunca dispara — era por isso que `salvarPerfil()` da `conta.html` mostrava "Salvo!" sem gravar
+  nada. Sempre checar `.error` explicitamente.
+
+**O que foi feito (migração aplicada em produção via Management API):**
+1. `ALTER TABLE public.neurodivergente ADD COLUMN IF NOT EXISTS nascimento DATE, ADD COLUMN IF NOT EXISTS
+   apelido TEXT;` + `NOTIFY pgrst, 'reload schema';`. Aditivo, anulável, sem default → só metadado, nenhuma
+   linha reescrita. Conferido antes e depois: 7 linhas, 1 vínculo, tudo intacto.
+2. **Backfill filtrado** de `nascimento` a partir de `auth.users.raw_user_meta_data` (é lá que o
+   `js/cadastro.js` guarda a data no `signUp` — o cadastro nunca escreveu na tabela). 5 das 7 contas
+   preenchidas; **2 ficaram NULL de propósito**, com anos de 6 dígitos (`275760-05-04`, `42132-03-02`)
+   digitados antes de o campo ter limite.
+3. Consultas passaram a **logar `res.error`**: `carregarTeens` (`cuidador-shell.js`) e o carregamento +
+   o salvamento de perfil da `conta.html`.
+4. **Campo de data ganhou limite** em `cadastro.html` e `conta.html`: `min="1900-01-01"` no HTML e `max` =
+   hoje posto por JS (um `max` fixo envelhece). `!valor` sozinho **não bastava** para validar — ano de 6
+   dígitos é uma data válida pro input e `.value` vinha preenchido; agora é preciso olhar
+   `validity.badInput/rangeUnderflow/rangeOverflow` + regex `^\d{4}-\d{2}-\d{2}$`. Conferido no Chrome:
+   corrompida/futura/antiga barradas, válida aceita.
+
+⚠️ Só `nascimento`/`apelido` estavam faltando. Todo o resto conferido nessa investigação (`humores`,
+`alertas`, `eventos_calendario`, `sessoes_jogo`, `lembretes_evento`, `relatorios`) bate com o `.sql`.
+O banco também tem duas divergências inofensivas não tocadas: `neurodivergente.perfil` (coluna extra, fora
+do `.sql`) e `nome_mascote` com default `'Lumi'` onde o `.sql` diz `'Theo'`.
+
+## 👥 Comunidade — redesign "Comunidade-A" (2026-08-13)
+Importado do mesmo projeto Claude Design (`Comunidade-A.dc.html`) via **DesignSync**. Vale para as DUAS
+páginas (`comunidade.html` e `comunidade-cuidador.html`), que são espelhos com o mesmo contrato de DOM e os
+mesmos módulos — por isso o restyle foi feito nos módulos compartilhados, não duplicado.
+- **O design era quase todo restyle**: `SALAS_TEEN` em `js/chat.js` já tinha as 4 salas desenhadas, e
+  posts/comentários/apoios/categoria já existiam no banco. Nada de schema novo foi preciso.
+- **Salas viraram barra lateral** (`.ch-wrap` é grid 2 colunas): ícone + nome + **prévia da última
+  mensagem** + badge de não-lidas. A prévia sai de UMA consulta (`carregarPrevias`) que pega as mensagens
+  de hoje de todas as salas e usa a primeira de cada — mais barata que uma consulta por sala — e é
+  atualizada ao vivo pelo mesmo handler de Realtime. Abaixo de 900px vira uma coluna com
+  `.ch-side { display: contents }` pra poder ordenar salas → conversa → regras.
+- **"N online agora" é presença REAL** (Supabase Realtime Presence no canal `chat:<publico>` que o chat já
+  abria). `presence.key` = id do usuário, então duas abas contam como uma pessoa. Só o número é exposto,
+  nunca nomes. `track()` só depois de `SUBSCRIBED` — antes disso é ignorado. Sem Realtime, o seletor nunca
+  roda e o selo fica `hidden` em vez de mostrar número inventado.
+- **`Chat` ganhou duas saídas**: `aoMudarNaoLidas(fn)` (badge da aba Conversas, que some quando a aba está
+  aberta) e `aoMudarOnline(fn)` (o selo do hero).
+- **Categorias viraram chips** no lugar do `<select>` (`#cm-categorias`; o `<select id="cm-categoria">` não
+  existe mais). Segundo toque no mesmo chip desmarca — a categoria continua opcional. Contador de
+  caracteres novo; `mostrarSugestao` chama `atualizarContador()` à mão porque atribuir `.value` por JS não
+  dispara `input`.
+- **Cards de post**: badge de categoria com cor por `slugCat()` (`.c-vitoria`, `.c-duvida`…) e prévia do
+  comentário mais recente sempre visível. A prévia veio de graça: a consulta que já contava comentários
+  passou a pedir as colunas do comentário.
+- **"Conceitos que ajudam" e "Pergunta pro Lumi Theo" saíram da aba Apoio** pra lateral do Mural
+  (`.cm-grid`). **Os ids não mudaram** (`#ap-conceitos`, `#ap-conversa`, `#ap-pergunta`, `#ap-enviar`), então
+  `js/apoio.js` não precisou de uma linha. A aba Apoio ficou com Ferramentas (`js/aba.js`) + Dicas pra hoje.
+- ⚠️ **Terceira regra de ELEMENTO da `lumitea.css` a vazar pra tela interna**, depois de `section` e `nav`:
+  **`h1 { color: var(--text-main) }`** (linha ~257). Regra de elemento vence herança do pai
+  independentemente de especificidade, então o `<h1>` do hero saía azul-escuro sobre o navy, ilegível —
+  `.cap-hero h1` precisou declarar `color:#fff`. **Ao estilizar qualquer tag nua numa tela interna,
+  declare a cor.** No mesmo render apareceu de novo o `section { padding:72px 56px; max-width:1100px }`
+  batendo em `.cap-panel` (vão de 72px abaixo das abas + 112px de largura comidos) — bug **antigo**, só
+  visível depois que o conteúdo passou a ter duas colunas.
+- ⚠️ **`js/core/hero-bolhas.js` injeta a camada decorativa como um `<div>` filho do hero.** Uma regra
+  `.cap-hero > div { position: relative }` na `enhance.css` (que carrega depois da `app.css`) tornava a
+  camada um item de flex: ela comia ~420px e empurrava o título pro meio da faixa. Qualquer regra que mire
+  filhos diretos de um `.lt-hero-bolhas` precisa de `:not(.hb-camada)`.
+- Verificado com **jsdom** (48 asserções × 2 páginas: salas, prévias, presença, chips, contador, badges de
+  categoria, prévia de comentário, XSS escapado, lateral do Mural, aba Apoio sem duplicata) + Chrome
+  headless nas duas abas em 1440/820/390 + medição de overflow (`scrollWidth` ≤ viewport em 360/390/820).
+
 ## 🔗 Vínculo cuidador↔teen e Calendário compartilhado
 - **Vínculo**: vive em `neurodivergente.codigo_vinculo` (gerado no signup) + `.id_responsavel` (NULL = sem
   cuidador). Não há coluna de status — o estado é 100% inferido dessas duas colunas. RPCs SECURITY DEFINER:

@@ -30,21 +30,71 @@ var Comunidade = (function () {
   }
   function primeiroNome(n) { return String(n || 'Alguém').trim().split(/\s+/)[0]; }
 
+  /* Slug sem acento pra virar classe de cor do badge (.c-vitoria etc.).
+     Categoria sem cor própria cai no cinza neutro — nada quebra.
+
+     O NFD separa a letra do acento; os acentos soltos ficam na faixa
+     U+0300–U+036F e são descartados por código, e não por uma classe de regex
+     com os caracteres literais — eles são invisíveis no editor e qualquer
+     "arrumação" de encoding no meio do caminho apagaria a regra em silêncio. */
+  function slugCat(c) {
+    var semAcento = String(c || '').toLowerCase().normalize('NFD')
+      .split('').filter(function (ch) {
+        var n = ch.charCodeAt(0);
+        return n < 0x300 || n > 0x36f;
+      }).join('');
+    return semAcento.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  var LIMITE = 2000;
+  var catSelecionada = '';   // '' = sem categoria (continua opcional)
+
   function iniciar(opts) {
     cfg.sb = opts.sb; cfg.userId = opts.userId;
     cfg.nome = opts.nome || 'Alguém'; cfg.publico = opts.publico || 'teen';
-    el.feed = $('cm-feed'); el.texto = $('cm-texto'); el.cat = $('cm-categoria');
+    el.feed = $('cm-feed'); el.texto = $('cm-texto');
+    el.cats = $('cm-categorias'); el.contador = $('cm-contador');
     el.publicar = $('cm-publicar'); el.ajuda = $('cm-ajuda-ia'); el.aviso = $('cm-aviso');
 
-    // categorias
-    if (el.cat) {
+    /* Categorias viraram chips (antes era um <select>): num toque só, e a
+       escolha fica visível o tempo todo em vez de escondida numa lista. */
+    if (el.cats) {
       var cats = cfg.publico === 'cuidador' ? CATEGORIAS_CUID : CATEGORIAS_TEEN;
-      el.cat.innerHTML = '<option value="">Categoria (opcional)</option>' +
-        cats.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+      el.cats.innerHTML = cats.map(function (c) {
+        return '<button type="button" class="cm-cat" data-cat="' + esc(c) + '" aria-pressed="false">' + esc(c) + '</button>';
+      }).join('');
+      el.cats.querySelectorAll('.cm-cat').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var cat = b.getAttribute('data-cat');
+          // segundo toque no mesmo chip desmarca: a categoria é opcional
+          catSelecionada = (catSelecionada === cat) ? '' : cat;
+          el.cats.querySelectorAll('.cm-cat').forEach(function (x) {
+            x.setAttribute('aria-pressed', String(x.getAttribute('data-cat') === catSelecionada));
+          });
+        });
+      });
+    }
+
+    if (el.texto && el.contador) {
+      el.texto.addEventListener('input', atualizarContador);
+      atualizarContador();
     }
     if (el.publicar) el.publicar.addEventListener('click', publicar);
     if (el.ajuda) el.ajuda.addEventListener('click', ajudaIA);
     carregarFeed();
+  }
+
+  function atualizarContador() {
+    var n = (el.texto.value || '').length;
+    el.contador.textContent = n + ' / ' + LIMITE;
+    el.contador.classList.toggle('no-limite', n > LIMITE * 0.9);
+  }
+
+  function limparCompositor() {
+    el.texto.value = '';
+    catSelecionada = '';
+    if (el.cats) el.cats.querySelectorAll('.cm-cat').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+    if (el.contador) atualizarContador();
   }
 
   async function carregarFeed() {
@@ -61,20 +111,28 @@ var Comunidade = (function () {
       if (!posts.length) { el.feed.innerHTML = vazio(); return; }
 
       var ids = posts.map(function (p) { return p.id; });
-      var apoios = {}, meusApoios = {}, comentarios = {};
+      var apoios = {}, meusApoios = {}, comentarios = {}, ultimoComent = {};
       try {
         var ra = await cfg.sb.from('comunidade_apoios').select('post_id,user_id').in('post_id', ids);
         (ra.data || []).forEach(function (a) {
           apoios[a.post_id] = (apoios[a.post_id] || 0) + 1;
           if (a.user_id === cfg.userId) meusApoios[a.post_id] = true;
         });
-        var rc = await cfg.sb.from('comunidade_comentarios').select('post_id').in('post_id', ids);
-        (rc.data || []).forEach(function (c) { comentarios[c.post_id] = (comentarios[c.post_id] || 0) + 1; });
+        /* Mesma consulta de antes, com as colunas do comentário: serve pro
+           contador E pra prévia, sem uma segunda ida ao banco. Ordenado do
+           mais novo pro mais velho, então o primeiro de cada post é a prévia. */
+        var rc = await cfg.sb.from('comunidade_comentarios')
+          .select('post_id,autor_nome,texto,criado_em')
+          .in('post_id', ids).order('criado_em', { ascending: false });
+        (rc.data || []).forEach(function (c) {
+          comentarios[c.post_id] = (comentarios[c.post_id] || 0) + 1;
+          if (!ultimoComent[c.post_id]) ultimoComent[c.post_id] = c;
+        });
       } catch (e) {}
 
       apoiados = meusApoios;
       el.feed.innerHTML = posts.map(function (p) {
-        return cardPost(p, apoios[p.id] || 0, !!meusApoios[p.id], comentarios[p.id] || 0);
+        return cardPost(p, apoios[p.id] || 0, !!meusApoios[p.id], comentarios[p.id] || 0, ultimoComent[p.id]);
       }).join('');
       if (window.LUMI) LUMI.hydrateIcons(el.feed);
       ligarEventosCards();
@@ -84,15 +142,25 @@ var Comunidade = (function () {
     }
   }
 
-  function cardPost(p, nApoios, euApoiei, nComent) {
+  function cardPost(p, nApoios, euApoiei, nComent, ultimoComent) {
     var ini = primeiroNome(p.autor_nome).charAt(0).toUpperCase();
     var meu = p.autor_id === cfg.userId;
+
+    /* Prévia do comentário mais recente, sempre visível (como no design). O
+       botão "Comentários" continua abrindo a lista inteira logo abaixo. */
+    var previa = ultimoComent
+      ? '<div class="cm-c-previa"><b>' + esc(primeiroNome(ultimoComent.autor_nome)) +
+          '<span>' + quando(ultimoComent.criado_em) + '</span></b>' +
+          '<p>' + escBr(ultimoComent.texto) + '</p></div>'
+      : '';
+
     return '' +
       '<article class="cm-post" data-id="' + esc(p.id) + '">' +
         '<header class="cm-post-top">' +
           '<span class="cm-av">' + esc(ini) + '</span>' +
           '<div class="cm-meta"><b>' + esc(primeiroNome(p.autor_nome)) + '</b>' +
-            '<span>' + (p.categoria ? esc(p.categoria) + ' · ' : '') + quando(p.criado_em) + '</span></div>' +
+            '<span>' + quando(p.criado_em) + '</span></div>' +
+          (p.categoria ? '<span class="cm-cat-badge c-' + esc(slugCat(p.categoria)) + '">' + esc(p.categoria) + '</span>' : '') +
           (meu ? '<button class="cm-del" data-act="apagar" title="Apagar">' + icon('trash') + '</button>' : '') +
         '</header>' +
         '<p class="cm-texto">' + escBr(p.texto) + '</p>' +
@@ -102,6 +170,7 @@ var Comunidade = (function () {
           '<button class="cm-coment-btn" data-act="comentarios">' +
             icon('message-circle') + '<span>' + nComent + '</span> Comentários</button>' +
         '</div>' +
+        previa +
         '<div class="cm-comentarios" hidden></div>' +
       '</article>';
   }
@@ -123,10 +192,10 @@ var Comunidade = (function () {
     try {
       var r = await cfg.sb.from('comunidade_posts').insert({
         autor_id: cfg.userId, autor_nome: cfg.nome, publico: cfg.publico,
-        categoria: el.cat ? (el.cat.value || null) : null, texto: texto
+        categoria: catSelecionada || null, texto: texto
       });
       if (r.error) throw r.error;
-      el.texto.value = ''; if (el.cat) el.cat.value = '';
+      limparCompositor();
       await carregarFeed();
     } catch (e) {
       console.warn('[comunidade] publicar:', e.message);
@@ -240,7 +309,9 @@ var Comunidade = (function () {
       '<div class="cm-sug-btns"><button class="cm-sug-usar">Usar este texto</button>' +
       '<button class="cm-sug-ignorar">Manter o meu</button></div></div>';
     el.aviso.querySelector('.cm-sug-usar').addEventListener('click', function () {
-      el.texto.value = sug; el.aviso.hidden = true; el.texto.focus();
+      // atribuir .value por JS não dispara 'input' — o contador precisa ser avisado
+      el.texto.value = sug; if (el.contador) atualizarContador();
+      el.aviso.hidden = true; el.texto.focus();
     });
     el.aviso.querySelector('.cm-sug-ignorar').addEventListener('click', function () { el.aviso.hidden = true; });
   }

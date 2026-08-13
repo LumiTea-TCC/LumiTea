@@ -49,12 +49,17 @@
         <h1>Comunidade dos Cuidadores</h1>
         <p>Um espaço entre quem cuida: converse em tempo real, troque experiências e dúvidas, e conte com o Lumi Theo
            para orientar com base na prática.</p>
+        <div class="cap-hero-selos">
+          <!-- Só aparece quando a presença do Realtime responde de verdade. -->
+          <span class="cap-selo" id="cap-online" hidden><span class="cap-selo-dot"></span> <span id="cap-online-n">—</span></span>
+          <span class="cap-selo"><i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i> Moderado pelo Lumi Theo</span>
+        </div>
       </div>
       <img src="img/urso-joia.png" alt="">
     </header>
 
     <div class="cap-tabs" role="tablist">
-      <button class="cap-tab active" data-tab="conversas" role="tab"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i> Conversas</button>
+      <button class="cap-tab active" data-tab="conversas" role="tab"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i> Conversas <span class="cap-tab-cnt" id="cap-cnt-conversas" hidden></span></button>
       <button class="cap-tab" data-tab="comunidade" role="tab"><i class="lt-i" data-lt-icon="users" aria-hidden="true"></i> Mural</button>
       <button class="cap-tab" data-tab="apoio" role="tab"><i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i> Apoio</button>
     </div>
@@ -66,17 +71,48 @@
 
     <!-- TAB: MURAL (feed) -->
     <section class="cap-panel" id="panel-comunidade" role="tabpanel">
-      <div class="cm-compose">
-        <textarea class="cm-compose-area" id="cm-texto" maxlength="2000" placeholder="Compartilhe uma experiência, dúvida ou recurso com outros cuidadores."></textarea>
-        <div class="cm-compose-row">
-          <select class="cm-select" id="cm-categoria"></select>
-          <span class="grow"></span>
-          <button class="cm-btn cm-btn-ghost" id="cm-ajuda-ia" type="button"><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Lumi Theo me ajuda a escrever</button>
-          <button class="cm-btn cm-btn-primary" id="cm-publicar" type="button">Publicar</button>
+      <div class="cm-grid">
+        <div class="cm-grid-main">
+          <div class="cm-compose">
+            <div class="cm-compose-top">
+              <span class="cm-compose-av"><img src="img/icon-urso.png" alt=""></span>
+              <textarea class="cm-compose-area" id="cm-texto" rows="2" maxlength="2000" placeholder="Compartilhe uma experiência, dúvida ou recurso com outros cuidadores."></textarea>
+            </div>
+            <!-- Categorias são chips (js/comunidade.js preenche); continua opcional. -->
+            <div class="cm-cats cm-recuo" id="cm-categorias" role="group" aria-label="Categoria da publicação"></div>
+            <div class="cm-compose-row cm-recuo">
+              <button class="cm-btn cm-btn-ghost" id="cm-ajuda-ia" type="button"><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> O Theo me ajuda a escrever</button>
+              <span class="cm-contador" id="cm-contador">0 / 2000</span>
+              <button class="cm-btn cm-btn-primary" id="cm-publicar" type="button">Publicar</button>
+            </div>
+          </div>
+          <div class="cm-aviso" id="cm-aviso" hidden></div>
+          <div class="cm-feed" id="cm-feed"></div>
+        </div>
+
+        <!-- Coluna lateral: veio da aba Apoio (design Comunidade-A). Mesmos ids,
+             então js/apoio.js continua achando tudo por getElementById. -->
+        <div class="cm-grid-side">
+          <div class="ap-bloco ap-bloco--side">
+            <h2><i class="lt-i" data-lt-icon="lightbulb" aria-hidden="true"></i> Conceitos que ajudam</h2>
+            <p class="ap-sub">Boas práticas simples e eficazes — vale guardar para os dias difíceis.</p>
+            <div class="ap-conceitos" id="ap-conceitos"></div>
+          </div>
+
+          <div class="ap-bloco ap-bloco--side ap-bloco--theo">
+            <div class="ap-theo-tit">
+              <span class="ap-theo-av"><img src="img/icon-urso.png" alt=""></span>
+              <h2>Pergunta pro Lumi Theo</h2>
+            </div>
+            <p class="ap-sub">Está com uma dúvida sobre algo que está vivendo com seu adolescente? Pergunte aqui — ninguém mais vê.</p>
+            <div class="ap-conversa" id="ap-conversa"></div>
+            <div class="ap-ask">
+              <input type="text" id="ap-pergunta" maxlength="500" placeholder="Ex: como lidar com a recusa de escovar os dentes?">
+              <button id="ap-enviar" type="button" aria-label="Enviar pergunta"><i class="lt-i" data-lt-icon="send" aria-hidden="true"></i></button>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="cm-aviso" id="cm-aviso" hidden></div>
-      <div class="cm-feed" id="cm-feed"></div>
     </section>
 
     <!-- TAB: APOIO -->
@@ -94,21 +130,6 @@
         <div class="ap-dicas" id="ap-dicas"></div>
       </div>
 
-      <div class="ap-bloco">
-        <h2>Conceitos que ajudam</h2>
-        <p class="ap-sub">Boas práticas simples e eficazes — vale guardar para os dias difíceis.</p>
-        <div class="ap-conceitos" id="ap-conceitos"></div>
-      </div>
-
-      <div class="ap-bloco">
-        <h2>Pergunta pro Lumi Theo</h2>
-        <p class="ap-sub">Está com uma dúvida sobre algo que está vivendo com seu adolescente? Pergunte aqui.</p>
-        <div class="ap-conversa" id="ap-conversa"></div>
-        <div class="ap-ask">
-          <input type="text" id="ap-pergunta" maxlength="500" placeholder="Ex: como lidar com a recusa de escovar os dentes?">
-          <button id="ap-enviar" type="button" aria-label="Enviar"><i class="lt-i" data-lt-icon="send" aria-hidden="true"></i></button>
-        </div>
-      </div>
     </section>
   </main>
   </div><!-- /cui-main -->
@@ -133,6 +154,25 @@
       CUI.definirNome(_perfil.nome); // a casca aplica quando a sidebar montar
 
       Chat.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador', container: 'chat-root' });
+
+      /* Badge de não-lidas na aba "Conversas": some quando a aba está aberta,
+         senão ela acumularia o próprio contador enquanto você lê. */
+      Chat.aoMudarNaoLidas(function (total) {
+        var b = document.getElementById('cap-cnt-conversas');
+        var abaAberta = document.querySelector('.cap-tab[data-tab="conversas"]').classList.contains('active');
+        b.hidden = (total === 0 || abaAberta);
+        b.textContent = total > 9 ? '9+' : total;
+      });
+
+      /* "N online agora" — presença real do Supabase Realtime. Sem resposta do
+         Realtime, o seletor nunca roda e o selo continua escondido. */
+      Chat.aoMudarOnline(function (n) {
+        var selo = document.getElementById('cap-online');
+        if (!n) { selo.hidden = true; return; }
+        selo.hidden = false;
+        document.getElementById('cap-online-n').textContent =
+          n === 1 ? 'só você por aqui agora' : n + ' online agora';
+      });
       Comunidade.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador' });
       Apoio.iniciar({ publico: 'cuidador', nome: _perfil.nome });
       Aba.iniciar({ sb: sb, userId: uid, nome: _perfil.nome, publico: 'cuidador', container: 'aba-tools-com' });
@@ -146,6 +186,10 @@
         document.querySelectorAll('.cap-panel').forEach(function (x) { x.classList.remove('active'); });
         t.classList.add('active');
         document.getElementById('panel-' + t.getAttribute('data-tab')).classList.add('active');
+        // abrir Conversas zera o aviso visual: você já está vendo as mensagens
+        if (t.getAttribute('data-tab') === 'conversas') {
+          document.getElementById('cap-cnt-conversas').hidden = true;
+        }
       });
     });
   </script>

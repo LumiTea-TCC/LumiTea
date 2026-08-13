@@ -58,157 +58,815 @@
     <div class="blob blob-3"></div>
   </div>
 
-  <!-- Topo mobile, gaveta, faixa de alerta urgente, sidebar e barra do
-       num arquivo só, então mudar lá muda em todas as páginas do cuidador. -->
   <!-- Topo mobile, gaveta, faixa de alerta urgente, sidebar e barra do adolescente vêm da casca:
-       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+       js/core/cuidador-shell.js (o menu vive num arquivo só). Os controles extras da barra
+       (período, atualizado há, exportar) são injetados por montarControles() lá embaixo. -->
   <div class="cui-layout">
     <div class="cui-main">
 
-      <div class="cui-tela ativa">
+      <div class="pn-scroll">
 
-        <div class="cui-welcome-hero lt-reveal" id="cui-welcome-hero">
-          <div class="cui-welcome-av">
-            <img src="img/urso67.png" alt="Lumi">
+        <div class="pn-stats lt-reveal" id="pn-stats"></div>
+
+        <div class="pn-cols">
+
+          <div class="pn-col">
+
+            <section class="pn-card lt-reveal">
+              <header class="pn-card-hd">
+                <i class="lt-i" data-lt-icon="activity" aria-hidden="true"></i>
+                <h3 id="pn-chart-titulo">Humor — últimos 14 dias</h3>
+                <span class="pn-legend"><span class="pn-legend-linha"></span> humor</span>
+                <span class="pn-legend"><span class="pn-legend-faixa"></span> faixa de atenção</span>
+              </header>
+              <div class="pn-chart" id="pn-chart">
+                <p class="pn-vazio">Selecione um adolescente para ver o humor.</p>
+              </div>
+            </section>
+
+            <section class="pn-card lt-reveal">
+              <header class="pn-card-hd">
+                <i class="lt-i" data-lt-icon="clock" aria-hidden="true"></i>
+                <h3>Registros de hoje</h3>
+                <a class="pn-card-hd-link" href="live-cuidador.html">Ver ao vivo</a>
+              </header>
+              <div id="pn-hoje">
+                <p class="pn-vazio">Selecione um adolescente.</p>
+              </div>
+            </section>
+
           </div>
-          <div class="cui-welcome-text">
-            <h2>Olá, <span id="cui-welcome-nome">cuidador</span></h2>
-            <p id="cui-welcome-sub">O Lumi Theo está acompanhando e pronto para ajudar.</p>
-            <div class="cui-welcome-badges">
-              <span><i class="lt-i" data-lt-icon="radio" aria-hidden="true"></i> Monitoramento ativo</span>
-              <span id="wb-alerta-cnt" class="cui-badge-alerta" hidden></span>
-              <span id="wb-teen-nome">Selecione um adolescente</span>
-            </div>
-          </div>
-          <div class="cui-welcome-acoes">
-            <a class="btn-secondary btn-sm" href="alertas-cuidador.html"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Ver alertas</a>
-            <a class="btn-primary btn-sm" href="consultoria-cuidador.html"><i class="lt-i" data-lt-icon="message-circle" aria-hidden="true"></i> Falar com o Lumi Theo</a>
+
+          <div class="pn-col">
+
+            <section class="pn-card lt-reveal">
+              <header class="pn-card-hd">
+                <i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i>
+                <h3>Alertas</h3>
+                <span class="pn-card-hd-cnt" id="pn-alertas-cnt" hidden></span>
+                <a class="pn-card-hd-link" href="alertas-cuidador.html">Ver todos</a>
+              </header>
+              <div id="pn-alertas">
+                <p class="pn-vazio">Selecione um adolescente.</p>
+              </div>
+            </section>
+
+            <section class="pn-card lt-reveal">
+              <header class="pn-card-hd">
+                <i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i>
+                <h3>Último relatório</h3>
+                <span class="pn-card-hd-nota" id="pn-rel-quando"></span>
+              </header>
+              <div class="pn-card-body" id="pn-rel">
+                <p class="pn-vazio">Selecione um adolescente.</p>
+              </div>
+            </section>
+
+            <section class="pn-card lt-reveal">
+              <header class="pn-card-hd">
+                <i class="lt-i" data-lt-icon="calendar" aria-hidden="true"></i>
+                <h3>Próximos na rotina</h3>
+                <a class="pn-card-hd-link" href="calendario-cuidador.html">Calendário</a>
+              </header>
+              <div id="pn-agenda">
+                <p class="pn-vazio">Selecione um adolescente.</p>
+              </div>
+            </section>
+
           </div>
         </div>
-
-        <div class="cui-stats-grid lt-reveal" id="painel-stats">
-          <div class="cui-stat"><div class="cui-stat-icon"><i class="lt-i" data-lt-icon="user" aria-hidden="true"></i></div><div class="cui-stat-val">—</div><div class="cui-stat-label">Selecione um adolescente</div></div>
-        </div>
-
-        <div class="cui-alertas-card lt-reveal">
-          <h3><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Alertas recentes</h3>
-          <div id="painel-alertas-lista"><p class="cui-hint">Selecione um adolescente para ver os alertas.</p></div>
-        </div>
-
-        <div class="cui-humor-chart lt-reveal">
-          <h3><i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i> Humor — últimos 7 dias</h3>
-          <div class="humor-bars" id="humor-chart-bars">
-            <p class="cui-hint">Selecione um adolescente para ver o humor.</p>
-          </div>
-        </div>
-
       </div>
 
     </div><!-- /cui-main -->
   </div><!-- /cui-layout -->
 
   <script>
-    /* Painel geral: só resumo. Cada área do acompanhamento virou uma página
-       própria (alertas-, live-, humor-, relatorios-, observacoes-,
-       progresso-, estatisticas-, consultoria-cuidador.html). */
+    /* ================================================================
+       PAINEL GERAL DO CUIDADOR
+       Só resumo: cada área do acompanhamento é uma página própria
+       (alertas-, live-, humor-, relatorios-, observacoes-, progresso-,
+       estatisticas-, consultoria-cuidador.html).
 
-    function saudacao() {
-      var nome = (CUI.perfil && CUI.perfil.nome) ? CUI.perfil.nome.split(' ')[0] : 'cuidador';
-      document.getElementById('cui-welcome-nome').textContent = nome;
+       O que É e o que NÃO É dado real aqui:
+         • XP, nível, humor, alertas, eventos e jogos vêm do banco.
+         • O painel NÃO mostra nada de `conversas`: a RLS daquela tabela
+           só tem a policy `conv_self`, ou seja, o cuidador não lê nem o
+           conteúdo nem a contagem — é privacidade combinada no schema.
+           Se um dia isso mudar, tem que ser via RPC que devolva só o
+           número, nunca o texto.
+         • "XP na semana" é a soma de sessoes_jogo.pontuacao dos últimos
+           7 dias. É uma APROXIMAÇÃO: não existe histórico de XP, e o XP
+           ganho conversando com a Lumi não fica registrado em lugar
+           nenhum — então esse número subestima. Some quando é zero.
+         • "Rotina cumprida" conta eventos dos últimos 7 dias que têm um
+           check-in pós respondido em `lembretes_evento` (acao_tomada
+           diferente de 'dispensou'). Não existe coluna de "concluído"
+           em eventos_calendario. Some quando não há eventos no período.
+       ================================================================ */
+
+    var PERIODOS = [7, 14, 30];
+    var CHAVE_PERIODO = 'lt-cui-periodo';
+    var periodo = 14;
+    try {
+      var salvo = parseInt(localStorage.getItem(CHAVE_PERIODO), 10);
+      if (PERIODOS.indexOf(salvo) > -1) periodo = salvo;
+    } catch (e) {}
+
+    /* Cache do último carregamento: o "Exportar" e a troca de período
+       reaproveitam os humores já baixados em vez de bater no banco de novo. */
+    var cache = { humores: [], teen: null };
+    var carregadoEm = null;
+    var timerStatus = null;
+
+    var NOME_JOGO = {
+      'memoria': 'Jogo da memória',
+      'classificar': 'Classificar por grupo',
+      'encaixe': 'Encaixe de formas',
+      'imagem-palavra': 'Imagem e palavra',
+      'lousa': 'Lousa de pintar'
+    };
+
+    /* Dia no fuso LOCAL. new Date().toISOString().slice(0,10) devolve o dia em
+       UTC — no Brasil (UTC-3), das 21h à meia-noite ele já aponta o dia
+       seguinte, e "hoje" ficaria vazio justo no fim da noite. */
+    function diaLocal(d) {
+      return d.getFullYear() + '-' +
+             String(d.getMonth() + 1).padStart(2, '0') + '-' +
+             String(d.getDate()).padStart(2, '0');
+    }
+    function hojeStr() { return diaLocal(new Date()); }
+    function diasAtras(n) {
+      var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - n); return d;
+    }
+    function hhmm(d) {
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+    function num(v, casas) {
+      return Number(v).toFixed(casas == null ? 1 : casas).replace('.', ',');
+    }
+
+    /* ── BARRA DO ADOLESCENTE: controles próprios desta página ────────
+       A casca monta .cui-teen-bar-fim; aqui a página pendura o seletor de
+       período, o "Exportar" e passa a mandar no texto do status. Roda no
+       DOMContentLoaded porque a casca (script no <head>, sem defer)
+       registra o listener dela ANTES — quando este roda, a barra existe. */
+    function montarControles() {
+      var fim = document.querySelector('.cui-teen-bar-fim');
+      if (!fim) return;
+
+      var seg = document.createElement('div');
+      seg.className = 'cui-seg';
+      seg.setAttribute('role', 'group');
+      seg.setAttribute('aria-label', 'Período do gráfico de humor');
+      PERIODOS.forEach(function (d) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'cui-seg-btn';
+        b.textContent = d + ' dias';
+        b.setAttribute('aria-pressed', String(d === periodo));
+        b.addEventListener('click', function () { trocarPeriodo(d); });
+        seg.appendChild(b);
+      });
+      fim.insertBefore(seg, fim.firstChild);
+
+      var exp = document.createElement('button');
+      exp.type = 'button';
+      exp.id = 'pn-exportar';
+      exp.className = 'cui-teen-acao';
+      exp.disabled = true;
+      exp.innerHTML = CUI.ic('download') + ' Exportar';
+      exp.addEventListener('click', exportarCSV);
+      fim.appendChild(exp);
+    }
+
+    function trocarPeriodo(d) {
+      periodo = d;
+      try { localStorage.setItem(CHAVE_PERIODO, String(d)); } catch (e) {}
+      document.querySelectorAll('.cui-seg-btn').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.textContent === d + ' dias'));
+      });
+      desenharGrafico();
+    }
+
+    /* "Atualizado há X" no lugar do "Monitorando" padrão da casca. */
+    function marcarAtualizado() {
+      carregadoEm = Date.now();
+      pintarStatus();
+      if (!timerStatus) timerStatus = setInterval(pintarStatus, 30000);
+    }
+    function pintarStatus() {
+      if (!carregadoEm) return;
+      var min = Math.floor((Date.now() - carregadoEm) / 60000);
+      CUI.definirStatus(min < 1 ? 'Atualizado agora' : 'Atualizado há ' + min + ' min');
+    }
+
+    /* ── SÉRIE DIÁRIA DE HUMOR ───────────────────────────────────────
+       Uma média por dia; dias sem registro entram como null (o gráfico
+       liga a linha por cima do buraco, mas não inventa ponto). */
+    function serieHumor(dias) {
+      var out = [];
+      for (var i = dias - 1; i >= 0; i--) {
+        var d = diasAtras(i);
+        var chave = diaLocal(d);
+        var doDia = cache.humores.filter(function (h) { return h.dia === chave; });
+        out.push({
+          data: d,
+          valor: doDia.length
+            ? doDia.reduce(function (a, h) { return a + h.nivel; }, 0) / doDia.length
+            : null
+        });
+      }
+      return out;
+    }
+
+    function mediaJanela(deDias, ateDias) {
+      var ini = diasAtras(deDias).getTime();
+      var fim = diasAtras(ateDias).getTime();
+      var sel = cache.humores.filter(function (h) {
+        var t = new Date(h.timestamp).getTime();
+        return t >= ini && t < fim;
+      });
+      if (!sel.length) return null;
+      return sel.reduce(function (a, h) { return a + h.nivel; }, 0) / sel.length;
+    }
+
+    /* ── GRÁFICO ─────────────────────────────────────────────────────
+       viewBox "0 0 700 180": o SVG é só a área do gráfico. Os rótulos dos
+       eixos ficam FORA dele, em HTML (.pn-chart-y / .pn-chart-x), porque
+       texto dentro do SVG encolhe junto com a coluna — ver a nota em app.css.
+       Nível 5 em y=10, nível 0 em y=170; a faixa de atenção (nível ≤ 2) é o
+       retângulo de y=106 até a base. As porcentagens de .pn-chart-y saem
+       dessas mesmas coordenadas: mudar aqui exige mudar lá. */
+    function desenharGrafico() {
+      var box = document.getElementById('pn-chart');
+      var titulo = document.getElementById('pn-chart-titulo');
+      if (!box) return;
+
+      titulo.textContent = 'Humor — últimos ' + periodo + ' dias';
+
+      if (!cache.teen) {
+        box.innerHTML = '<p class="pn-vazio">Selecione um adolescente para ver o humor.</p>';
+        return;
+      }
+
+      var serie = serieHumor(periodo);
+      var pontos = [];
+      var X0 = 6, X1 = 694, Y_TOPO = 10, Y_BASE = 170;
+      var passo = serie.length > 1 ? (X1 - X0) / (serie.length - 1) : 0;
+
+      serie.forEach(function (p, i) {
+        if (p.valor === null) return;
+        pontos.push({
+          x: X0 + i * passo,
+          y: Y_BASE - (p.valor / 5) * (Y_BASE - Y_TOPO),
+          nivel: Math.round(p.valor)
+        });
+      });
+
+      if (!pontos.length) {
+        box.innerHTML = '<p class="pn-vazio">Nenhum registro de humor nos últimos ' + periodo +
+          ' dias.<br>Os check-ins aparecem aqui assim que o adolescente registrar como está se sentindo.</p>';
+        return;
+      }
+
+      function xy(p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }
+
+      var svg = '<div class="pn-chart-plot">' +
+        '<span class="pn-chart-y pn-chart-y--otimo">Ótimo</span>' +
+        '<span class="pn-chart-y pn-chart-y--neutro">Neutro</span>' +
+        '<span class="pn-chart-y pn-chart-y--ansioso">Ansioso</span>' +
+        '<svg viewBox="0 0 700 180" role="img" aria-label="' +
+        CUI.esc('Gráfico de humor dos últimos ' + periodo + ' dias. Média do período: ' +
+          num(pontos.reduce(function (a, p) { return a + p.nivel; }, 0) / pontos.length) + ' de 5.') + '">';
+
+      svg += '<rect class="pn-chart-faixa" x="0" y="106" width="700" height="64"></rect>';
+      [10, 42, 74, 106, 138].forEach(function (y) {
+        svg += '<line class="pn-chart-grid" x1="0" y1="' + y + '" x2="700" y2="' + y + '"></line>';
+      });
+      svg += '<line class="pn-chart-base" x1="0" y1="170" x2="700" y2="170"></line>';
+
+      if (pontos.length > 1) {
+        var linha = pontos.map(xy).join(' ');
+        svg += '<path class="pn-chart-area" d="M' + xy(pontos[0]) + ' L' +
+               pontos.slice(1).map(xy).join(' L') +
+               ' L' + pontos[pontos.length - 1].x.toFixed(1) + ',170 L' +
+               pontos[0].x.toFixed(1) + ',170 Z"></path>';
+        svg += '<polyline class="pn-chart-linha" points="' + linha + '"></polyline>';
+      }
+
+      pontos.forEach(function (p, i) {
+        var ultimo = (i === pontos.length - 1);
+        svg += '<circle class="pn-dot h' + p.nivel + '" cx="' + p.x.toFixed(1) +
+               '" cy="' + p.y.toFixed(1) + '" r="' + (ultimo ? 5.5 : 3.8) + '"></circle>';
+      });
+
+      svg += '</svg></div>';
+
+      /* Rótulos de data: 6 marcos espaçados por igual (ou um por dia se
+         o período for curto), no formato dd/mm. */
+      var quantos = Math.min(6, serie.length);
+      var marcos = [];
+      for (var k = 0; k < quantos; k++) {
+        var idx = quantos === 1 ? 0 : Math.round(k * (serie.length - 1) / (quantos - 1));
+        marcos.push('<span>' + serie[idx].data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + '</span>');
+      }
+      svg += '<div class="pn-chart-x">' + marcos.join('') + '</div>';
+
+      box.innerHTML = svg;
+    }
+
+    /* ── CARTÕES DE NÚMERO ───────────────────────────────────────── */
+    function cartao(icone, rotulo, corpo) {
+      return '<div class="pn-stat">' +
+               '<span class="pn-stat-hd">' + CUI.ic(icone) + ' ' + rotulo + '</span>' +
+               corpo +
+             '</div>';
+    }
+
+    function desenharStats(dados) {
+      var box = document.getElementById('pn-stats');
+      var html = '';
+
+      /* XP + ganho da semana (só de jogos — ver cabeçalho do arquivo). */
+      var xpSemana = dados.jogos
+        .filter(function (j) { return new Date(j.timestamp) >= diasAtras(7); })
+        .reduce(function (a, j) { return a + (j.pontuacao || 0); }, 0);
+      html += cartao('star', 'XP total',
+        '<span class="pn-stat-linha">' +
+          '<strong class="pn-stat-val">' + dados.xp.toLocaleString('pt-BR') + '</strong>' +
+          (xpSemana > 0
+            ? '<span class="pn-stat-delta pn-stat-delta--sobe">+' + xpSemana + ' em jogos (7d)</span>'
+            : '') +
+        '</span>');
+
+      /* Nível + quanto falta pro próximo, usando a mesma tabela de limiares
+         do chat e dos jogos (CUI.NIVEL_XP).
+
+         O limiar é procurado pelo XP, e não indexado por neurodivergente.nivel:
+         as duas colunas podem discordar (o nivel só é reescrito quando o teen
+         ganha XP; uma linha antiga, ou corrigida à mão, fica para trás). Indexar
+         pelo nivel fazia a barra dizer "nível máximo" com 1240 XP em nivel 4,
+         que é justamente o caso em que o cuidador mais precisa do número certo. */
+      var faixas = CUI.NIVEL_XP;
+      var proximo = null, base = 0, proximoNivel = null;
+      for (var f = 0; f < faixas.length; f++) {
+        if (faixas[f] > dados.xp) { proximo = faixas[f]; proximoNivel = f + 1; break; }
+        base = faixas[f];
+      }
+      var corpoNivel = '<span class="pn-stat-linha">' +
+        '<strong class="pn-stat-val">' + dados.nivel + '</strong>';
+      if (proximo != null) {
+        corpoNivel += '<span class="pn-stat-delta">' + (proximo - dados.xp) +
+                      ' XP p/ o ' + proximoNivel + '</span>';
+      } else {
+        corpoNivel += '<span class="pn-stat-delta">nível máximo</span>';
+      }
+      corpoNivel += '</span>';
+      var pct = (proximo != null && proximo > base)
+        ? Math.max(0, Math.min(100, ((dados.xp - base) / (proximo - base)) * 100))
+        : 100;
+      corpoNivel += '<span class="pn-stat-bar"><span class="pn-stat-bar-fill" id="pn-nivel-bar"></span></span>';
+      html += cartao('target', 'Nível', corpoNivel);
+
+      /* Humor de hoje + hora do último check-in do dia. */
+      var deHoje = cache.humores.filter(function (h) { return h.dia === hojeStr(); });
+      var corpoHumor;
+      if (deHoje.length) {
+        var ultimo = deHoje[0]; // a lista vem em ordem decrescente de timestamp
+        corpoHumor = '<span class="pn-stat-val pn-stat-val--humor">' + CUI.humorChip(ultimo.nivel) + '</span>' +
+                     '<span class="pn-stat-sub">registrado às ' + hhmm(new Date(ultimo.timestamp)) + '</span>';
+      } else {
+        corpoHumor = '<span class="pn-stat-val">—</span>' +
+                     '<span class="pn-stat-sub">sem check-in hoje</span>';
+      }
+      html += cartao('heart', 'Humor hoje', corpoHumor);
+
+      /* Média de 7 dias + comparação com os 7 dias anteriores. */
+      var med7 = mediaJanela(7, 0);
+      var medAnt = mediaJanela(14, 7);
+      var corpoMedia = '<span class="pn-stat-linha">' +
+        '<strong class="pn-stat-val">' + (med7 == null ? '—' : num(med7)) + '</strong>';
+      if (med7 != null && medAnt != null) {
+        var dif = med7 - medAnt;
+        var cls = Math.abs(dif) < 0.05 ? '' : (dif > 0 ? ' pn-stat-delta--sobe' : ' pn-stat-delta--desce');
+        corpoMedia += '<span class="pn-stat-delta' + cls + '">' +
+          (dif > 0 ? '+' : dif < 0 ? '−' : '') + num(Math.abs(dif)) +
+          ' vs. semana passada</span>';
+      } else if (med7 != null) {
+        corpoMedia += '<span class="pn-stat-delta">de 5</span>';
+      }
+      corpoMedia += '</span>';
+      html += cartao('bar-chart', 'Média 7 dias', corpoMedia);
+
+      /* Rotina cumprida: eventos dos últimos 7 dias com check-in pós
+         respondido. Só aparece quando houve evento no período — sem isso
+         o cartão mostraria "0/0", que não quer dizer nada. */
+      var limite = diaLocal(diasAtras(7));
+      var hoje = hojeStr();
+      var doPeriodo = dados.eventos.filter(function (e) {
+        return e.data_evento >= limite && e.data_evento <= hoje;
+      });
+      if (doPeriodo.length) {
+        var respondidos = {};
+        dados.checkins.forEach(function (l) {
+          if (l.tipo === 'pos' && l.acao_tomada && l.acao_tomada !== 'dispensou') {
+            respondidos[l.id_evento] = true;
+          }
+        });
+        var feitos = doPeriodo.filter(function (e) { return respondidos[e.id]; }).length;
+        html += cartao('check-circle', 'Rotina cumprida',
+          '<span class="pn-stat-linha">' +
+            '<strong class="pn-stat-val">' + feitos + '/' + doPeriodo.length + '</strong>' +
+            '<span class="pn-stat-delta">últimos 7 dias</span>' +
+          '</span>');
+      }
+
+      box.innerHTML = html;
+
+      /* Largura da barra por variável local (padrão do projeto para valor
+         calculado em JS), e só depois do innerHTML — o elemento não existe antes. */
+      var barra = document.getElementById('pn-nivel-bar');
+      if (barra) barra.style.setProperty('--pct', pct.toFixed(1) + '%');
+    }
+
+    /* ── REGISTROS DE HOJE ───────────────────────────────────────── */
+    function desenharHoje(dados) {
+      var box = document.getElementById('pn-hoje');
+      var hoje = hojeStr();
+      var itens = [];
+
+      cache.humores.filter(function (h) { return h.dia === hoje; }).forEach(function (h) {
+        itens.push({
+          quando: new Date(h.timestamp),
+          icone: 'heart', variante: '',
+          texto: 'Check-in de humor — <strong>' + CUI.esc(CUI.humorTexto(h.nivel)) + '</strong>',
+          meta: 'app', metaCls: ''
+        });
+      });
+
+      dados.jogos.filter(function (j) {
+        return diaLocal(new Date(j.timestamp)) === hoje;
+      }).forEach(function (j) {
+        var mins = Math.round((j.duracao_segundos || 0) / 60);
+        itens.push({
+          quando: new Date(j.timestamp),
+          icone: 'star', variante: ' pn-linha-ic--jogo',
+          texto: CUI.esc(NOME_JOGO[j.jogo_id] || j.jogo_id) +
+                 (j.total ? ' · ' + (j.acertos || 0) + '/' + j.total : ''),
+          meta: mins >= 1 ? mins + ' min' : 'jogo', metaCls: ''
+        });
+      });
+
+      dados.eventos.filter(function (e) { return e.data_evento === hoje; }).forEach(function (e) {
+        /* hora_evento é NULL em evento de dia todo: ele ordena no começo do dia,
+           mas a coluna da hora mostra "—" em vez de um "00:00" que não existe. */
+        var q = new Date(); q.setHours(0, 0, 0, 0);
+        if (e.hora_evento) {
+          var hp = String(e.hora_evento).split(':');
+          q.setHours(Number(hp[0]) || 0, Number(hp[1]) || 0, 0, 0);
+        }
+        var feito = dados.checkins.some(function (l) {
+          return l.id_evento === e.id && l.tipo === 'pos' && l.acao_tomada && l.acao_tomada !== 'dispensou';
+        });
+        itens.push({
+          quando: q,
+          hora: e.hora_evento ? hhmm(q) : '—',
+          icone: 'calendar', variante: ' pn-linha-ic--evento',
+          texto: CUI.esc(e.titulo || 'Evento'),
+          meta: feito ? 'cumprido' : 'agendado', metaCls: feito ? ' pn-linha-meta--ok' : ''
+        });
+      });
+
+      dados.alertas.filter(function (a) {
+        return a.timestamp && diaLocal(new Date(a.timestamp)) === hoje;
+      }).forEach(function (a) {
+        itens.push({
+          quando: new Date(a.timestamp),
+          icone: a.tipo === 'crise' ? 'alert-triangle' : a.tipo === 'aviso' ? 'alert-circle' : 'info',
+          variante: a.tipo === 'crise' ? ' pn-linha-ic--alerta' : '',
+          texto: 'Alerta: ' + CUI.esc(a.titulo || 'sem título'),
+          meta: CUI.esc(a.tipo || 'info'),
+          metaCls: a.tipo === 'crise' ? ' pn-linha-meta--ruim' : ''
+        });
+      });
+
+      if (!itens.length) {
+        box.innerHTML = '<p class="pn-vazio">Nada registrado hoje ainda.<br>' +
+          'Check-ins de humor, jogos, eventos do calendário e alertas aparecem aqui ao longo do dia.</p>';
+        return;
+      }
+
+      itens.sort(function (a, b) { return a.quando - b.quando; });
+
+      box.innerHTML = '<div class="pn-linhas">' + itens.map(function (it) {
+        return '<div class="pn-linha">' +
+                 '<span class="pn-linha-hora">' + (it.hora || hhmm(it.quando)) + '</span>' +
+                 '<span class="pn-linha-ic' + it.variante + '">' + CUI.ic(it.icone) + '</span>' +
+                 '<span class="pn-linha-txt">' + it.texto + '</span>' +
+                 '<span class="pn-linha-meta' + it.metaCls + '">' + it.meta + '</span>' +
+               '</div>';
+      }).join('') + '</div>';
+    }
+
+    /* ── ALERTAS ─────────────────────────────────────────────────── */
+    function desenharAlertas(dados) {
+      var box = document.getElementById('pn-alertas');
+      var cnt = document.getElementById('pn-alertas-cnt');
+      var alertas = dados.alertas.slice(0, 3);
+      var naoLidos = dados.alertas.filter(function (a) { return !a.lido; }).length;
+
+      cnt.hidden = naoLidos === 0;
+      cnt.textContent = naoLidos + (naoLidos === 1 ? ' novo' : ' novos');
+
+      if (!alertas.length) {
+        box.innerHTML = '<p class="pn-vazio">Nenhum alerta registrado. Tudo em ordem.</p>';
+        return;
+      }
+
+      box.innerHTML = '<div class="pn-alertas">' + alertas.map(function (a) {
+        var quando = a.timestamp
+          ? new Date(a.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+          : '';
+        var cls = a.lido ? ' pn-alerta--lido'
+                : a.tipo === 'crise' ? ' pn-alerta--crise'
+                : a.tipo === 'aviso' ? ' pn-alerta--aviso' : '';
+
+        var acoes = '';
+        if (a.tipo === 'crise' && !a.lido) {
+          /* "Falar com o Lumi Theo" e não "abrir conversa": o cuidador não tem
+             (nem deve ter) acesso ao chat do adolescente — a consultoria é o
+             canal dele. Ver a nota sobre `conversas` no topo do arquivo. */
+          acoes = '<span class="pn-alerta-acoes">' +
+                    '<a class="pn-btn-crise" href="consultoria-cuidador.html">' +
+                      CUI.ic('message-circle') + ' Falar com o Lumi Theo</a>' +
+                    '<button type="button" class="pn-btn-ghost" data-lido="' + CUI.esc(a.id) + '">Marcar lido</button>' +
+                  '</span>';
+        }
+
+        return '<div class="pn-alerta' + cls + '">' +
+                 '<span class="pn-alerta-ic">' + CUI.alertaIcone(a.tipo) + '</span>' +
+                 '<span class="pn-alerta-corpo">' +
+                   '<span class="pn-alerta-meta">' + quando + ' · ' + CUI.esc(a.lido ? 'lido' : (a.tipo || 'info')) + '</span>' +
+                   '<span class="pn-alerta-txt">' + CUI.esc(a.titulo || 'Alerta') + '</span>' +
+                   (a.descricao ? '<span class="pn-alerta-desc">' + CUI.esc(a.descricao) + '</span>' : '') +
+                   acoes +
+                 '</span>' +
+               '</div>';
+      }).join('') + '</div>';
+
+      box.querySelectorAll('[data-lido]').forEach(function (b) {
+        b.addEventListener('click', function () { marcarLido(b); });
+      });
+    }
+
+    async function marcarLido(botao) {
+      var id = botao.getAttribute('data-lido');
+      botao.disabled = true;
+      botao.textContent = 'Marcando...';
+      var res = await CUI.sb.from('alertas').update({ lido: true }).eq('id', id);
+      if (res.error) {
+        console.error('[painel] marcar lido:', res.error.code, '|', res.error.message, '|', res.error.details);
+        botao.disabled = false;
+        botao.textContent = 'Marcar lido';
+        if (window.LumiUI) LumiUI.toast('Não foi possível marcar como lido agora.', { type: 'error' });
+        return;
+      }
+      if (window.LumiUI) LumiUI.toast('Alerta marcado como lido.', { type: 'success' });
+      CUI.atualizarBadgeAlertas();
+      carregarPainel(CUI.teenId);
+    }
+
+    /* ── ÚLTIMO RELATÓRIO ────────────────────────────────────────── */
+    function primeiraFrase(campo) {
+      /* A Lumi devolve ora lista de strings, ora lista de objetos, ora uma
+         string só — mesma defensiva do montarPayload de relatorios-cuidador. */
+      if (!campo) return '';
+      if (typeof campo === 'string') return campo;
+      if (!Array.isArray(campo)) return '';
+      var v = campo[0];
+      if (typeof v === 'string') return v;
+      if (v && typeof v === 'object') return v.texto || v.dica || v.sugestao || v.titulo || '';
+      return '';
+    }
+
+    function desenharRelatorio(dados) {
+      var box = document.getElementById('pn-rel');
+      var quando = document.getElementById('pn-rel-quando');
+      var rel = dados.relatorio;
+
+      if (!rel) {
+        quando.textContent = '';
+        box.innerHTML = '<p class="pn-vazio">Nenhum relatório gerado ainda.<br>' +
+          '<a href="relatorios-cuidador.html">Gerar o primeiro relatório</a></p>';
+        return;
+      }
+
+      quando.textContent = rel.timestamp
+        ? new Date(rel.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+        : '';
+
+      var sugestao = primeiraFrase(rel.sugestoes) || primeiraFrase(rel.dicas_cuidador);
+      var html = '<p class="pn-rel-p">' + CUI.esc(rel.resumo || 'Sem resumo neste relatório.') + '</p>';
+      if (sugestao) {
+        html += '<p class="pn-rel-p"><strong>Sugestão:</strong> ' + CUI.esc(sugestao) + '</p>';
+      }
+      html += '<a class="pn-rel-cta" href="relatorios-cuidador.html">Relatório completo ' +
+              CUI.ic('chevron-right') + '</a>';
+      box.innerHTML = html;
+    }
+
+    /* ── PRÓXIMOS NA ROTINA ──────────────────────────────────────── */
+    function desenharAgenda(dados) {
+      var box = document.getElementById('pn-agenda');
+      var hoje = hojeStr();
+      var futuros = dados.eventos
+        .filter(function (e) { return e.data_evento >= hoje; })
+        .sort(function (a, b) {
+          if (a.data_evento !== b.data_evento) return a.data_evento < b.data_evento ? -1 : 1;
+          return String(a.hora_evento || '').localeCompare(String(b.hora_evento || ''));
+        })
+        .slice(0, 3);
+
+      if (!futuros.length) {
+        box.innerHTML = '<p class="pn-vazio">Nada marcado para os próximos dias.<br>' +
+          '<a href="calendario-cuidador.html">Adicionar um evento</a></p>';
+        return;
+      }
+
+      box.innerHTML = '<div class="pn-agenda">' + futuros.map(function (e) {
+        /* Data montada com o construtor de 3 argumentos: new Date('2026-08-15')
+           é lido como UTC e no Brasil volta um dia. */
+        var p = String(e.data_evento).split('-');
+        var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+        var hora = e.hora_evento ? String(e.hora_evento).slice(0, 5) : 'dia todo';
+        var origem = e.origem === 'adolescente' ? 'marcado pelo adolescente'
+                   : e.origem === 'terapeuta'   ? 'marcado pelo terapeuta'
+                   : 'marcado por você';
+        return '<div class="pn-agenda-item">' +
+                 '<span class="pn-agenda-dia">' +
+                   '<strong class="pn-agenda-num">' + d.getDate() + '</strong>' +
+                   '<span class="pn-agenda-sem">' + d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 3) + '</span>' +
+                 '</span>' +
+                 '<span class="pn-agenda-txt">' + CUI.esc(e.titulo || 'Evento') +
+                   '<span class="pn-agenda-sub">' + hora + ' · ' + origem + '</span>' +
+                 '</span>' +
+               '</div>';
+      }).join('') + '</div>';
+    }
+
+    /* ── EXPORTAR CSV ────────────────────────────────────────────── */
+    function exportarCSV() {
+      var teen = CUI.teen();
+      if (!teen) return;
+
+      var corte = diasAtras(periodo - 1).getTime();
+      var linhas = cache.humores
+        .filter(function (h) { return new Date(h.timestamp).getTime() >= corte; })
+        .slice().reverse();
+
+      if (!linhas.length) {
+        if (window.LumiUI) LumiUI.toast('Não há registros de humor nesse período para exportar.', { type: 'info' });
+        return;
+      }
+
+      function campo(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
+
+      /* Separador ";" e BOM UTF-8: é o que o Excel em pt-BR abre sem pedir
+         assistente de importação nem quebrar os acentos. */
+      var csv = '\ufeff' + [['data', 'hora', 'nivel', 'humor', 'nota']]
+        .concat(linhas.map(function (h) {
+          var d = new Date(h.timestamp);
+          return [d.toLocaleDateString('pt-BR'), hhmm(d), h.nivel, CUI.humorTexto(h.nivel), h.nota || ''];
+        }))
+        .map(function (l) { return l.map(campo).join(';'); })
+        .join('\r\n');
+
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'humor-' + (teen.nome || 'adolescente').toLowerCase().replace(/[^a-z0-9]+/g, '-') +
+                   '-' + periodo + 'dias-' + hojeStr() + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+
+      if (window.LumiUI) LumiUI.toast(linhas.length + ' registros exportados.', { type: 'success' });
+    }
+
+    /* ── CARGA ───────────────────────────────────────────────────── */
+    function vazio(msg) {
+      return '<p class="pn-vazio">' + msg + '</p>';
+    }
+
+    function limpar(msg) {
+      cache.humores = [];
+      cache.teen = null;
+      document.getElementById('pn-stats').innerHTML =
+        '<div class="pn-stat"><span class="pn-stat-hd">' + CUI.ic('user') + ' Adolescente</span>' +
+        '<span class="pn-stat-linha"><strong class="pn-stat-val">—</strong></span>' +
+        '<span class="pn-stat-sub">' + msg + '</span></div>';
+      ['pn-chart', 'pn-hoje', 'pn-alertas', 'pn-rel', 'pn-agenda'].forEach(function (id) {
+        document.getElementById(id).innerHTML = vazio(msg);
+      });
+      document.getElementById('pn-alertas-cnt').hidden = true;
+      document.getElementById('pn-rel-quando').textContent = '';
+      var exp = document.getElementById('pn-exportar');
+      if (exp) exp.disabled = true;
+      CUI.definirStatus('Monitorando');
     }
 
     async function carregarPainel(teenId) {
-      saudacao();
-
-      var stats = document.getElementById('painel-stats');
-      var badgeTeen = document.getElementById('wb-teen-nome');
-      var listaAlertas = document.getElementById('painel-alertas-lista');
-      var barras = document.getElementById('humor-chart-bars');
-
       if (!teenId) {
-        badgeTeen.textContent = CUI.teens.length ? 'Selecione um adolescente' : 'Nenhum adolescente vinculado';
-        stats.innerHTML = '<div class="cui-stat"><div class="cui-stat-icon">' + CUI.ic('user') + '</div><div class="cui-stat-val">—</div><div class="cui-stat-label">Selecione um adolescente</div></div>';
-        listaAlertas.innerHTML = '<p class="cui-hint">Selecione um adolescente para ver os alertas.</p>';
-        barras.innerHTML = '<p class="cui-hint">Selecione um adolescente para ver o humor.</p>';
-        document.getElementById('wb-alerta-cnt').hidden = true;
+        limpar(CUI.teens.length
+          ? 'Selecione um adolescente.'
+          : 'Nenhum adolescente vinculado ainda.');
         return;
       }
 
-      var teen = CUI.teen();
-      badgeTeen.innerHTML = CUI.ic('user') + ' ' + CUI.esc(teen ? teen.nome : '');
+      var sb = CUI.sb;
+      var desde = diasAtras(40).toISOString();
+      var desdeDia = diaLocal(diasAtras(40));
 
-      /* XP/nível direto do banco: o cache da casca é do carregamento da página
-         e o adolescente pode ter ganhado XP nos jogos desde então. */
-      var nd = await CUI.sb.from('neurodivergente').select('xp, nivel').eq('id', teenId).single();
-      var xp = (nd.data && nd.data.xp) || 0;
-      var nivel = (nd.data && nd.data.nivel) || 1;
+      /* Tudo em paralelo: são consultas independentes e a soma dos tempos
+         em série deixava o painel visivelmente lento com 5+ tabelas. */
+      var r = await Promise.all([
+        sb.from('neurodivergente').select('xp, nivel').eq('id', teenId).single(),
+        sb.from('humores').select('nivel, nota, timestamp').eq('id_neurodivergente', teenId)
+          .gte('timestamp', desde).order('timestamp', { ascending: false }).limit(400),
+        sb.from('alertas').select('id, tipo, titulo, descricao, lido, timestamp').eq('id_neurodivergente', teenId)
+          .order('timestamp', { ascending: false }).limit(20),
+        sb.from('eventos_calendario').select('id, titulo, data_evento, hora_evento, origem').eq('id_neurodivergente', teenId)
+          .gte('data_evento', desdeDia).order('data_evento', { ascending: true }).limit(120),
+        sb.from('sessoes_jogo').select('jogo_id, pontuacao, acertos, total, duracao_segundos, timestamp').eq('id_neurodivergente', teenId)
+          .gte('timestamp', desde).order('timestamp', { ascending: false }).limit(200),
+        sb.from('lembretes_evento').select('id_evento, tipo, acao_tomada').eq('id_neurodivergente', teenId)
+          .gte('disparado_em', desde).limit(200),
+        sb.from('relatorios').select('resumo, sugestoes, dicas_cuidador, humor_geral, timestamp').eq('id_neurodivergente', teenId)
+          .order('timestamp', { ascending: false }).limit(1)
+      ]);
 
-      var hum = await CUI.sb.from('humores').select('nivel, timestamp')
-        .eq('id_neurodivergente', teenId)
-        .order('timestamp', { ascending: false }).limit(30);
-      var humores = hum.data || [];
+      r.forEach(function (res, i) {
+        if (res && res.error && res.error.code !== 'PGRST116') {
+          console.error('[painel] consulta ' + i + ':', res.error.code, '|', res.error.message, '|', res.error.details);
+        }
+      });
 
-      var hoje = new Date().toISOString().slice(0, 10);
-      var deHoje = humores.filter(function (h) { return (h.timestamp || '').slice(0, 10) === hoje; });
-      var humorHoje = deHoje.length ? CUI.humorChip(deHoje[0].nivel) : '—';
-      var med7 = CUI.calcMediaHumor(humores, 7);
+      var dados = {
+        xp: (r[0].data && r[0].data.xp) || 0,
+        nivel: (r[0].data && r[0].data.nivel) || 1,
+        alertas: r[2].data || [],
+        eventos: r[3].data || [],
+        jogos: r[4].data || [],
+        checkins: r[5].data || [],
+        relatorio: (r[6].data && r[6].data[0]) || null
+      };
 
-      stats.innerHTML =
-        CUI.cuiStat('star', 'XP total', xp.toLocaleString('pt-BR')) +
-        CUI.cuiStat('target', 'Nível', nivel) +
-        CUI.cuiStat('heart', 'Humor hoje', humorHoje) +
-        CUI.cuiStat('bar-chart', 'Humor (7d)', med7 ? med7.toFixed(1) + '/5' : '—');
+      /* Anota o dia local uma vez só: serieHumor/desenharHoje comparam por
+         string de dia dezenas de vezes e recalcular Date a cada filtro pesa. */
+      cache.humores = (r[1].data || []).map(function (h) {
+        h.dia = diaLocal(new Date(h.timestamp));
+        return h;
+      });
+      cache.teen = teenId;
 
-      if (humores.length) {
-        CUI.renderHumorBars(humores, 'humor-chart-bars');
-        var chip = document.getElementById('teen-humor-current');
-        if (chip) { chip.hidden = false; chip.innerHTML = 'Humor: ' + CUI.humorChip(humores[0].nivel); }
-      } else {
-        barras.innerHTML = '<p class="cui-hint">Nenhum registro de humor ainda.</p>';
+      /* Chip de humor da barra do adolescente (a casca cria o elemento vazio). */
+      var chip = document.getElementById('teen-humor-current');
+      if (chip) {
+        if (cache.humores.length) {
+          chip.hidden = false;
+          chip.innerHTML = 'Humor: ' + CUI.humorChip(cache.humores[0].nivel);
+        } else {
+          chip.hidden = true;
+        }
       }
 
-      await carregarAlertasResumo(teenId);
+      desenharStats(dados);
+      desenharGrafico();
+      desenharHoje(dados);
+      desenharAlertas(dados);
+      desenharRelatorio(dados);
+      desenharAgenda(dados);
+
+      var exp = document.getElementById('pn-exportar');
+      if (exp) exp.disabled = cache.humores.length === 0;
+
+      marcarAtualizado();
+      if (window.LUMI && window.LUMI.hydrateIcons) LUMI.hydrateIcons(document.querySelector('.pn-scroll'));
     }
 
-    async function carregarAlertasResumo(teenId) {
-      var el = document.getElementById('painel-alertas-lista');
-      var wb = document.getElementById('wb-alerta-cnt');
-      if (!el) return;
-
-      var res = await CUI.sb.from('alertas').select('*')
-        .eq('id_neurodivergente', teenId)
-        .order('timestamp', { ascending: false }).limit(3);
-
-      if (res.error) {
-        el.innerHTML = '<p class="cui-hint">Não foi possível carregar os alertas agora.</p>';
-        return;
-      }
-
-      var alertas = res.data || [];
-      var naoLidos = alertas.filter(function (a) { return !a.lido; }).length;
-      if (wb) {
-        wb.hidden = naoLidos === 0;
-        wb.innerHTML = CUI.ic('bell') + ' ' + naoLidos + ' alerta' + (naoLidos > 1 ? 's' : '');
-      }
-
-      if (!alertas.length) {
-        el.innerHTML = '<p class="cui-hint">Nenhum alerta registrado. Tudo em ordem.</p>';
-        return;
-      }
-
-      el.innerHTML = alertas.map(function (a) {
-        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
-        return '<div class="alerta-item ' + (a.tipo || 'info') + (a.lido ? ' lido' : '') + '">' +
-                 '<div class="alerta-icon">' + CUI.alertaIcone(a.tipo) + '</div>' +
-                 '<div class="alerta-info"><label>' + data + '</label><p>' + CUI.esc(a.titulo || 'Alerta') + '</p></div>' +
-               '</div>';
-      }).join('');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', montarControles);
+    } else {
+      montarControles();
     }
 
     CUI.aoTrocarTeen(carregarPainel);
 
-    /* Atualiza sozinho a cada 30s, como o painel antigo fazia. */
-    setInterval(function () { if (CUI.pronto && CUI.teenId) carregarPainel(CUI.teenId); }, 30000);
+    /* Atualiza sozinho a cada 60s, como o painel antigo fazia (era 30s, mas
+       agora são 7 consultas por ciclo em vez de 3). */
+    setInterval(function () { if (CUI.pronto && CUI.teenId) carregarPainel(CUI.teenId); }, 60000);
   </script>
 </body>
 </html>

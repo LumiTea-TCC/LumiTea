@@ -3489,72 +3489,119 @@ body.cui-page { overflow: hidden; }
   z-index: 29;
 }
 
-/* ── SIDEBAR ─────────────────────────────────────────────── */
+/* ── SIDEBAR ─────────────────────────────────────────────────
+   Fundo azul-marinho (importado do design Cuidador-A-painel).
+   A textura de pontinhos vem como background-image na PRÓPRIA
+   sidebar, e não como um filho position:absolute como no .dc.html:
+   a sidebar é overflow-y:auto, e um filho absoluto com inset:0 só
+   cobriria a altura visível — ao rolar o menu, o resto sairia liso.
+
+   Contraste: os tons de branco translúcido do design foram subidos
+   (.45 → .66 nos rótulos de seção, .6 → .72 no "Sair") para passar
+   WCAG AA sobre o navy. Paleta da marca intacta: o item ativo usa
+   --primary-light e o realce, o azul-claro da identidade.
+   ───────────────────────────────────────────────────────────── */
 .cui-sidebar {
-  background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
-  border-right: 1px solid var(--border-faint);
+  background-color: #13293f;
+  background-image:
+    radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+    linear-gradient(180deg, #13293f 0%, #1b3a5c 55%, #22456e 100%);
+  background-size: 20px 20px, auto;
+  border-right: 1px solid rgba(255,255,255,0.08);
   display: flex; flex-direction: column;
   overflow-y: auto; overflow-x: hidden;
-  padding: var(--sp-5) var(--sp-3);
+  padding: var(--sp-5) var(--sp-3) 14px;
 }
 .cui-logo {
   display: flex; align-items: center; gap: 10px;
-  padding: 4px 8px var(--sp-5); border-bottom: 1px solid var(--border-faint);
+  padding: 4px 8px var(--sp-4); border-bottom: 1px solid rgba(255,255,255,0.12);
   margin-bottom: var(--sp-4);
 }
 .cui-logo-img {
   width: 40px; height: 40px; border-radius: 50%;
-  background: var(--panel-1); border: 2px solid rgba(74,126,181,0.28);
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(143,192,240,0.5);
   display: flex; align-items: center; justify-content: center; overflow: hidden;
+  flex-shrink: 0;
 }
 .cui-logo-img img { width: 100%; height: 100%; object-fit: cover; }
-.cui-logo-text { font-family: 'Baloo 2', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); }
-.cui-logo-sub { font-size: 10px; color: var(--text-muted); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.cui-logo-text { font-family: 'Baloo 2', sans-serif; font-size: 1.18rem; font-weight: 800; color: #fff; line-height: 1.1; }
+.cui-logo-sub { font-size: 10px; color: var(--primary-light); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 
 .cui-status-badge {
-  display: flex; align-items: center; gap: var(--sp-2); padding: 10px var(--sp-3);
-  background: var(--success-bg); border: 1px solid var(--success-border);
-  border-radius: var(--r-md); margin-bottom: var(--sp-4);
+  display: flex; align-items: center; gap: 9px; padding: 9px var(--sp-3);
+  background: rgba(76,175,80,0.16); border: 1px solid rgba(76,175,80,0.34);
+  border-radius: var(--r-sm); margin-bottom: var(--sp-4);
 }
-.cui-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; animation: glowPulse 2s ease-in-out infinite; }
-.cui-status-txt { font-size: 11px; font-weight: 800; color: var(--success); }
+.cui-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #5cc45f; flex-shrink: 0; animation: glowPulse 2s ease-in-out infinite; }
+.cui-status-txt { font-size: 11px; font-weight: 800; color: #9fe0a1; }
 @keyframes glowPulse {
   0%,100% { box-shadow: 0 0 0 0 rgba(76,175,80,0.4); }
   50%      { box-shadow: 0 0 0 6px rgba(76,175,80,0); }
 }
 
-.cui-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.cui-nav-section { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--text-muted); text-transform: uppercase; padding: 14px 14px 6px; }
+/* Anulações explícitas: lumitea.css declara uma regra de elemento
+   `nav { position:sticky; z-index:100; background:rgba(242,246,251,.9);
+   backdrop-filter:blur(12px); border-bottom:1px solid; padding:14px 56px }`
+   para a barra do topo da landing, e ela pega TODO <nav> do app — inclusive
+   este menu vertical. `.cui-nav` só sobrescrevia display/gap, então o menu do
+   cuidador vinha há tempos com um painel quase opaco por cima (invisível
+   enquanto a sidebar era branca, gritante depois que ficou azul-marinho) e com
+   56px de recuo lateral, que era o que espremia "Histórico de humor" e
+   "Consultoria com o Lumi Theo" em três linhas.
+   Mesma classe de armadilha da regra `section { padding:72px 56px }`. */
+.cui-nav {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+  position: static; z-index: auto;
+  background: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  border-bottom: none; padding: 0;
+  align-items: stretch; justify-content: flex-start;
+}
+.cui-nav-section { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: rgba(255,255,255,0.66); text-transform: uppercase; padding: 14px 14px 6px; }
 .cui-nav-btn {
-  display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
   min-height: 44px;
-  border-radius: var(--r-md); border: none; cursor: pointer;
+  border-radius: 11px; border: none; border-left: 3px solid transparent; cursor: pointer;
   font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
-  background: none; color: var(--text-soft); width: 100%; text-align: left;
+  background: none; color: rgba(255,255,255,0.78); width: 100%; text-align: left;
   transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
-.cui-nav-btn:hover { background: var(--panel-1); color: var(--primary-dark); }
+.cui-nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
 .cui-nav-btn.ativo {
-  background: rgba(33,150,243,0.10);
-  color: var(--primary-dark); font-weight: 800;
+  background: rgba(143,192,240,0.20);
+  border-left-color: var(--primary-light);
+  color: #fff; font-weight: 800;
 }
+.cui-nav-btn.ativo:hover { background: rgba(143,192,240,0.26); }
 .cui-nav-icon { display: inline-flex; width: 20px; height: 20px; flex-shrink: 0; align-items: center; justify-content: center; }
 .cui-nav-icon svg { width: 18px; height: 18px; }
 .cui-nav-cnt { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 900; border-radius: 99px; padding: 2px 7px; }
 
-.cui-sidebar-footer { padding-top: 14px; border-top: 1px solid var(--border-faint); }
-.cui-nome-area { padding: 0 4px 10px; font-size: 13px; color: var(--text-soft); display: flex; align-items: center; gap: 6px; }
+.cui-sidebar-footer { padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.12); margin-top: 10px; }
+.cui-nome-area { padding: 0 6px 10px; font-size: 12px; color: rgba(255,255,255,0.72); display: flex; align-items: center; gap: 8px; }
+.cui-nome-forte { color: #fff; font-weight: 800; }
 .cui-sair {
-  display: flex; align-items: center; gap: 8px; padding: 10px 14px; min-height: 44px;
-  border-radius: var(--r-md); border: none; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px; min-height: 44px;
+  border-radius: 11px; border: none; cursor: pointer;
   font-family: 'Nunito', sans-serif; font-size: 13px;
-  font-weight: 700; background: none; color: var(--text-muted); width: 100%;
+  font-weight: 700; background: none; color: rgba(255,255,255,0.72); width: 100%;
   transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
-.cui-sair:hover { color: var(--danger); background: var(--danger-bg); }
+.cui-sair:hover { color: #ffb4b4; background: rgba(198,40,40,0.24); }
+/* Foco visível precisa de anel claro sobre o navy (o --focus-ring padrão é azul escuro). */
+.cui-sidebar .cui-nav-btn:focus-visible,
+.cui-sidebar .cui-sair:focus-visible { box-shadow: 0 0 0 3px rgba(143,192,240,0.65); }
 
 /* ── MAIN ─────────────────────────────────────────────────── */
 .cui-main { display: flex; flex-direction: column; overflow: hidden; background: linear-gradient(180deg, var(--panel-3) 0%, var(--bg-2) 100%); min-height: 0; }
+/* Textura de pontinhos do design (par da que a sidebar recebeu). Fica só no
+   painel geral pra não competir com as telas mais densas das outras páginas. */
+.cui-page[data-cui-pagina="painel"] .cui-main {
+  background-image:
+    radial-gradient(rgba(74,126,181,0.10) 1px, transparent 1px),
+    linear-gradient(180deg, var(--panel-3) 0%, var(--bg-2) 100%);
+  background-size: 22px 22px, auto;
+}
 
 /* Páginas próprias (Comunidade/Calendário/Configurações do cuidador) que passaram a
    morar dentro de .cui-main: cada uma vira sua própria região de scroll interna,
@@ -3589,7 +3636,7 @@ body.cui-page { overflow: hidden; }
 }
 .cui-teen-monitor { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
 .cui-status-dot--mini { width: 6px; height: 6px; }
-.cui-nome-forte { color: var(--text-main); }
+/* .cui-nome-forte vive no bloco da SIDEBAR (fundo navy) — não redefinir aqui. */
 
 .cui-alerta-strip {
   display: none; padding: var(--sp-3) var(--sp-6);
@@ -3899,6 +3946,225 @@ a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
 .stat-box-val { font-family: 'Baloo 2', sans-serif; font-size: 2rem; font-weight: 800; color: var(--text-main); }
 .stat-box-lbl { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-top: 4px; }
 
+/* ================================================================
+   PAINEL GERAL DO CUIDADOR (home-cuidador.html) — prefixo .pn-
+   Importado do design Cuidador-A-painel.dc.html, traduzido de estilo
+   inline para classes + tokens. Só esta página usa .pn-*; as demais
+   páginas do cuidador seguem com .cui-* / .prog-* / .obs-*.
+
+   O conteúdo rola dentro de .pn-scroll (a barra do adolescente e a
+   faixa de alerta ficam fixas no topo, como no design), então o
+   .cui-main continua overflow:hidden — não trocar por auto.
+   ================================================================ */
+.pn-scroll { position: relative; flex: 1; min-height: 0; overflow-y: auto; padding: 18px var(--sp-6) var(--sp-7); }
+
+/* ── Controles extras na barra do adolescente (injetados por JS) ── */
+.cui-seg { display: inline-flex; padding: 3px; border-radius: var(--r-sm); background: var(--bg-2); border: 1px solid var(--border-soft); }
+.cui-seg-btn {
+  border: none; background: transparent; padding: 7px 13px; min-height: 34px;
+  border-radius: 8px; font-family: 'Nunito', sans-serif; font-size: 12px;
+  font-weight: 800; color: var(--text-muted); cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.cui-seg-btn:hover { color: var(--primary-dark); }
+.cui-seg-btn[aria-pressed="true"] { background: var(--surface); color: var(--primary-dark); font-weight: 900; box-shadow: var(--shadow-1); }
+.cui-teen-acao {
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; min-height: 38px;
+  border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-soft); font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+  cursor: pointer; white-space: nowrap;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.cui-teen-acao:hover:not(:disabled) { border-color: var(--primary); color: var(--primary-dark); background: var(--primary-pale); }
+.cui-teen-acao:disabled { opacity: .55; cursor: default; }
+.cui-teen-acao svg { width: 15px; height: 15px; }
+
+/* ── Cartões de número ───────────────────────────────────────── */
+.pn-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.pn-stat {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: var(--r-md); padding: 14px 16px; box-shadow: var(--shadow-1);
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.pn-stat:hover { border-color: rgba(33,150,243,0.30); box-shadow: var(--shadow-2); }
+.pn-stat-hd {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 9px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.pn-stat-hd svg { width: 15px; height: 15px; color: var(--brand); flex-shrink: 0; }
+.pn-stat-linha { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pn-stat-val {
+  font-family: 'Baloo 2', sans-serif; font-size: 1.7rem; font-weight: 800;
+  color: var(--text-main); line-height: 1; font-variant-numeric: tabular-nums;
+}
+.pn-stat-val--humor { display: inline-flex; align-items: center; gap: 8px; }
+.pn-stat-delta { font-size: 11px; font-weight: 800; color: var(--text-muted); }
+.pn-stat-delta--sobe  { color: var(--success); }
+.pn-stat-delta--desce { color: var(--warning); }
+.pn-stat-sub { display: block; margin-top: 7px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+.pn-stat-bar { display: block; margin-top: 9px; height: 6px; border-radius: 99px; background: var(--panel-3); overflow: hidden; }
+/* Largura via variável local (--pct), definida pelo JS — mesmo padrão de .prog-bar-fill. */
+.pn-stat-bar-fill { display: block; width: var(--pct, 0%); height: 100%; border-radius: 99px; background: var(--primary); transition: width var(--dur-slow) var(--ease-out); }
+
+/* ── Colunas + cartão ────────────────────────────────────────── */
+/* min(420px,100%) e não 420px seco: com auto-fit a coluna colapsa para 1, mas o
+   mínimo continua valendo e estoura a tela no celular (mesma armadilha do hero
+   da landing). 420 e não 340 porque abaixo disso o gráfico de humor fica
+   espremido demais — em tablet é melhor uma coluna larga que duas apertadas. */
+.pn-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: var(--sp-4); align-items: start; }
+.pn-col { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+/* padding/max-width/margin zerados de propósito: lumitea.css declara
+   `section { max-width:1100px; margin:0 auto; padding:72px 56px }` para a
+   landing, e essa regra pega QUALQUER <section> das telas internas — sem
+   isto o cartão nasce com um buraco de 72px e centralizado dentro da coluna. */
+.pn-card {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-1); overflow: hidden;
+  max-width: none; margin: 0; padding: 0;
+}
+.pn-card-hd {
+  display: flex; align-items: center; gap: 10px; padding: 13px 18px; flex-wrap: wrap;
+  background: linear-gradient(180deg, #fbfdff, var(--bg-2));
+  border-bottom: 1px solid var(--border-faint);
+}
+.pn-card-hd > svg, .pn-card-hd > .lt-i { color: var(--brand); flex-shrink: 0; }
+.pn-card-hd h3 { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: var(--text-main); flex: 1; min-width: 0; }
+.pn-card-hd-link { font-size: 12px; font-weight: 800; color: var(--primary-dark); text-decoration: none; }
+.pn-card-hd-link:hover { color: var(--primary); text-decoration: underline; }
+.pn-card-hd-cnt { background: var(--danger); color: #fff; font-size: 10px; font-weight: 900; border-radius: 99px; padding: 3px 8px; }
+.pn-card-hd-nota { font-size: 10.5px; font-weight: 800; color: var(--text-muted); }
+.pn-card-body { padding: 14px 18px 16px; }
+
+/* ── Gráfico de humor ────────────────────────────────────────── */
+.pn-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: var(--text-muted); }
+.pn-legend-linha { width: 10px; height: 3px; border-radius: 2px; background: var(--primary); }
+.pn-legend-faixa { width: 10px; height: 9px; border-radius: 2px; background: rgba(198,40,40,0.14); }
+.pn-chart { padding: 16px 18px 10px; }
+/* height:auto (e não os 200px do .dc.html): com viewBox, o SVG ganha proporção
+   intrínseca e preenche a largura toda. Com altura fixa, o preserveAspectRatio
+   padrão centraliza o desenho e sobra faixa branca dos lados em telas largas —
+   e aí os rótulos de data de .pn-chart-x deixam de bater com os pontos. */
+.pn-chart svg { display: block; width: 100%; height: auto; }
+
+/* Os rótulos dos eixos são HTML, e não <text> dentro do SVG como no .dc.html:
+   o SVG escala com a largura da coluna, então um font-size de 10 unidades saía
+   com ~7px no desktop e ~5px no celular — ilegível, e o público é justamente
+   quem menos deve precisar apertar os olhos. Em HTML eles ficam em px de
+   verdade em qualquer largura. As porcentagens de `top` são as coordenadas y
+   do viewBox (10, 74 e 138 de 180) — mexer numa ponta exige mexer na outra. */
+.pn-chart-plot { position: relative; padding-left: 52px; }
+.pn-chart-y {
+  position: absolute; left: 0; width: 46px; text-align: right;
+  font-size: 10.5px; font-weight: 800; color: var(--text-muted); line-height: 1;
+}
+.pn-chart-y--otimo   { top: calc(5.56%  - 0.5em); }
+.pn-chart-y--neutro  { top: calc(41.1%  - 0.5em); }
+.pn-chart-y--ansioso { top: calc(76.7%  - 0.5em); }
+.pn-chart-faixa { fill: rgba(198,40,40,0.08); }
+.pn-chart-grid  { stroke: rgba(74,126,181,0.14); stroke-width: 1; }
+.pn-chart-base  { stroke: rgba(74,126,181,0.28); stroke-width: 1; }
+.pn-chart-area  { fill: rgba(33,150,243,0.12); }
+.pn-chart-linha { fill: none; stroke: var(--primary-action); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+/* Mesmas cores do HUMOR_COR de cuidador-shell.js (índice = nivel 0..5:
+   Irritado, Ansioso, Triste, Neutro, Bem, Ótimo). Mudar aqui sem mudar lá
+   faz o ponto do gráfico discordar do chip da barra do adolescente. */
+.pn-dot    { fill: var(--ink-faint); }
+.pn-dot.h0 { fill: #c62828; }
+.pn-dot.h1 { fill: #e08e30; }
+.pn-dot.h2 { fill: #fbbf24; }
+.pn-dot.h3 { fill: #9e9e9e; }
+.pn-dot.h4 { fill: #42a5f5; }
+.pn-dot.h5 { fill: #2e7d32; }
+/* Mesmo recuo de 52px do .pn-chart-plot, pra data e ponto ficarem na
+   mesma vertical (os dados ocupam o viewBox inteiro, de x=6 a x=694). */
+.pn-chart-x { display: flex; justify-content: space-between; gap: 6px; padding: 4px 0 0 52px; font-size: 10.5px; font-weight: 800; color: var(--text-muted); }
+
+/* ── Linha do tempo "Registros de hoje" ──────────────────────── */
+.pn-linhas { display: flex; flex-direction: column; }
+.pn-linha {
+  display: grid; grid-template-columns: 58px 34px 1fr auto; gap: var(--sp-3);
+  align-items: center; padding: 11px 18px; border-bottom: 1px solid var(--border-faint);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.pn-linha:last-child { border-bottom: none; }
+.pn-linha:hover { background: var(--bg-2); }
+.pn-linha-hora { font-size: 12px; font-weight: 900; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.pn-linha-ic {
+  width: 30px; height: 30px; border-radius: 9px; display: flex;
+  align-items: center; justify-content: center;
+  background: var(--primary-pale); color: var(--brand-dark);
+}
+.pn-linha-ic svg { width: 16px; height: 16px; }
+.pn-linha-ic--jogo   { background: var(--tint-violet); color: var(--violeta-dark); }
+.pn-linha-ic--evento { background: var(--tint-green);  color: #2b7f6f; }
+.pn-linha-ic--alerta { background: var(--danger-bg);   color: var(--danger); }
+.pn-linha-txt { font-size: 13px; font-weight: 700; color: var(--text-main); min-width: 0; }
+.pn-linha-txt strong { font-weight: 900; }
+.pn-linha-meta { font-size: 11px; font-weight: 800; color: var(--text-muted); white-space: nowrap; }
+.pn-linha-meta--ok   { color: var(--success); }
+.pn-linha-meta--ruim { color: var(--danger); }
+
+/* ── Alertas (versão cartão do painel) ───────────────────────── */
+.pn-alertas { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
+.pn-alerta {
+  display: flex; gap: 11px; padding: 12px 14px; border-radius: var(--r-sm);
+  background: var(--bg-2); border: 1px solid var(--border-soft); border-left: 4px solid var(--border);
+}
+.pn-alerta--crise { background: var(--danger-bg);  border-color: var(--danger-border);  border-left-color: var(--danger); }
+.pn-alerta--aviso { background: var(--warning-bg); border-color: var(--warning-border); border-left-color: var(--ambar); }
+.pn-alerta--lido  { opacity: .62; }
+.pn-alerta-ic {
+  width: 30px; height: 30px; border-radius: 9px; display: flex; flex-shrink: 0;
+  align-items: center; justify-content: center; background: var(--info-bg); color: var(--info);
+}
+.pn-alerta-ic svg { width: 16px; height: 16px; }
+.pn-alerta--crise .pn-alerta-ic { background: rgba(244,67,54,0.14); color: var(--danger); }
+.pn-alerta--aviso .pn-alerta-ic { background: rgba(224,142,48,0.16); color: var(--warning); }
+.pn-alerta-corpo { flex: 1; min-width: 0; }
+.pn-alerta-meta { display: block; font-size: 10.5px; font-weight: 800; color: var(--text-muted); margin-bottom: 3px; }
+.pn-alerta-txt  { display: block; font-size: 13px; font-weight: 800; color: var(--text-main); line-height: 1.4; }
+.pn-alerta-desc { display: block; font-size: 12px; font-weight: 600; color: var(--text-soft); line-height: 1.5; margin-top: 4px; }
+.pn-alerta-acoes { display: flex; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
+.pn-btn-crise, .pn-btn-ghost {
+  padding: 7px 12px; min-height: 34px; border-radius: 8px; cursor: pointer;
+  font-family: 'Nunito', sans-serif; font-size: 11.5px; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.pn-btn-crise { border: none; background: var(--danger); color: #fff; font-weight: 900; }
+.pn-btn-crise:hover { background: #a81f1f; color: #fff; }
+.pn-btn-ghost { border: 1px solid var(--border); background: var(--surface); color: var(--text-soft); font-weight: 800; }
+.pn-btn-ghost:hover:not(:disabled) { border-color: var(--primary); color: var(--primary-dark); }
+.pn-btn-ghost:disabled { opacity: .55; cursor: default; }
+
+/* ── Relatório da semana ─────────────────────────────────────── */
+.pn-rel-p { font-size: 13px; line-height: 1.75; color: var(--text-soft); margin-bottom: 12px; }
+.pn-rel-p strong { color: var(--text-main); }
+.pn-rel-cta {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; min-height: 38px;
+  border-radius: var(--r-sm); text-decoration: none;
+  background: linear-gradient(135deg, #3f6fa3, var(--brand-dark)); color: #fff;
+  font-size: 12.5px; font-weight: 800; box-shadow: 0 6px 14px rgba(46,95,163,0.24);
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+.pn-rel-cta:hover { color: #fff; box-shadow: 0 10px 20px rgba(46,95,163,0.32); }
+.pn-rel-cta svg { width: 15px; height: 15px; }
+
+/* ── Próximos na rotina ──────────────────────────────────────── */
+.pn-agenda { display: flex; flex-direction: column; }
+.pn-agenda-item { display: flex; align-items: center; gap: var(--sp-3); padding: 11px 18px; border-bottom: 1px solid var(--border-faint); }
+.pn-agenda-item:last-child { border-bottom: none; }
+.pn-agenda-dia { width: 44px; text-align: center; flex-shrink: 0; }
+.pn-agenda-num { display: block; font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+.pn-agenda-sem { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+.pn-agenda-txt { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: var(--text-main); }
+.pn-agenda-sub { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Estado vazio dentro dos cartões do painel ───────────────── */
+.pn-vazio { padding: 18px; text-align: center; font-size: 12.5px; font-weight: 700; color: var(--text-muted); line-height: 1.6; }
+.pn-vazio a { font-weight: 800; }
+
 /* ── RESPONSIVO ───────────────────────────────────────────── */
 @media (max-width: 900px) {
   body.cui-page { overflow: auto; }
@@ -3918,6 +4184,23 @@ a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
 
   .cui-tela { padding: var(--sp-4); }
   .cui-teen-bar { flex-wrap: wrap; padding: var(--sp-3) var(--sp-4); }
+
+  /* Painel geral: a barra do adolescente e o conteúdo param de disputar
+     largura; o .cui-main volta a rolar com a página em vez de rolar por dentro
+     (no mobile o body inteiro já rola, e duas regiões de scroll aninhadas
+     tornam impossível chegar ao fim da lista com o dedo). */
+  .pn-scroll { overflow: visible; padding: var(--sp-4); }
+  .cui-teen-bar-fim { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  .cui-seg { flex: 1; }
+  .cui-seg-btn { flex: 1; }
+}
+
+@media (max-width: 560px) {
+  /* A coluna de "meta" (duração, "cumprido") vai pra baixo do texto:
+     4 colunas em 320px espremiam o título do registro em duas letras. */
+  .pn-linha { grid-template-columns: 52px 30px 1fr; row-gap: 2px; }
+  .pn-linha-meta { grid-column: 3; }
+  .pn-chart-x span:nth-child(even) { display: none; }
 }
 /* Deslizar a gaveta só quando animação é permitida; calmo/reduced-motion troca instantânea */
 @media (max-width: 900px) and (prefers-reduced-motion: no-preference) {

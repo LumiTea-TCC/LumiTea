@@ -5,38 +5,80 @@
    Consome css/tokens.css; não redefine cor/raio/sombra fora dos tokens.
    ============================================================ */
 
-.ch-wrap { display: flex; flex-direction: column; gap: 12px; }
+/* Duas colunas: lista de salas à esquerda, conversa à direita (design
+   Comunidade-A). Antes as salas eram pílulas roláveis acima do chat — no
+   celular voltam a empilhar, que é o formato que cabe. */
+.ch-wrap { display: grid; grid-template-columns: minmax(240px, 290px) minmax(0, 1fr); gap: 16px; align-items: start; }
 
-/* ---- seletor de salas (pílulas roláveis) ---- */
-.ch-rooms { display: flex; gap: 8px; overflow-x: auto; padding: 2px; -webkit-overflow-scrolling: touch; }
-.ch-room {
-  flex: 0 0 auto; border: 1px solid var(--border); background: var(--bg-2); color: var(--text-soft);
-  border-radius: var(--r-pill); padding: 9px 16px; min-height: 42px; cursor: pointer;
-  font: inherit; font-weight: 700; font-size: .85rem; white-space: nowrap;
-  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+.ch-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* ---- lista de salas ---- */
+.ch-rooms {
+  background: var(--surface); border: 1px solid var(--border-soft); border-radius: 18px;
+  box-shadow: var(--shadow-1); overflow: hidden;
 }
-.ch-room:hover { background: var(--primary-pale, #e3f2fd); }
-.ch-room.on { background: var(--primary-action); color: #fff; border-color: var(--primary-action); }
+.ch-rooms-tit {
+  display: block; padding: 12px 16px 10px; font-size: 10px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
+  border-bottom: 1px solid var(--border-faint);
+}
+.ch-room {
+  display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 11px; align-items: center;
+  width: 100%; text-align: left; padding: 12px 14px; cursor: pointer;
+  border: none; border-left: 3px solid transparent; background: var(--surface);
+  font: inherit; transition: background var(--dur-fast) var(--ease-out);
+}
+.ch-room:hover { background: var(--bg-2); }
+.ch-room.on { background: var(--panel-1); border-left-color: var(--primary); }
+.ch-room-ic {
+  width: 34px; height: 34px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+  background: var(--primary-pale); color: var(--primary-dark); flex-shrink: 0;
+}
+.ch-room-ic .lt-i, .ch-room-ic svg { width: 18px; height: 18px; }
+.ch-room.on .ch-room-ic { background: var(--primary-action); color: #fff; }
+/* Cor por sala: dá um ponto de referência visual estável, já que os nomes das
+   salas mudam entre o público teen e o cuidador. */
+.ch-room-ic--rosa  { background: var(--tint-violet); color: var(--violeta-dark); }
+.ch-room-ic--verde { background: var(--success-bg);  color: var(--success); }
+.ch-room-ic--ambar { background: var(--warning-bg);  color: #8a5a1e; }
+.ch-room-txt { min-width: 0; }
+.ch-room-nome { display: block; font-size: .88rem; font-weight: 800; color: var(--text-main); }
+.ch-room-previa {
+  display: block; font-size: .76rem; font-weight: 700; color: var(--text-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .ch-badge {
   display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px;
-  margin-left: 7px; border-radius: var(--r-pill); background: var(--danger, #c62828); color: #fff;
-  font-size: .7rem; font-weight: 800; line-height: 1; vertical-align: middle;
+  border-radius: var(--r-pill); background: var(--danger, #c62828); color: #fff;
+  font-size: .7rem; font-weight: 800; line-height: 1;
 }
-.ch-room.on .ch-badge { background: #fff; color: var(--primary-dark); }
+
+/* ---- "Como funciona aqui" ---- */
+.ch-regras { background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: 18px; padding: 16px 18px; }
+.ch-regras-tit { display: flex; align-items: center; gap: 8px; font-size: .84rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
+.ch-regras-tit .lt-i, .ch-regras-tit svg { width: 1.05em; height: 1.05em; color: var(--brand); }
+.ch-regras ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ch-regras li { display: flex; gap: 9px; font-size: .8rem; line-height: 1.5; color: var(--text-soft); font-weight: 700; }
+.ch-regras li .lt-i, .ch-regras li svg { width: 1em; height: 1em; color: var(--success); flex-shrink: 0; margin-top: 2px; }
 html:not([data-modo-calmo="true"]) .ch-badge { animation: ch-pop var(--dur-base) var(--ease-out); }
 @keyframes ch-pop { from { transform: scale(.4); } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .ch-badge { animation: none; } }
 
 /* ---- painel principal do chat ---- */
 .ch-main {
-  background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-xl);
-  box-shadow: var(--shadow-1); display: flex; flex-direction: column; overflow: hidden;
-  height: min(62vh, 560px);
+  background: var(--surface); border: 1px solid var(--border-soft); border-radius: 20px;
+  box-shadow: var(--shadow-2); display: flex; flex-direction: column; overflow: hidden;
+  height: min(70vh, 600px); min-width: 0;
 }
 .ch-head {
-  display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-  border-bottom: 1px solid var(--border-soft); background: var(--bg-2);
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  border-bottom: 1px solid var(--border-soft); background: linear-gradient(180deg, #fbfdff, var(--bg-2));
 }
+.ch-head-ic {
+  width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  background: var(--primary-pale); color: var(--primary-dark); flex-shrink: 0;
+}
+.ch-head-ic .lt-i, .ch-head-ic svg { width: 19px; height: 19px; }
 .ch-head .ch-head-info { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .ch-head .ch-head-info b { font-family: 'Baloo 2', sans-serif; color: var(--text-main); font-size: .98rem; }
 .ch-head .ch-head-info span { color: var(--text-muted); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -98,7 +140,54 @@ html:not([data-modo-calmo="true"]) .ch-head .ch-live .ch-dot { animation: ch-pul
 
 .ch-erro { width: 100%; color: var(--danger, #c62828); font-size: .82rem; padding: 2px 4px; }
 
+/* Bolhas e compositor: acabamento do design (cantos assimétricos, gradiente na
+   própria mensagem, botões redondos maiores). */
+.ch-msgs { background: linear-gradient(180deg, var(--bg) 0%, #eef6ff 100%); padding: 18px; gap: 10px; }
+.ch-bolha { padding: 11px 15px; border-radius: 18px 18px 18px 5px; box-shadow: var(--shadow-1); }
+.ch-msg.eu .ch-bolha {
+  background: linear-gradient(135deg, var(--primary-action), var(--primary-dark));
+  border-color: transparent; border-radius: 18px 18px 5px 18px;
+  box-shadow: 0 8px 18px rgba(25,118,210,.24);
+}
+.ch-sys { box-shadow: var(--shadow-1); background: var(--surface); padding: 5px 14px; font-weight: 800; }
+/* A mensagem privada do Theo é violeta (mesma linguagem do botão de IA no
+   mural): quem lê distingue na hora o que é IA e o que é gente. */
+.ch-msg.lumi .ch-bolha {
+  background: linear-gradient(150deg, var(--tint-violet), var(--surface) 70%);
+  border: 1px solid rgba(124,92,191,.32); border-radius: 18px;
+}
+.ch-msg.lumi .ch-lumi-tag { color: var(--violeta-dark); }
+.ch-compose { padding: 12px 14px; gap: 9px; }
+.ch-compose .ch-input { border-width: 1.5px; padding: 13px 18px; min-height: 48px; }
+.ch-ic-btn { width: 48px; height: 48px; }
+.ch-ic-btn.send { background: linear-gradient(135deg, var(--primary-action), var(--primary-dark)); box-shadow: 0 8px 18px rgba(25,118,210,.26); }
+.ch-ic-btn.send:hover { box-shadow: 0 12px 22px rgba(25,118,210,.34); }
+.ch-ic-btn.lumi { background: var(--tint-violet); color: var(--violeta-dark); }
+.ch-ic-btn.lumi:hover { background: var(--violeta); color: #fff; }
+
+/* Uma coluna: abaixo de 900px a lateral de 240px roubava largura demais das
+   bolhas. `display:contents` dissolve o .ch-side para que os três blocos virem
+   itens diretos do grid e possam ser reordenados — salas (navegação) antes da
+   conversa, regras depois. As regras NÃO são escondidas no celular: é lá que
+   está o "ninguém vê seu nome completo", que é justamente o que precisa ser
+   lido antes de escrever. */
+@media (max-width: 900px) {
+  .ch-wrap { grid-template-columns: minmax(0, 1fr); }
+  .ch-side { display: contents; }
+  .ch-rooms  { order: 1; }
+  .ch-main   { order: 2; }
+  .ch-regras { order: 3; }
+}
 @media (max-width: 560px) {
   .ch-main { height: min(68vh, 520px); }
   .ch-msg { max-width: 86%; }
+  .ch-msgs { padding: 14px; }
+  /* O cabeçalho quebra em duas linhas: com ícone + nome + "ao vivo" + Resumo
+     na mesma linha, "Bate-papo geral" saía em três linhas e a descrição da
+     sala virava "Convers...". O nome ocupa a linha inteira e o resto desce. */
+  .ch-head { flex-wrap: wrap; row-gap: 8px; padding: 12px 14px; }
+  .ch-head .ch-head-info { flex: 1 0 calc(100% - 50px); }
+  .ch-head .grow { display: none; }
+  .ch-head .ch-live { margin-left: 50px; }
+  .ch-head #ch-resumo { margin-left: auto; }
 }

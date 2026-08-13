@@ -79,6 +79,10 @@ CREATE TRIGGER on_auth_user_created
 -- 2. NEURODIVERGENTE
 --    Dados exclusivos do adolescente neurodivergente
 -- ══════════════════════════════════════════════════════════════
+-- ⚠️ `nascimento` e `apelido` estavam AQUI mas não existiam no banco real até
+--    2026-08-13, quando foram criadas por ALTER (ver CLAUDE.md, "A lição do
+--    nascimento"). Este arquivo é a INTENÇÃO do schema, não o retrato do que
+--    está aplicado: confirmar a coluna no banco antes de usá-la num select.
 CREATE TABLE IF NOT EXISTS neurodivergente (
   id              UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
   xp              INTEGER NOT NULL DEFAULT 0 CHECK (xp >= 0),

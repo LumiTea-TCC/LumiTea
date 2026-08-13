@@ -38,6 +38,30 @@ var Chat = (function () {
     { id: 'desabafos',   nome: 'Desabafos',       desc: 'Um espaço de respiro entre cuidadores.' }
   ];
 
+  /* Ícone e cor de cada sala. Chaveado por id, que é compartilhado entre os
+     dois públicos onde faz sentido ('geral', 'desabafos'). Sala sem entrada
+     aqui cai no padrão azul com balão — nada quebra ao inventar sala nova. */
+  var VISUAL_SALA = {
+    geral:        { icone: 'message-circle', cor: '' },
+    desabafos:    { icone: 'heart',          cor: ' ch-room-ic--rosa' },
+    vitorias:     { icone: 'award',          cor: ' ch-room-ic--verde' },
+    interesses:   { icone: 'star',           cor: ' ch-room-ic--ambar' },
+    duvidas:      { icone: 'lightbulb',      cor: ' ch-room-ic--ambar' },
+    experiencias: { icone: 'users',          cor: ' ch-room-ic--verde' }
+  };
+  function visual(id) { return VISUAL_SALA[id] || { icone: 'message-circle', cor: '' }; }
+
+  var REGRAS_TEEN = [
+    'As conversas reiniciam todo dia.',
+    'Ninguém vê seu nome completo nem sua escola.',
+    'Você pode sair de uma sala a qualquer momento.'
+  ];
+  var REGRAS_CUID = [
+    'As conversas reiniciam todo dia.',
+    'Ninguém vê o nome completo nem os dados do seu adolescente.',
+    'Você pode sair de uma sala a qualquer momento.'
+  ];
+
   // sinais de sofrimento → aceno de apoio privado do Lumi Theo (não alarma a sala)
   var SINAIS = ['me matar', 'suicíd', 'suicid', 'não aguento mais', 'nao aguento mais', 'me cortar',
     'queria morrer', 'quero morrer', 'vou morrer', 'sumir do mundo', 'acabar com tudo', 'me machucar',
@@ -62,11 +86,25 @@ var Chat = (function () {
     var root = document.getElementById(opts.container || 'chat-root');
     if (!root) return;
 
+    var regras = cfg.publico === 'cuidador' ? REGRAS_CUID : REGRAS_TEEN;
+
     root.innerHTML =
       '<div class="ch-wrap">' +
-        '<div class="ch-rooms" id="ch-rooms"></div>' +
+        '<div class="ch-side">' +
+          '<div class="ch-rooms" id="ch-rooms">' +
+            '<span class="ch-rooms-tit">Salas</span>' +
+            '<div id="ch-rooms-lista"></div>' +
+          '</div>' +
+          '<div class="ch-regras">' +
+            '<span class="ch-regras-tit">' + icon('shield') + ' Como funciona aqui</span>' +
+            '<ul>' + regras.map(function (r) {
+              return '<li>' + icon('check') + ' ' + esc(r) + '</li>';
+            }).join('') + '</ul>' +
+          '</div>' +
+        '</div>' +
         '<div class="ch-main">' +
           '<div class="ch-head">' +
+            '<span class="ch-head-ic" id="ch-room-ic">' + icon('message-circle') + '</span>' +
             '<div class="ch-head-info"><b id="ch-room-nome">—</b><span id="ch-room-desc"></span></div>' +
             '<span class="grow"></span>' +
             '<span class="ch-live">' + '<span class="ch-dot"></span>ao vivo</span>' +
@@ -82,7 +120,8 @@ var Chat = (function () {
         '</div>' +
       '</div>';
 
-    el.rooms = document.getElementById('ch-rooms');
+    el.rooms = document.getElementById('ch-rooms-lista');
+    el.headIc = document.getElementById('ch-room-ic');
     el.nome = document.getElementById('ch-room-nome');
     el.desc = document.getElementById('ch-room-desc');
     el.msgs = document.getElementById('ch-msgs');
@@ -92,8 +131,18 @@ var Chat = (function () {
     el.lumi = document.getElementById('ch-lumi');
     el.resumo = document.getElementById('ch-resumo');
 
+    /* A prévia nasce com a descrição da sala e é trocada pela última mensagem
+       do dia quando ela chega (carregarPrevias). Assim a lista nunca aparece
+       vazia enquanto a consulta não volta. */
     el.rooms.innerHTML = salas().map(function (s, i) {
-      return '<button class="ch-room' + (i === 0 ? ' on' : '') + '" data-sala="' + esc(s.id) + '">' + esc(s.nome) + '</button>';
+      var v = visual(s.id);
+      return '<button type="button" class="ch-room' + (i === 0 ? ' on' : '') + '" data-sala="' + esc(s.id) + '">' +
+               '<span class="ch-room-ic' + v.cor + '">' + icon(v.icone) + '</span>' +
+               '<span class="ch-room-txt">' +
+                 '<span class="ch-room-nome">' + esc(s.nome) + '</span>' +
+                 '<span class="ch-room-previa" data-previa="' + esc(s.id) + '">' + esc(s.desc) + '</span>' +
+               '</span>' +
+             '</button>';
     }).join('');
     el.rooms.querySelectorAll('.ch-room').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -111,8 +160,46 @@ var Chat = (function () {
 
     hydrate(root);
     entrarSala(salas()[0].id);
+    carregarPrevias();
 
     window.addEventListener('beforeunload', desinscrever);
+  }
+
+  /* ---------- prévia da última mensagem de cada sala ----------
+     Uma consulta só: as mensagens de hoje de TODAS as salas do público, da mais
+     nova pra mais velha; a primeira que aparece de cada sala é a prévia. Sai
+     bem mais barato que uma consulta por sala, e o RLS já limita ao público. */
+  async function carregarPrevias() {
+    if (!cfg.sb) return;
+    try {
+      var r = await cfg.sb.from('comunidade_chat')
+        .select('sala,autor_nome,texto,criado_em')
+        .eq('publico', cfg.publico)
+        .gte('criado_em', inicioDoDia())
+        .order('criado_em', { ascending: false }).limit(200);
+      if (r.error || !r.data) return;
+      var vistas = {};
+      r.data.forEach(function (m) {
+        if (vistas[m.sala]) return;
+        vistas[m.sala] = true;
+        var alvo = el.rooms && el.rooms.querySelector('[data-previa="' + m.sala.replace(/"/g, '') + '"]');
+        if (alvo) alvo.textContent = primeiroNome(m.autor_nome) + ': ' + m.texto;
+      });
+    } catch (e) { /* prévia é enfeite: falhar aqui deixa a descrição da sala */ }
+  }
+
+  /* ---------- presença (quantas pessoas online agora) ----------
+     Presence do Supabase Realtime no MESMO canal que o chat já abre. Só conta
+     — nenhum nome, nenhum id de outra pessoa é exposto na tela. Se o Realtime
+     não estiver disponível, o seletor simplesmente nunca é preenchido e quem
+     chamou esconde o selo. */
+  var aoMudarOnline = null;
+  function publicarOnline() {
+    if (!aoMudarOnline || !canal || !canal.presenceState) return;
+    try {
+      var estado = canal.presenceState() || {};
+      aoMudarOnline(Object.keys(estado).length);
+    } catch (e) {}
   }
 
   /* ---------- salas + realtime ---------- */
@@ -122,22 +209,27 @@ var Chat = (function () {
     var s = salas().filter(function (x) { return x.id === id; })[0] || {};
     el.nome.textContent = s.nome || id;
     el.desc.textContent = s.desc || '';
+    if (el.headIc) { el.headIc.innerHTML = icon(visual(id).icone); hydrate(el.headIc); }
     el.msgs.innerHTML = '<div class="ch-sys">' + icon('clock') + ' carregando conversa...</div>';
     hydrate(el.msgs);
     carregarHistorico().then(inscreverPublico);
   }
 
-  // badge de não-lidas em cada pílula de sala
+  // badge de não-lidas em cada sala da lista + total para quem quiser (a aba)
+  var aoMudarNaoLidas = null;
   function atualizarBadges() {
     if (!el.rooms) return;
+    var total = 0;
     el.rooms.querySelectorAll('.ch-room').forEach(function (b) {
       var sala = b.getAttribute('data-sala'), n = unread[sala] || 0;
+      total += n;
       var bd = b.querySelector('.ch-badge');
       if (n > 0) {
         if (!bd) { bd = document.createElement('span'); bd.className = 'ch-badge'; b.appendChild(bd); }
         bd.textContent = n > 9 ? '9+' : String(n);
       } else if (bd) { bd.remove(); }
     });
+    if (aoMudarNaoLidas) { try { aoMudarNaoLidas(total); } catch (e) {} }
   }
 
   async function carregarHistorico() {
@@ -164,12 +256,17 @@ var Chat = (function () {
   // mensagens de outras salas viram contador de não-lidas.
   function inscreverPublico() {
     if (canal || !cfg.sb || !cfg.sb.channel) return;   // já assinado
-    canal = cfg.sb.channel('chat:' + cfg.publico)
+    // `presence.key` = id do usuário: reabrir a página em outra aba conta como
+    // UMA pessoa, e não como duas.
+    canal = cfg.sb.channel('chat:' + cfg.publico, { config: { presence: { key: cfg.userId || 'anon' } } })
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'comunidade_chat', filter: 'publico=eq.' + cfg.publico },
         function (payload) {
           var m = payload.new;
           if (!m || m.publico !== cfg.publico) return;
+          // prévia da lista de salas acompanha qualquer sala, não só a aberta
+          var prev = el.rooms && el.rooms.querySelector('[data-previa="' + String(m.sala).replace(/"/g, '') + '"]');
+          if (prev) prev.textContent = primeiroNome(m.autor_nome) + ': ' + m.texto;
           if (m.sala === salaAtual) {
             if (vistos[m.id]) return;
             var vazioEl = el.msgs.querySelector('.ch-vazio');
@@ -181,7 +278,15 @@ var Chat = (function () {
             atualizarBadges();
           }
         })
-      .subscribe();
+      .on('presence', { event: 'sync' }, publicarOnline)
+      .on('presence', { event: 'join' }, publicarOnline)
+      .on('presence', { event: 'leave' }, publicarOnline)
+      .subscribe(function (status) {
+        if (status !== 'SUBSCRIBED') return;
+        // Só marca presença DEPOIS de assinar — track() antes disso é ignorado.
+        try { canal.track({ em: Date.now() }); } catch (e) {}
+        publicarOnline();
+      });
   }
 
   function desinscrever() {
@@ -370,5 +475,12 @@ var Chat = (function () {
       '<p>O chat ainda está sendo preparado. Se você é admin, rode <b>db/CHAT_SCHEMA.sql</b> no Supabase.</p></div>';
   }
 
-  return { iniciar: iniciar };
+  return {
+    iniciar: iniciar,
+    /* A página decide o que fazer com os números; o chat só avisa.
+       aoMudarNaoLidas(total) → badge da aba "Conversas".
+       aoMudarOnline(n)       → selo "N online agora" no hero. */
+    aoMudarNaoLidas: function (fn) { aoMudarNaoLidas = fn; },
+    aoMudarOnline: function (fn) { aoMudarOnline = fn; publicarOnline(); }
+  };
 })();
