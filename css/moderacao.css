@@ -1,0 +1,78 @@
+/* ============================================================
+   LumiTEA — moderacao.css
+   Card de segurança da comunidade + faixa de "comunidade em pausa".
+   Par do js/core/moderacao.js. Prefixo .mod-.
+
+   Reusa a caixa do LumiUI (.lt-dialog-*, em css/enhance.css): aqui só
+   entra o que muda quando o corpo é HTML em vez de uma frase.
+   Sem movimento próprio — a entrada da caixa já é gated por
+   [data-modo-calmo] e prefers-reduced-motion lá na enhance.css.
+   ============================================================ */
+
+/* ── O card ────────────────────────────────────────────────── */
+.mod-card .lt-dialog-box {
+  max-width: 470px;
+  padding: 26px 24px 22px;
+}
+
+/* Título e urso ficam centralizados; o texto corrido vai pra esquerda,
+   que é o que se lê sem esforço em 3 parágrafos. */
+.mod-card .lt-dialog-msg { text-align: left; }
+
+.mod-card-txt p {
+  margin: 0 0 12px;
+  color: var(--text-soft);
+  font-size: .93rem;
+  line-height: 1.65;
+}
+.mod-card-txt p:last-child { margin-bottom: 0; }
+
+/* A última linha do card de crise é sempre o CVV: destacada em faixa
+   pra ser achável de relance, sem cor de alarme (vermelho assusta e
+   não ajuda ninguém em sofrimento). */
+.mod-card--risco .mod-card-txt p:last-child {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border-radius: var(--r-md);
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info);
+  font-weight: 700;
+}
+
+.mod-card .lt-dialog-acoes { margin-top: 18px; }
+
+/* Em tela estreita os dois botões empilham e o de conversar vem antes,
+   porque é a saída útil do card. */
+@media (max-width: 460px) {
+  .mod-card .lt-dialog-acoes { flex-direction: column-reverse; }
+  .mod-card .lt-dialog-btn { width: 100%; }
+}
+
+/* ── Faixa "comunidade em pausa" (mural e chat) ────────────── */
+.mod-pausa {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+.mod-pausa .lt-i { margin-top: 1px; color: var(--warning); }
+.mod-pausa b { font-weight: 800; }
+.mod-pausa a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.mod-pausa a:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 4px; }
+
+/* Dentro do chat a faixa mora logo acima do compositor e precisa
+   respeitar o respiro que a .ch-compose já tem. */
+.ch-main > .mod-pausa { margin: 0 14px 10px; }

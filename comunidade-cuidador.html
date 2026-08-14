@@ -16,12 +16,16 @@
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <link rel="stylesheet" href="css/chat.css">
   <link rel="stylesheet" href="css/aba.css">
+  <link rel="stylesheet" href="css/moderacao.css">
   <script src="js/core/reveal.js" defer></script>
   <script src="js/core/hero-bolhas.js" defer></script>
   <script src="js/core/ui.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <!-- SEM defer: o filtro de segurança tem que estar de pé antes de
+       chat.js/comunidade.js abrirem o compositor. -->
+  <script src="js/core/moderacao.js"></script>
   <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
        durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
   <script src="js/core/cuidador-shell.js"></script>

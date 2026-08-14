@@ -16,9 +16,14 @@
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <link rel="stylesheet" href="css/chat.css">
   <link rel="stylesheet" href="css/aba.css">
+  <link rel="stylesheet" href="css/moderacao.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <!-- ui.js e moderacao.js SEM defer: o filtro de segurança precisa estar
+       de pé antes de chat.js/comunidade.js abrirem o compositor. -->
+  <script src="js/core/ui.js"></script>
+  <script src="js/core/moderacao.js"></script>
   <script src="js/core/icons.js" defer></script>
   <script src="js/core/hero-bolhas.js" defer></script>
 </head>
