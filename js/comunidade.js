@@ -81,7 +81,60 @@ var Comunidade = (function () {
     }
     if (el.publicar) el.publicar.addEventListener('click', publicar);
     if (el.ajuda) el.ajuda.addEventListener('click', ajudaIA);
+
+    /* Filtro de segurança (js/core/moderacao.js). A tela reage na hora;
+       quem garante de verdade é o RLS + o gatilho do banco. */
+    if (window.Moderacao) {
+      Moderacao.iniciar({ sb: cfg.sb, userId: cfg.userId, nome: cfg.nome, publico: cfg.publico });
+      Moderacao.aoMudarBloqueio(aplicarPausa);
+    }
+
     carregarFeed();
+  }
+
+  function linkTheo() {
+    return cfg.publico === 'cuidador' ? 'consultoria-cuidador.html' : 'conversa.html';
+  }
+
+  /* Em pausa, o compositor desliga e uma faixa diz quando volta. LER
+     continua liberado de propósito: sumir com o feed seria castigo, e a
+     ideia é dar um tempo de respiro, não expulsar ninguém. */
+  /* Lê o estado do módulo em vez de receber por parâmetro, porque também
+     é chamada no fim de publicar()/comentar() pra reaplicar a pausa que
+     acabou de nascer — o `disabled = false` de lá reabriria o botão. */
+  function aplicarPausa() {
+    var pausado = !!(window.Moderacao && Moderacao.bloqueado());
+    if (el.texto) el.texto.disabled = pausado;
+    if (el.publicar) el.publicar.disabled = pausado;
+    if (el.ajuda) el.ajuda.disabled = pausado;
+    // caixas de comentário que já estejam abertas em algum card
+    if (el.feed) {
+      el.feed.querySelectorAll('.cm-c-input, .cm-c-enviar').forEach(function (x) { x.disabled = pausado; });
+    }
+
+    var faixa = $('cm-pausa');
+    if (!pausado) { if (faixa) faixa.remove(); return; }
+
+    var compose = el.texto && el.texto.closest ? el.texto.closest('.cm-compose') : null;
+    if (!compose || !compose.parentNode) return;
+    if (!faixa) {
+      faixa = document.createElement('div');
+      faixa.id = 'cm-pausa';
+      faixa.className = 'mod-pausa';
+      faixa.setAttribute('role', 'status');
+      compose.parentNode.insertBefore(faixa, compose);
+    }
+    faixa.innerHTML = icon('clock') +
+      '<span><b>A comunidade está em pausa pra você.</b> Você volta a escrever às ' +
+      esc(Moderacao.horaFim()) + '. Até lá dá pra ler tudo — e, se quiser, ' +
+      '<a href="' + esc(linkTheo()) + '">conversar com o Lumi Theo</a>.</span>';
+    if (window.LUMI) LUMI.hydrateIcons(faixa);
+  }
+
+  // true = pode publicar. O card já foi mostrado quando volta false.
+  async function liberado(texto, contexto) {
+    if (!window.Moderacao) return true;
+    return await Moderacao.checar(texto, contexto);
   }
 
   function atualizarContador() {
@@ -188,20 +241,29 @@ var Comunidade = (function () {
   async function publicar() {
     var texto = (el.texto.value || '').trim();
     if (!texto) { el.texto.focus(); return; }
+    if (!(await liberado(texto, 'mural'))) return;
     el.publicar.disabled = true; el.publicar.textContent = 'Publicando...';
     try {
+      /* `.select().single()` não é enfeite: é como a página descobre que o
+         gatilho do banco descartou a linha (ele devolve zero linha em vez
+         de erro — ver db/MODERACAO_SCHEMA.sql). */
       var r = await cfg.sb.from('comunidade_posts').insert({
         autor_id: cfg.userId, autor_nome: cfg.nome, publico: cfg.publico,
         categoria: catSelecionada || null, texto: texto
-      });
+      }).select('id').single();
       if (r.error) throw r.error;
       limparCompositor();
       await carregarFeed();
     } catch (e) {
-      console.warn('[comunidade] publicar:', e.message);
-      mostrarAviso('Não consegui publicar agora. Tente de novo em instantes.');
+      if (window.Moderacao && Moderacao.ehModeracao(e)) {
+        await Moderacao.conferirSumico();
+      } else {
+        console.warn('[comunidade] publicar:', e.message);
+        mostrarAviso('Não consegui publicar agora. Tente de novo em instantes.');
+      }
     }
     el.publicar.disabled = false; el.publicar.textContent = 'Publicar';
+    aplicarPausa();
   }
 
   async function toggleApoio(id, btn) {
@@ -249,6 +311,7 @@ var Comunidade = (function () {
       function envia() { comentar(id, input.value, art); }
       btn.addEventListener('click', envia);
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); envia(); } });
+      aplicarPausa();   // card aberto durante a pausa nasce desligado
     } catch (e) {
       box.innerHTML = '<p class="cm-c-vazio">Não consegui carregar os comentários.</p>';
     }
@@ -256,17 +319,23 @@ var Comunidade = (function () {
 
   async function comentar(id, texto, art) {
     texto = (texto || '').trim(); if (!texto) return;
+    if (!(await liberado(texto, 'comentario'))) return;
     try {
+      // .select().single() pelo mesmo motivo do publicar()
       var r = await cfg.sb.from('comunidade_comentarios').insert({
         post_id: id, autor_id: cfg.userId, autor_nome: cfg.nome, texto: texto
-      });
+      }).select('id').single();
       if (r.error) throw r.error;
       // recarrega os comentários do card e o contador
       art.querySelector('.cm-comentarios').hidden = true;
       var cBtn = art.querySelector('[data-act="comentarios"] span');
       if (cBtn) cBtn.textContent = (parseInt(cBtn.textContent) || 0) + 1;
       abrirComentarios(id, art);
-    } catch (e) { console.warn('[comunidade] comentar:', e.message); }
+    } catch (e) {
+      if (window.Moderacao && Moderacao.ehModeracao(e)) await Moderacao.conferirSumico();
+      else console.warn('[comunidade] comentar:', e.message);
+    }
+    aplicarPausa();
   }
 
   async function apagarPost(id, art) {

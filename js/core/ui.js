@@ -5,6 +5,10 @@
      • LumiUI.toast(msg, {type})        → aviso não-bloqueante
      • LumiUI.alert(msg, {titulo})      → Promise<void>
      • LumiUI.confirm(msg, {...})       → Promise<boolean>
+     • LumiUI.painel({titulo, html, acoes, ...}) → Promise<valor>
+       Mesma caixa dos anteriores (foco, Esc, ARIA), mas com corpo em
+       HTML e botões livres — inclusive botão que navega (href). Usado
+       pelo card de moderação da comunidade (js/core/moderacao.js).
 
    Acessível: role/aria corretos, foco gerenciado, fecha no Esc,
    respeita prefers-reduced-motion e [data-modo-calmo] (sem entrada
@@ -66,22 +70,36 @@
         (g.matchMedia && g.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
       var ov = document.createElement('div');
-      ov.className = 'lt-dialog-ov' + (calmoOuReduz ? '' : ' lt-anim');
+      ov.className = 'lt-dialog-ov' + (calmoOuReduz ? '' : ' lt-anim') +
+        (opts.classe ? ' ' + opts.classe : '');
       ov.setAttribute('role', 'dialog');
       ov.setAttribute('aria-modal', 'true');
       var titId = 'lt-dlg-tit-' + Date.now();
       ov.setAttribute('aria-labelledby', titId);
 
       var confirmar = !!opts.confirm;
+
+      /* Botões: `acoes` (livre) tem prioridade sobre o par ok/cancelar.
+         Cada ação vira data-i com o índice; href faz o botão navegar em
+         vez de resolver. O corpo é `html` (já montado por quem chamou,
+         que é responsável por escapar) ou `msg` (escapado aqui). */
+      var acoes = Array.isArray(opts.acoes) && opts.acoes.length ? opts.acoes : null;
+      var botoes = acoes
+        ? acoes.map(function (a, i) {
+            return '<button type="button" class="lt-dialog-btn lt-dialog-btn--' +
+              (a.tipo === 'ghost' ? 'ghost' : 'primary') + '" data-i="' + i + '">' +
+              esc(a.texto || 'OK') + '</button>';
+          }).join('')
+        : (confirmar ? '<button type="button" class="lt-dialog-btn lt-dialog-btn--ghost" data-act="cancel">' + esc(opts.cancelar || 'Cancelar') + '</button>' : '') +
+          '<button type="button" class="lt-dialog-btn lt-dialog-btn--primary" data-act="ok">' + esc(opts.ok || 'OK') + '</button>';
+
       ov.innerHTML =
         '<div class="lt-dialog-box">' +
           (opts.mascote ? '<div class="lt-dialog-mascote"><img src="' + esc(opts.mascote) + '" alt=""></div>' : '') +
           '<h2 id="' + titId + '" class="lt-dialog-tit">' + esc(opts.titulo || (confirmar ? 'Confirmar' : 'Aviso')) + '</h2>' +
-          '<p class="lt-dialog-msg">' + esc(opts.msg || '') + '</p>' +
-          '<div class="lt-dialog-acoes">' +
-            (confirmar ? '<button type="button" class="lt-dialog-btn lt-dialog-btn--ghost" data-act="cancel">' + esc(opts.cancelar || 'Cancelar') + '</button>' : '') +
-            '<button type="button" class="lt-dialog-btn lt-dialog-btn--primary" data-act="ok">' + esc(opts.ok || 'OK') + '</button>' +
-          '</div>' +
+          (opts.html ? '<div class="lt-dialog-msg">' + opts.html + '</div>'
+                     : '<p class="lt-dialog-msg">' + esc(opts.msg || '') + '</p>') +
+          '<div class="lt-dialog-acoes">' + botoes + '</div>' +
         '</div>';
       document.body.appendChild(ov);
       hydrate(ov);
@@ -96,7 +114,7 @@
         }, calmoOuReduz ? 0 : 180);
       }
       function onKey(e) {
-        if (e.key === 'Escape') { fechar(confirmar ? false : undefined); }
+        if (e.key === 'Escape') { fechar(confirmar || acoes ? false : undefined); }
         else if (e.key === 'Tab') { trapFoco(e); }
       }
       function focaveis() { return ov.querySelectorAll('button'); }
@@ -108,15 +126,25 @@
       }
 
       ov.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('.lt-dialog-btn') : null;
+        if (acoes && btn && btn.hasAttribute('data-i')) {
+          var a = acoes[parseInt(btn.getAttribute('data-i'), 10)] || {};
+          if (a.href) { location.href = a.href; return; }
+          fechar(a.valor === undefined ? btn.getAttribute('data-i') : a.valor);
+          return;
+        }
         var act = e.target.getAttribute && e.target.getAttribute('data-act');
         if (act === 'ok') fechar(confirmar ? true : undefined);
         else if (act === 'cancel') fechar(false);
-        else if (e.target === ov && confirmar) fechar(false); // clicar fora cancela
+        else if (e.target === ov && (confirmar || acoes)) fechar(false); // clicar fora cancela
       });
       document.addEventListener('keydown', onKey);
       requestAnimationFrame(function () {
         ov.classList.add('is-in');
-        var btn = ov.querySelector('[data-act="ok"]');
+        /* Com `acoes`, o foco vai no PRIMEIRO botão (o de sair), não no
+           primário: um Enter distraído não pode levar a pessoa pra outra
+           página sem ela ter lido o card. */
+        var btn = ov.querySelector('[data-act="ok"]') || ov.querySelector('.lt-dialog-btn');
         if (btn) btn.focus();
       });
     });
@@ -129,6 +157,17 @@
   LumiUI.confirm = function (msg, opts) {
     opts = opts || {};
     return abrirDialogo({ msg: msg, titulo: opts.titulo, ok: opts.ok, cancelar: opts.cancelar, mascote: opts.mascote, confirm: true });
+  };
+  /* Caixa com corpo em HTML e botões livres.
+     opts: { titulo, html, mascote, classe, acoes: [{texto,tipo,href,valor}] }
+     ATENÇÃO: `html` vai direto no innerHTML — quem chama escapa o que
+     vier de usuário/IA (window.LUMITEA.esc). */
+  LumiUI.painel = function (opts) {
+    opts = opts || {};
+    return abrirDialogo({
+      titulo: opts.titulo, html: opts.html, msg: opts.msg,
+      mascote: opts.mascote, classe: opts.classe, acoes: opts.acoes
+    });
   };
 
   g.LumiUI = LumiUI;

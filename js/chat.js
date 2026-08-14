@@ -62,10 +62,10 @@ var Chat = (function () {
     'Você pode sair de uma sala a qualquer momento.'
   ];
 
-  // sinais de sofrimento → aceno de apoio privado do Lumi Theo (não alarma a sala)
-  var SINAIS = ['me matar', 'suicíd', 'suicid', 'não aguento mais', 'nao aguento mais', 'me cortar',
-    'queria morrer', 'quero morrer', 'vou morrer', 'sumir do mundo', 'acabar com tudo', 'me machucar',
-    'tirar minha vida', 'não quero viver', 'nao quero viver'];
+  /* Os sinais de sofrimento moravam aqui numa lista própria. Foram para
+     js/core/moderacao.js junto com o resto do filtro de segurança — duas
+     listas de "palavras que preocupam" no mesmo app acabariam divergindo,
+     e o card do Lumi Theo tem que ser o mesmo no chat e no mural. */
 
   function salas() { return cfg.publico === 'cuidador' ? SALAS_CUID : SALAS_TEEN; }
   function primeiroNome(n) { return String(n || 'Alguém').trim().split(/\s+/)[0]; }
@@ -161,6 +161,13 @@ var Chat = (function () {
     hydrate(root);
     entrarSala(salas()[0].id);
     carregarPrevias();
+
+    /* Filtro de segurança (js/core/moderacao.js). O módulo é o mesmo do
+       mural: quem for pausado num, fica pausado no outro. */
+    if (window.Moderacao) {
+      Moderacao.iniciar({ sb: cfg.sb, userId: cfg.userId, nome: cfg.nome, publico: cfg.publico });
+      Moderacao.aoMudarBloqueio(aplicarPausa);
+    }
 
     window.addEventListener('beforeunload', desinscrever);
   }
@@ -329,6 +336,10 @@ var Chat = (function () {
     var texto = (el.input.value || '').trim();
     if (!texto) { el.input.focus(); return; }
     if (!cfg.sb) return;
+    /* Portão do filtro de segurança: ele mesmo mostra o card e registra a
+       ocorrência. O texto continua na caixa quando é barrado, pra pessoa
+       poder reescrever em vez de perder o que digitou. */
+    if (window.Moderacao && !(await Moderacao.checar(texto, 'chat'))) { aplicarPausa(); return; }
     el.input.value = ''; el.send.disabled = true;
     try {
       var r = await cfg.sb.from('comunidade_chat').insert({
@@ -337,13 +348,48 @@ var Chat = (function () {
       if (r.error) throw r.error;
       var vazioEl = el.msgs.querySelector('.ch-vazio'); if (vazioEl) el.msgs.innerHTML = '';
       adicionar(r.data, true); rolarFim();      // otimista (realtime fará dedupe por id)
-      checarSinais(texto);
     } catch (e) {
-      console.warn('[chat] enviar:', e.message);
-      mostrarErro('Não consegui enviar agora. Tente de novo.');
       el.input.value = texto;
+      /* Zero linha de volta = o gatilho do banco descartou a mensagem
+         (ver db/MODERACAO_SCHEMA.sql). Não é queda de rede. */
+      if (window.Moderacao && Moderacao.ehModeracao(e)) {
+        await Moderacao.conferirSumico();
+      } else {
+        console.warn('[chat] enviar:', e.message);
+        mostrarErro('Não consegui enviar agora. Tente de novo.');
+      }
     }
-    el.send.disabled = false; el.input.focus();
+    el.send.disabled = false; aplicarPausa();
+    if (!el.input.disabled) el.input.focus();
+  }
+
+  /* Pausa: compositor desligado + faixa acima dele dizendo quando volta.
+     Ler a sala continua liberado. */
+  function aplicarPausa() {
+    if (!el.input) return;
+    var pausado = !!(window.Moderacao && Moderacao.bloqueado());
+    el.input.disabled = pausado;
+    el.send.disabled = pausado;
+    if (el.ajuda) el.ajuda.disabled = pausado;
+    el.input.placeholder = pausado ? 'Comunidade em pausa — você pode ler à vontade.'
+                                   : 'Escreva uma mensagem...';
+
+    var main = el.msgs && el.msgs.parentNode;
+    if (!main) return;
+    var faixa = main.querySelector('.mod-pausa');
+    if (!pausado) { if (faixa) faixa.remove(); return; }
+    if (!faixa) {
+      faixa = document.createElement('div');
+      faixa.className = 'mod-pausa';
+      faixa.setAttribute('role', 'status');
+      main.insertBefore(faixa, main.querySelector('.ch-compose'));
+    }
+    var theo = cfg.publico === 'cuidador' ? 'consultoria-cuidador.html' : 'conversa.html';
+    faixa.innerHTML = icon('clock') +
+      '<span><b>A comunidade está em pausa pra você.</b> Você volta a escrever às ' +
+      esc(Moderacao.horaFim()) + '. Se quiser, dá pra ' +
+      '<a href="' + esc(theo) + '">conversar com o Lumi Theo</a> enquanto isso.</span>';
+    hydrate(faixa);
   }
 
   async function apagar(id, div) {
@@ -436,24 +482,6 @@ var Chat = (function () {
       pensando.remove(); adicionarLumi('Resumo da conversa:\n\n' + t);
     } catch (e) { pensando.remove(); adicionarLumi('Não consegui resumir agora.'); }
     el.resumo.disabled = false;
-  }
-
-  // moderação leve: aceno de apoio se houver sinais de sofrimento
-  function checarSinais(texto) {
-    var t = (texto || '').toLowerCase();
-    var achou = SINAIS.some(function (s) { return t.indexOf(s) !== -1; });
-    if (!achou) return;
-    var msg = cfg.publico === 'cuidador'
-      ? 'Percebi um momento difícil no que você escreveu. Você não está sozinho. Se for uma crise, busque apoio ' +
-        'profissional. No Brasil, o CVV atende no 188 (24h).'
-      : 'Li o que você escreveu e fico aqui com você. Você importa. Se estiver muito difícil, fale com um adulto ' +
-        'de confiança agora. Você também pode conversar comigo no Theo. No Brasil, o CVV atende no 188 (24h).';
-    var bal = adicionarLumi(msg);
-    if (cfg.publico !== 'cuidador') {
-      var btns = document.createElement('div'); btns.style.marginTop = '8px';
-      btns.innerHTML = '<a class="cm-btn cm-btn-primary" style="min-height:38px;padding:7px 14px;text-decoration:none;" href="conversa.html">Falar com o Theo</a>';
-      bal.querySelector('.ch-bolha').appendChild(btns);
-    }
   }
 
   /* ---------- estados ---------- */
