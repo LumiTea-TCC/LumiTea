@@ -140,6 +140,18 @@ html:not([data-modo-calmo="true"]) .ch-head .ch-live .ch-dot { animation: ch-pul
 
 .ch-erro { width: 100%; color: var(--danger, #c62828); font-size: .82rem; padding: 2px 4px; }
 
+/* ---- bloqueio de segurança (teen) ---- */
+.ch-bloqueio {
+  width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+  padding: 10px 14px; border-radius: var(--r-lg); margin-bottom: 8px;
+  background: var(--warning-bg); border: 1px solid var(--warning-border);
+  color: var(--warning); font-size: .82rem; font-weight: 700; line-height: 1.4;
+}
+.ch-bloqueio .lt-i { width: 1.1em; height: 1.1em; flex-shrink: 0; }
+.ch-bloqueio-cta { color: var(--primary-dark); text-decoration: underline; font-weight: 800; }
+.ch-btn-mini { min-height: 38px; padding: 7px 14px; text-decoration: none; }
+.ch-bloqueio-acoes { margin-top: 8px; }
+
 /* Bolhas e compositor: acabamento do design (cantos assimétricos, gradiente na
    própria mensagem, botões redondos maiores). */
 .ch-msgs { background: linear-gradient(180deg, var(--bg) 0%, #eef6ff 100%); padding: 18px; gap: 10px; }

@@ -320,6 +320,57 @@ mesmos módulos — por isso o restyle foi feito nos módulos compartilhados, n�
   categoria, prévia de comentário, XSS escapado, lateral do Mural, aba Apoio sem duplicata) + Chrome
   headless nas duas abas em 1440/820/390 + medição de overflow (`scrollWidth` ≤ viewport em 360/390/820).
 
+## 🛡️ Bloqueio de segurança do chat da comunidade — só teen (2026-08-14)
+Retomado de uma conversa perdida numa troca de máquina (sem rastro local — nem git, nem memória entre
+sessões — então foi desenhado do zero a partir do pedido do usuário). Ao detectar **sinal de risco**
+(ideação suicida/autolesão) ou **linguagem ofensiva grave** numa mensagem do chat da comunidade, o
+adolescente é bloqueado de postar por **1 hora** e o **responsável vinculado é avisado** — cuidador
+**não** entra nesse fluxo (só o teen; comportamento confirmado com o usuário).
+- **A mensagem NUNCA chega a ser inserida na sala** — a detecção roda no cliente (`js/chat.js`) ANTES do
+  insert. Duas listas: `SINAIS_RISCO` (autolesão/suicídio — reaproveita a lista que já existia pro "aceno
+  de apoio" do cuidador) e `PALAVRAS_OFENSIVAS` (xingamentos: "vai tomar no cu", "filho da puta", "puta",
+  "porra", "caralho" etc. — só termos inequívocos; palavras ambíguas como "piranha"/"corno" (bicho) ficaram
+  de fora de propósito). `contemTermo()` casa frase (tem espaço) por substring direto, e palavra única por
+  regex com borda de INÍCIO (evita "puta" pegando "disputa"/"reputação") mas SEM borda de fim (é o que
+  deixa "suicíd" continuar pegando "suicídio"/"suicida" sem listar cada inflexão — cuidado ao mexer aqui,
+  as duas regras têm razão de ser).
+- **O responsável vê o trecho exato que o teen escreveu, o teen NÃO sabe que foi avisado** (ajuste pedido
+  pelo usuário em 2026-08-14, depois da primeira versão). `trechoDetectado()` extrai da mensagem ORIGINAL
+  (preserva maiúsc./minúsc., não usa a forma truncada da lista interna) — frase, o próprio termo já é o
+  trecho; palavra única, estende até o fim da palavra digitada (ex.: gatilho interno "suicíd" + texto
+  "suicídio" → trecho "suicídio"). Esse trecho vai pra RPC (`p_trecho`) e entra no `alertas.descricao` do
+  responsável ("Trecho: "..."."); as mensagens mostradas AO TEEN (toast do Lumi Theo + banner de bloqueio)
+  não mencionam o responsável em nenhum momento — só falam do próprio bloqueio de 1h.
+- **Reforçado no banco, não só no cliente** (`db/CHAT_SEGURANCA.sql`, aplicado em produção): tabela nova
+  `chat_bloqueios` (RLS ligado, **sem policy de insert/update/delete pra `authenticated`** — só a função
+  abaixo escreve, então o teen não consegue se autodesbloquear limpando estado local ou chamando o
+  PostgREST direto) + função `registrar_bloqueio_chat(p_motivo, p_trecho)` **SECURITY DEFINER** (2 args —
+  a versão antiga de 1 arg foi dropada, não ficou órfã) que grava o bloqueio E o alerta pro responsável na
+  mesma chamada (`alertas`, tipo `'crise'` pro sinal de risco / `'aviso'` pra linguagem ofensiva — dois
+  textos diferentes de propósito, pra não soar "crise" num palavrão comum). `p_trecho` é truncado em 200
+  chars (`left()`) dentro da função — defesa extra, mesmo a função sendo chamável só por quem já está
+  autenticado; a tela do cuidador já escapa `descricao` com `esc()` em todo lugar que lê `alertas`
+  (`alertas-cuidador.html`, `home-cuidador.html`, `relatorios-cuidador.html`), então não há XSS mesmo se
+  o texto viesse de um cliente adulterado. A policy `chat_insert` de `comunidade_chat` nega quem estiver
+  com `chat_bloqueios.bloqueado_ate > now()`. Reaproveita a tabela `alertas` que já existia (nenhuma
+  coluna nova nela) — o alerta já aparece sozinho no badge/lista do painel do cuidador, nenhuma tela do
+  cuidador precisou de mudança.
+- **UI do bloqueio**: banner `.ch-bloqueio` (âmbar, `css/chat.css`) no topo do compositor, com contagem
+  regressiva (`setInterval` de 15s que reavalia e destrava sozinho quando o tempo passa) + input/botões
+  desabilitados. `carregarBloqueio()` roda ao abrir a página pra reaplicar a UI se já havia bloqueio ativo
+  (ex.: deu refresh no meio da hora). Se o insert cair na RLS mesmo assim (bloqueio criado por outra
+  aba/dispositivo entre a checagem local e o envio, código `42501`), resincroniza em vez de mostrar erro
+  genérico.
+- O **cuidador continua com o comportamento antigo** (`checarSinais`, inalterado): sinal de risco dispara só
+  o aceno de apoio privado do Lumi Theo, mensagem é enviada normalmente — nunca bloqueia.
+- Verificado com **jsdom** (30 asserções: envio normal, bloqueio por risco, bloqueio por ofensa, trecho
+  exato mandado na RPC (frase e palavra-com-inflexão), ausência do CTA de crise numa ofensa comum, nenhuma
+  das duas mensagens mostradas ao teen menciona "responsável", falso-positivo de borda de palavra, bloqueio
+  já ativo ao abrir a página, cuidador nunca bloqueia, bloqueio resiste a reabilitar o botão pelo cliente) +
+  migração conferida em produção via Management API (tabela, função `SECURITY DEFINER` de 2 args — e só
+  ela, a de 1 arg foi confirmada removida —, grant de execução, RLS ligado, nenhuma policy de escrita em
+  `chat_bloqueios` pra `authenticated`, texto exato da nova policy `chat_insert`).
+
 ## 🔗 Vínculo cuidador↔teen e Calendário compartilhado
 - **Vínculo**: vive em `neurodivergente.codigo_vinculo` (gerado no signup) + `.id_responsavel` (NULL = sem
   cuidador). Não há coluna de status — o estado é 100% inferido dessas duas colunas. RPCs SECURITY DEFINER:
@@ -342,6 +393,33 @@ mesmos módulos — por isso o restyle foi feito nos módulos compartilhados, n�
   XSS corrigido (2026-08-05): título/descrição de evento eram injetados sem escapar em `innerHTML` nos dois
   lados (teen e cuidador) — corrigido com `window.LUMITEA.esc()` em `calendario.html` e um `esc()` local em
   `calendario-cuidador.html` (essa página não carrega `config.js`).
+
+## 📖 Diário: reflexão da IA não podia validar dano a si/outros (2026-08-14)
+Usuário reportou: entrada de diário dizendo "bati em um amigo"/"matei um amigo" recebia uma reflexão da
+Lumi Theo que **apoiava a fala inteira** sem nomear o problema — o prompt só mandava "validar o sentimento",
+sem distinguir sentimento de ação. `diario.html` também tinha **zero detecção de risco**, diferente do chat
+da comunidade (`js/chat.js`), que já bloqueia e avisa o responsável por sinal de autolesão/ofensa — o diário
+é privado, então nada ali passava por esse crivo.
+- **Prompt de `gerarReflexaoLumi()` (`diario.html`) ganhou uma regra explícita**: validar o SENTIMENTO nunca
+  é validar a AÇÃO que machucou alguém (o próprio adolescente ou outra pessoa) — acolher o sentimento por
+  trás (raiva/frustração/desespero), mas nomear a ação como não certa, orientar reparação (pedir desculpa,
+  conversar) ou buscar um adulto de confiança, e nunca elogiar/comemorar a ação. Sinal de risco à vida
+  prioriza acolhimento + CVV 188 em vez da dica prática comum. Essa é a defesa principal (cobre qualquer
+  frase, não só palavra-chave).
+- **Camada determinística nova, independente da IA**: `categoriaRiscoDiario()` em `diario.html` (prefixo
+  `dia*` pras funções, cópia local — **não** importa de `js/chat.js` de propósito, pra não arriscar o
+  sistema do chat que acabou de ser testado/deployado no mesmo dia). Duas listas: `SINAIS_AUTOLESAO` (mesmos
+  termos do chat) e `SINAIS_AGRESSAO` (nova — "bati em/no/na", "agredi", "matei ele/ela/um amigo" etc.,
+  só frases com objeto de pessoa, de propósito pra não pegar gíria comum tipo "matei aula"/"bati um
+  recorde" — conferido com casos de teste). Ao detectar, `avisarCuidadorSeNecessario()` grava direto em
+  `alertas` (tipo `'crise'` pra autolesão / `'aviso'` pra agressão, `destino:'responsavel'`) — **insert
+  direto do cliente, sem RPC nova**, porque a policy `alertas_self` já é `FOR ALL USING (id_neurodivergente
+  = auth.uid())`, então o teen já podia inserir alerta pra si mesmo; nenhuma migração de banco foi
+  necessária. **O diário nunca bloqueia nem avisa o teen** — só salva normal e roda a reflexão corrigida;
+  o aviso ao responsável é silencioso, mesmo padrão de "o teen não sabe que foi avisado" do chat.
+- Conferido com `node --check` (sintaxe) + um script Node isolado rodando `categoriaRiscoDiario()` contra os
+  dois textos reais do bug relatado (ambos → `agressao`) e 5 casos de falso-positivo (`matei aula`, `bati um
+  recorde`, `disputa acirrada` etc. → `null`).
 
 ## 📝 Relatórios da IA: o JSON da Lumi nunca vai direto pro banco (2026-08-10)
 `relatorios-cuidador.html` gerava o relatório, mandava `insert(rel)` com o objeto **cru** que a IA devolveu e

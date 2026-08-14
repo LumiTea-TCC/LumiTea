@@ -24,6 +24,9 @@ var Chat = (function () {
   var salaAtual = null;
   var vistos = {};         // ids já renderizados (dedupe)
   var unread = {};         // sala -> nº de mensagens não lidas
+  var bloqueadoAte = null; // teen: ISO da hora em que o bloqueio de segurança acaba (null = sem bloqueio)
+  var elBloqueio = null;   // banner do bloqueio, se houver
+  var timerBloqueio = null;
 
   var SALAS_TEEN = [
     { id: 'geral',     nome: 'Bate-papo geral', desc: 'Converse com outros adolescentes. Aqui ninguém julga.' },
@@ -62,10 +65,56 @@ var Chat = (function () {
     'Você pode sair de uma sala a qualquer momento.'
   ];
 
-  // sinais de sofrimento → aceno de apoio privado do Lumi Theo (não alarma a sala)
-  var SINAIS = ['me matar', 'suicíd', 'suicid', 'não aguento mais', 'nao aguento mais', 'me cortar',
+  // sinais de sofrimento — no cuidador só disparam o aceno de apoio (não alarma a
+  // sala); no teen, disparam o bloqueio de segurança (ver acionarBloqueioSeguranca).
+  var SINAIS_RISCO = ['me matar', 'suicíd', 'suicid', 'não aguento mais', 'nao aguento mais', 'me cortar',
     'queria morrer', 'quero morrer', 'vou morrer', 'sumir do mundo', 'acabar com tudo', 'me machucar',
     'tirar minha vida', 'não quero viver', 'nao quero viver'];
+
+  // linguagem ofensiva/xingamento → bloqueio de segurança, só no público teen.
+  // Só termos inequívocos: nada de palavra que também tenha uso comum inocente
+  // (ex.: "piranha"/"corno" são ambíguas — têm sentido de bicho — e ficaram de fora).
+  var PALAVRAS_OFENSIVAS = ['vai tomar no cu', 'toma no cu', 'no cu', 'cuzão', 'cuzao', 'filho da puta',
+    'filha da puta', 'fdp', 'puta que pariu', 'porra', 'caralho', 'arrombado', 'arrombada', 'desgraçado',
+    'desgraçada', 'vagabundo', 'vagabunda', 'otário', 'otaria', 'puta'];
+
+  /* Termo com espaço (frase) → substring já é seguro, os espaços delimitam.
+     Termo de uma palavra só → exige borda de INÍCIO de palavra (sem isso "puta"
+     bloquearia "disputa"/"reputação", que não têm nada de ofensivo), mas
+     permite continuar depois — é o que deixa "suicíd" pegar "suicídio",
+     "suicida" etc. sem precisar listar cada inflexão. */
+  function contemTermo(t, termo) {
+    if (termo.indexOf(' ') !== -1) return t.indexOf(termo) !== -1;
+    var e = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp('(^|[^a-zà-öø-ÿ])' + e).test(t);
+  }
+  // acha o termo da lista que bateu, ou null
+  function primeiroTermo(lista, t) {
+    for (var i = 0; i < lista.length; i++) { if (contemTermo(t, lista[i])) return lista[i]; }
+    return null;
+  }
+  /* Devolve o trecho como o adolescente realmente escreveu (não a forma
+     truncada da lista): frase → ela mesma; palavra → estende até o fim da
+     palavra digitada (ex.: termo "suicíd" + texto "suicídio" → "suicídio"),
+     preservando maiúsc./minúsc. do texto original. Isso vai pro aviso do
+     responsável — precisa ser o que foi dito, não o gatilho interno. */
+  function trechoDetectado(t, termo, textoOriginal) {
+    if (termo.indexOf(' ') !== -1) return termo;
+    var e = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var m = new RegExp('(^|[^a-zà-öø-ÿ])(' + e + '[a-zà-öø-ÿ]*)').exec(t);
+    if (!m) return termo;
+    return textoOriginal.substr(m.index + m[1].length, m[2].length);
+  }
+  // retorna { categoria: 'risco'|'ofensa', trecho } ou null — 'risco' tem prioridade
+  function categoriaDeRisco(texto) {
+    var t = (texto || '').toLowerCase();
+    var termo = primeiroTermo(SINAIS_RISCO, t);
+    if (termo) return { categoria: 'risco', trecho: trechoDetectado(t, termo, texto) };
+    termo = primeiroTermo(PALAVRAS_OFENSIVAS, t);
+    if (termo) return { categoria: 'ofensa', trecho: trechoDetectado(t, termo, texto) };
+    return null;
+  }
+  function bloqueioAtivo() { return !!bloqueadoAte && new Date(bloqueadoAte) > new Date(); }
 
   function salas() { return cfg.publico === 'cuidador' ? SALAS_CUID : SALAS_TEEN; }
   function primeiroNome(n) { return String(n || 'Alguém').trim().split(/\s+/)[0]; }
@@ -161,6 +210,7 @@ var Chat = (function () {
     hydrate(root);
     entrarSala(salas()[0].id);
     carregarPrevias();
+    if (cfg.publico === 'teen') carregarBloqueio();
 
     window.addEventListener('beforeunload', desinscrever);
   }
@@ -329,6 +379,17 @@ var Chat = (function () {
     var texto = (el.input.value || '').trim();
     if (!texto) { el.input.focus(); return; }
     if (!cfg.sb) return;
+
+    if (cfg.publico === 'teen' && bloqueioAtivo()) {
+      mostrarErro('O chat está pausado por segurança até ' + hora(bloqueadoAte) + '.');
+      return;
+    }
+    // teen: mensagem com sinal de risco/ofensa NUNCA chega a ser inserida na sala.
+    if (cfg.publico === 'teen') {
+      var deteccao = categoriaDeRisco(texto);
+      if (deteccao) { el.input.value = ''; await acionarBloqueioSeguranca(deteccao.categoria, deteccao.trecho); return; }
+    }
+
     el.input.value = ''; el.send.disabled = true;
     try {
       var r = await cfg.sb.from('comunidade_chat').insert({
@@ -337,13 +398,93 @@ var Chat = (function () {
       if (r.error) throw r.error;
       var vazioEl = el.msgs.querySelector('.ch-vazio'); if (vazioEl) el.msgs.innerHTML = '';
       adicionar(r.data, true); rolarFim();      // otimista (realtime fará dedupe por id)
-      checarSinais(texto);
+      if (cfg.publico === 'cuidador') checarSinais(texto);
     } catch (e) {
       console.warn('[chat] enviar:', e.message);
+      // bloqueio pode ter sido criado por outra aba/dispositivo entre a checagem
+      // local e o insert — a RLS nega (42501) e a gente resincroniza o estado.
+      if (cfg.publico === 'teen' && e.code === '42501') {
+        await carregarBloqueio();
+        if (bloqueioAtivo()) return;
+      }
       mostrarErro('Não consegui enviar agora. Tente de novo.');
       el.input.value = texto;
     }
     el.send.disabled = false; el.input.focus();
+  }
+
+  /* ---------- bloqueio de segurança (só teen) ----------
+     Ao detectar risco/ofensa, a mensagem NÃO é enviada à sala. Registra o
+     bloqueio no servidor (registrar_bloqueio_chat, RPC), que também avisa o
+     responsável via a tabela `alertas` já existente — o teen NÃO é informado
+     desse aviso (de propósito: o bloqueio em si já é visível pra ele; o aviso
+     ao responsável é feito sem alarde, pra não virar um "vou te dedurar").
+     O bloqueio dura 1h e é reforçado na RLS de comunidade_chat — não dá pra
+     burlar limpando estado local, porque o cliente não tem permissão de
+     escrita em chat_bloqueios. */
+  async function acionarBloqueioSeguranca(categoria, trecho) {
+    var msg = categoria === 'ofensa'
+      ? 'Essa mensagem não foi enviada porque tem uma palavra que pode machucar quem lê. Por segurança, o ' +
+        'chat da comunidade vai ficar pausado por 1 hora.'
+      : 'Li o que você escreveu e fico aqui com você. Você importa. Por segurança, o chat da comunidade vai ' +
+        'ficar pausado por 1 hora. Se estiver muito difícil AGORA, fale com um adulto de confiança. No Brasil, ' +
+        'o CVV atende no 188 (24h).';
+    var bal = adicionarLumi(msg);
+    if (categoria === 'risco') {
+      var btns = document.createElement('div'); btns.className = 'ch-bloqueio-acoes';
+      btns.innerHTML = '<a class="cm-btn cm-btn-primary ch-btn-mini" href="conversa.html">Falar com o Theo agora</a>';
+      bal.querySelector('.ch-bolha').appendChild(btns);
+    }
+
+    try {
+      var r = await cfg.sb.rpc('registrar_bloqueio_chat', {
+        p_motivo: categoria === 'ofensa' ? 'linguagem_ofensiva_chat' : 'sinal_risco_chat',
+        p_trecho: trecho || null
+      });
+      bloqueadoAte = (!r.error && r.data) ? r.data : new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    } catch (e) { bloqueadoAte = new Date(Date.now() + 60 * 60 * 1000).toISOString(); }
+    mostrarBloqueioUI();
+  }
+
+  // roda ao abrir o chat: se já existe um bloqueio ativo (ex.: recarregou a página), reaplica a UI
+  async function carregarBloqueio() {
+    if (cfg.publico !== 'teen' || !cfg.sb) return;
+    try {
+      var r = await cfg.sb.from('chat_bloqueios').select('bloqueado_ate')
+        .eq('id_neurodivergente', cfg.userId)
+        .gt('bloqueado_ate', new Date().toISOString())
+        .order('bloqueado_ate', { ascending: false }).limit(1);
+      if (!r.error && r.data && r.data[0]) { bloqueadoAte = r.data[0].bloqueado_ate; mostrarBloqueioUI(); }
+    } catch (e) { /* sem tabela/sem bloqueio: segue normal */ }
+  }
+
+  function mostrarBloqueioUI() {
+    if (!el.input) return;
+    el.input.disabled = true; el.input.value = ''; el.input.placeholder = 'Chat pausado por segurança';
+    el.send.disabled = true; el.ajuda.disabled = true;
+    var compose = el.msgs.parentNode.querySelector('.ch-compose');
+    var velho = compose.querySelector('.ch-bloqueio'); if (velho) velho.remove();
+    var d = document.createElement('div'); d.className = 'ch-bloqueio';
+    atualizarBanner(d);
+    compose.insertBefore(d, compose.firstChild);
+    elBloqueio = d;
+    clearInterval(timerBloqueio);
+    timerBloqueio = setInterval(function () {
+      if (!bloqueioAtivo()) { destravarChat(); return; }
+      atualizarBanner(d);
+    }, 15000);
+  }
+  function atualizarBanner(d) {
+    d.innerHTML = icon('shield') + ' Chat pausado por segurança até ' + hora(bloqueadoAte) +
+      '. <a class="ch-bloqueio-cta" href="conversa.html">Falar com o Theo</a>';
+    hydrate(d);
+  }
+  function destravarChat() {
+    clearInterval(timerBloqueio); bloqueadoAte = null;
+    if (el.input) { el.input.disabled = false; el.input.placeholder = 'Escreva uma mensagem...'; }
+    if (el.send) el.send.disabled = false;
+    if (el.ajuda) el.ajuda.disabled = false;
+    if (elBloqueio) { elBloqueio.remove(); elBloqueio = null; }
   }
 
   async function apagar(id, div) {
@@ -438,22 +579,14 @@ var Chat = (function () {
     el.resumo.disabled = false;
   }
 
-  // moderação leve: aceno de apoio se houver sinais de sofrimento
+  // moderação leve do cuidador: aceno de apoio se houver sinais de sofrimento.
+  // No teen isso não roda mais — vira bloqueio de segurança (acionarBloqueioSeguranca).
   function checarSinais(texto) {
     var t = (texto || '').toLowerCase();
-    var achou = SINAIS.some(function (s) { return t.indexOf(s) !== -1; });
+    var achou = SINAIS_RISCO.some(function (s) { return contemTermo(t, s); });
     if (!achou) return;
-    var msg = cfg.publico === 'cuidador'
-      ? 'Percebi um momento difícil no que você escreveu. Você não está sozinho. Se for uma crise, busque apoio ' +
-        'profissional. No Brasil, o CVV atende no 188 (24h).'
-      : 'Li o que você escreveu e fico aqui com você. Você importa. Se estiver muito difícil, fale com um adulto ' +
-        'de confiança agora. Você também pode conversar comigo no Theo. No Brasil, o CVV atende no 188 (24h).';
-    var bal = adicionarLumi(msg);
-    if (cfg.publico !== 'cuidador') {
-      var btns = document.createElement('div'); btns.style.marginTop = '8px';
-      btns.innerHTML = '<a class="cm-btn cm-btn-primary" style="min-height:38px;padding:7px 14px;text-decoration:none;" href="conversa.html">Falar com o Theo</a>';
-      bal.querySelector('.ch-bolha').appendChild(btns);
-    }
+    adicionarLumi('Percebi um momento difícil no que você escreveu. Você não está sozinho. Se for uma crise, ' +
+      'busque apoio profissional. No Brasil, o CVV atende no 188 (24h).');
   }
 
   /* ---------- estados ---------- */

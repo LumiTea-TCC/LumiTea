@@ -422,17 +422,87 @@
       document.getElementById('lr-texto').innerHTML = '<div class="lr-carregando">' + (window.LUMI ? LUMI.icon('clock') : '') + ' Carregando reflexão do Lumi Theo...</div>';
     }
 
+    /* ── SINAIS DE RISCO (autolesão) E DE AGRESSÃO (dano a outra pessoa) ──
+       Detecção determinística por palavra-chave, independente da IA: dispara
+       um alerta silencioso pro responsável vinculado (o teen não é avisado
+       disso), do mesmo jeito que js/chat.js já faz no chat da comunidade —
+       mas aqui a entrada do diário sempre é salva normalmente, nada é
+       bloqueado. Listas mantidas só o suficiente pra evitar falso positivo
+       óbvio (nada de "matei" sozinho, que é gíria comum de "matei aula"). */
+    var SINAIS_AUTOLESAO = ['me matar', 'suicíd', 'suicid', 'não aguento mais', 'nao aguento mais',
+      'me cortar', 'queria morrer', 'quero morrer', 'vou morrer', 'sumir do mundo', 'acabar com tudo',
+      'me machucar', 'tirar minha vida', 'não quero viver', 'nao quero viver'];
+    var SINAIS_AGRESSAO = ['bati em', 'bati no', 'bati na', 'agredi', 'espanquei', 'esmurrei', 'soquei',
+      'dei um soco', 'dei uma surra', 'chutei ele', 'chutei ela', 'machuquei de propósito',
+      'machuquei ele', 'machuquei ela', 'quebrei a cara', 'parti a cara', 'matei ele', 'matei ela',
+      'matei um amigo', 'matei uma amiga', 'matei meu amigo', 'matei minha amiga'];
+    function diaContemTermo(t, termo) {
+      if (termo.indexOf(' ') !== -1) return t.indexOf(termo) !== -1;
+      var e = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp('(^|[^a-zà-öø-ÿ])' + e).test(t);
+    }
+    function diaPrimeiroTermo(lista, t) {
+      for (var i = 0; i < lista.length; i++) { if (diaContemTermo(t, lista[i])) return lista[i]; }
+      return null;
+    }
+    function diaTrechoDetectado(t, termo, textoOriginal) {
+      if (termo.indexOf(' ') !== -1) return termo;
+      var e = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var m = new RegExp('(^|[^a-zà-öø-ÿ])(' + e + '[a-zà-öø-ÿ]*)').exec(t);
+      if (!m) return termo;
+      return textoOriginal.substr(m.index + m[1].length, m[2].length);
+    }
+    // retorna { categoria: 'autolesao'|'agressao', trecho } ou null
+    function categoriaRiscoDiario(texto) {
+      var t = (texto || '').toLowerCase();
+      var termo = diaPrimeiroTermo(SINAIS_AUTOLESAO, t);
+      if (termo) return { categoria: 'autolesao', trecho: diaTrechoDetectado(t, termo, texto) };
+      termo = diaPrimeiroTermo(SINAIS_AGRESSAO, t);
+      if (termo) return { categoria: 'agressao', trecho: diaTrechoDetectado(t, termo, texto) };
+      return null;
+    }
+    // avisa o responsável vinculado (silencioso pro teen); nunca bloqueia o diário
+    async function avisarCuidadorSeNecessario(entrada) {
+      try {
+        const deteccao = categoriaRiscoDiario(entrada.texto);
+        if (!deteccao) return;
+        const trecho = (deteccao.trecho || '').slice(0, 200);
+        const autolesao = deteccao.categoria === 'autolesao';
+        const tipo = autolesao ? 'crise' : 'aviso';
+        const titulo = autolesao ? 'Sinal de risco no diário' : 'Sinal de agressão no diário';
+        const descricao = (autolesao
+          ? 'Uma entrada no diário indicou possível risco (autolesão/suicídio).'
+          : 'Uma entrada no diário mencionou ter machucado outra pessoa.')
+          + (trecho ? ` Trecho: "${trecho}".` : '');
+        const { error } = await sb.from('alertas').insert({
+          id_neurodivergente: _userId, tipo, titulo, descricao, destino: 'responsavel'
+        });
+        if (error) console.warn('[Diário] Não foi possível registrar alerta de segurança:', error.code, '|', error.message);
+      } catch (e) {
+        console.warn('[Diário] Falha ao checar sinais de segurança:', e);
+      }
+    }
+
     /* ── REFLEXÃO DA LUMI ─────────────────────────────────── */
     async function gerarReflexaoLumi(entrada) {
+      avisarCuidadorSeNecessario(entrada);
       try {
         const reflexao = (await chamarGroq(
           `Você é o Lumi Theo, psicólogo especialista em TEA. Um adolescente autista escreveu em seu diário. Leia com carinho e responda com:
-1. Uma validação empática do sentimento (1-2 frases)
+1. Uma validação empática do sentimento por trás do relato (1-2 frases)
 2. Uma reflexão gentil e útil (2-3 frases)
 3. Uma dica prática para a situação (1-2 frases)
 4. Uma frase encorajadora para fechar
 
-Seja calorosa, simples e sem jargões. Máximo 5-6 frases no total. Português brasileiro.`,
+Regra importante: validar o SENTIMENTO nunca é validar uma AÇÃO que machucou alguém — o próprio
+adolescente ou outra pessoa (violência, agressão física, ameaça, autolesão). Se o relato descrever algo
+assim, acolha o sentimento por trás (raiva, frustração, desespero) mas diga com clareza e sem julgar a
+pessoa que a ação em si não foi certa, oriente um passo de reparação (pedir desculpa, conversar com a
+pessoa) ou buscar um adulto de confiança — nunca elogie, comemore ou trate a ação como normal do dia. Em
+sinal de risco à própria vida, priorize acolhimento e oriente buscar ajuda agora (adulto de confiança ou
+CVV 188) em vez da dica prática comum.
+
+Seja calorosa, simples e sem jargões. Máximo 6-7 frases no total. Português brasileiro.`,
           [{ role: 'user', content: `Nome: ${_nomeUsuario}\nHumor: ${entrada.humor}\nTítulo: ${entrada.titulo}\n\n${entrada.texto}` }],
           700)) || 'Obrigada por compartilhar comigo! Cada vez que você escreve aqui, você está cuidando de você mesmo. Isso é muito corajoso. 🐻';
         document.getElementById('lr-texto').innerHTML = formatarTexto(reflexao);
