@@ -19,7 +19,6 @@
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
   <script src="js/core/icons.js" defer></script>
-  <script src="js/core/hero-bolhas.js" defer></script>
 </head>
 <body class="app-body">
 
@@ -70,15 +69,19 @@
   </div>
 
   <main class="jg-wrap">
-    <header class="jg-hero lt-hero-bolhas">
-      <div>
+    <header class="jg-hero">
+      <span class="jg-hero-dots" aria-hidden="true"></span>
+      <div class="jg-hero-texto">
         <span class="jg-hero-tag">JOGAR COM CALMA</span>
         <h1>Jogos do Theo</h1>
-        <p>Quatro jogos para treinar memória, atenção, lógica e vocabulário — e uma lousa
-           para desenhar o que quiser, no seu ritmo. Não tem relógio correndo, não tem placar
-           negativo e não tem como perder. Errar aqui é só tentar de novo.</p>
+        <p>Sem relógio correndo, sem placar negativo e sem como perder. Errar aqui é só tentar de novo.</p>
+        <div class="jg-hero-pills">
+          <span class="jg-hero-pill"><i class="lt-i" data-lt-icon="clock" aria-hidden="true"></i> Sem tempo</span>
+          <span class="jg-hero-pill"><i class="lt-i" data-lt-icon="volume-2" aria-hidden="true"></i> Som opcional</span>
+          <span class="jg-hero-pill"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i> Você escolhe o nível</span>
+        </div>
       </div>
-      <div class="jg-hero-urso"><img src="img/urso-jogando.png" alt=""></div>
+      <div class="jg-hero-urso"><img class="lumi-float" src="img/urso-jogando.png" alt=""></div>
     </header>
 
     <div class="jg-grid">
@@ -100,7 +103,10 @@
           <span class="jg-tag">Atenção</span>
           <span class="jg-tag">Associação visual</span>
         </div>
-        <a class="jg-btn jg-btn-primario" href="jogo-memoria.html">Jogar memória</a>
+        <div class="jg-card-rodape">
+          <a class="jg-btn jg-btn-primario" href="jogo-memoria.html">Jogar memória</a>
+          <a class="jg-icone-btn" href="jogo-memoria.html" aria-label="Ajustes do jogo da memória"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i></a>
+        </div>
       </article>
 
       <!-- 2. CLASSIFICAR -->
@@ -122,7 +128,10 @@
           <span class="jg-tag">Atenção</span>
           <span class="jg-tag">Vocabulário</span>
         </div>
-        <a class="jg-btn jg-btn-primario" href="jogo-classificar.html">Jogar classificar</a>
+        <div class="jg-card-rodape">
+          <a class="jg-btn jg-btn-primario" href="jogo-classificar.html">Jogar classificar</a>
+          <a class="jg-icone-btn" href="jogo-classificar.html" aria-label="Ajustes do jogo classificar"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i></a>
+        </div>
       </article>
 
       <!-- 3. ENCAIXE -->
@@ -142,7 +151,10 @@
           <span class="jg-tag">Percepção de formas</span>
           <span class="jg-tag">Padrões</span>
         </div>
-        <a class="jg-btn jg-btn-primario" href="jogo-encaixe.html">Jogar encaixe</a>
+        <div class="jg-card-rodape">
+          <a class="jg-btn jg-btn-primario" href="jogo-encaixe.html">Jogar encaixe</a>
+          <a class="jg-icone-btn" href="jogo-encaixe.html" aria-label="Ajustes do jogo encaixe"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i></a>
+        </div>
       </article>
 
       <!-- 4. IMAGEM ↔ PALAVRA -->
@@ -164,11 +176,14 @@
           <span class="jg-tag">Vocabulário</span>
           <span class="jg-tag">Associação</span>
         </div>
-        <a class="jg-btn jg-btn-primario" href="jogo-imagem-palavra.html">Jogar imagem e palavra</a>
+        <div class="jg-card-rodape">
+          <a class="jg-btn jg-btn-primario" href="jogo-imagem-palavra.html">Jogar imagem e palavra</a>
+          <a class="jg-icone-btn" href="jogo-imagem-palavra.html" aria-label="Ajustes do jogo imagem e palavra"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i></a>
+        </div>
       </article>
 
       <!-- 5. LOUSA DE PINTAR -->
-      <article class="jg-card jg-tema-lousa lt-reveal">
+      <article class="jg-card jg-tema-lousa jg-card--especial lt-reveal">
         <div class="jg-card-icone" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2.6c-5.2 0-9.4 3.9-9.4 8.7 0 4.8 4.2 8.7 9.4 8.7 1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8h2.1c2.6 0 4.7-2 4.7-4.5 0-3.9-4-6.9-9.4-6.9z"/>
@@ -180,30 +195,54 @@
         <h2>Lousa de pintar</h2>
         <p>Uma folha em branco e dez tintas. Sem tema, sem tarefa e sem resposta certa — desenhe
            o que vier à cabeça. Quando terminar, dá para guardar o desenho e baixar no aparelho.</p>
-        <div class="jg-tags">
-          <span class="jg-tag">Expressão</span>
-          <span class="jg-tag">Criatividade</span>
-          <span class="jg-tag">Coordenação</span>
+        <div class="jg-card-rodape">
+          <a class="jg-btn jg-btn-claro" href="lousa-pintar.html">Abrir a lousa <i class="lt-i" data-lt-icon="chevron-right" aria-hidden="true"></i></a>
         </div>
-        <a class="jg-btn jg-btn-primario" href="lousa-pintar.html">Abrir a lousa</a>
+      </article>
+
+      <!-- 6. MEU PROGRESSO -->
+      <article class="jg-card jg-card--progresso lt-reveal">
+        <div class="jg-progresso-titulo"><i class="lt-i" data-lt-icon="star" aria-hidden="true"></i> Seu progresso</div>
+        <div class="jg-progresso-nums">
+          <div class="jg-progresso-stat">
+            <span class="jg-progresso-valor" id="jg-prog-partidas">–</span>
+            <span class="jg-progresso-rotulo">partidas</span>
+          </div>
+          <div class="jg-progresso-stat">
+            <span class="jg-progresso-valor" id="jg-prog-xp">–</span>
+            <span class="jg-progresso-rotulo">XP nos jogos</span>
+          </div>
+        </div>
+        <p class="jg-progresso-texto"><strong>Como funciona.</strong> Todos começam no nível mais fácil e só ficam
+           maiores se você quiser. Dá para recomeçar a qualquer momento — repetir não é falhar.</p>
       </article>
 
     </div>
-
-    <section class="jg-instrucao solta lt-reveal">
-      <i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i>
-      <div>
-        <b>Como esses jogos funcionam.</b> Todos começam no nível mais fácil e só ficam maiores
-        se você quiser. Nos quatro jogos há um botão de ajustes para escolher quantos itens
-        aparecem, o tema das figuras e se quer som. Dá para recomeçar a qualquer momento —
-        repetir não é falhar. A lousa não tem nível nenhum: é espaço livre.
-      </div>
-    </section>
   </main>
 
   <script src="js/jogos/base.js"></script>
   <script>
-    LUMIJOGOS.boot();
+    LUMIJOGOS.boot(carregarProgresso);
+
+    /* Resumo do jogador no card "Seu progresso": conta as partidas e soma o
+       XP de sessoes_jogo (mesma tabela que os 5 jogos já gravam via
+       J.salvarSessao/J.ganharXP — nenhuma fonte nova de dado). */
+    async function carregarProgresso() {
+      var sb = LUMIJOGOS.supabase, uid = LUMIJOGOS.usuario.id;
+      var elPartidas = document.getElementById('jg-prog-partidas');
+      var elXp = document.getElementById('jg-prog-xp');
+      if (!sb || !uid) return;
+      try {
+        var r = await sb.from('sessoes_jogo').select('pontuacao').eq('id_neurodivergente', uid);
+        if (r.error) { console.error('[Jogos] carregar progresso:', r.error.code, '|', r.error.message); return; }
+        var linhas = r.data || [];
+        var xp = linhas.reduce(function (soma, row) { return soma + (row.pontuacao || 0); }, 0);
+        if (elPartidas) elPartidas.textContent = linhas.length;
+        if (elXp) elXp.textContent = (xp > 0 ? '+' : '') + xp;
+      } catch (e) {
+        console.error('[Jogos] carregar progresso (exceção):', e);
+      }
+    }
   </script>
 
   <!-- Widgets globais -->

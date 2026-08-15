@@ -374,6 +374,51 @@
     var MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     var DS=['D','S','T','Q','Q','S','S'];
 
+    /* ── SINAL DE RISCO (autolesão/suicídio) EM EVENTO DO ADOLESCENTE ──
+       Mesmo padrão do diário (ver CLAUDE.md): detecção determinística por
+       palavra-chave, independente da IA (o calendário não passa por IA).
+       O evento SEMPRE é salvo normalmente — nunca bloqueia a criação — só
+       dispara um alerta silencioso pro responsável vinculado; o teen não é
+       avisado disso. Cópia local da mesma lista SINAIS_AUTOLESAO do
+       diário/chat, de propósito (não importa de outro arquivo, pra não
+       arriscar os sistemas já testados). Só o lado do adolescente checa —
+       calendario-cuidador.html não chama isso. */
+    var SINAIS_AUTOLESAO=['me matar','suicíd','suicid','não aguento mais','nao aguento mais','me cortar',
+      'queria morrer','quero morrer','vou morrer','sumir do mundo','acabar com tudo','me machucar',
+      'tirar minha vida','não quero viver','nao quero viver'];
+    function calContemTermo(t,termo){
+      if(termo.indexOf(' ')!==-1)return t.indexOf(termo)!==-1;
+      var e=termo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      return new RegExp('(^|[^a-zà-öø-ÿ])'+e).test(t);
+    }
+    function calTrechoDetectado(t,termo,textoOriginal){
+      if(termo.indexOf(' ')!==-1)return termo;
+      var e=termo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      var m=new RegExp('(^|[^a-zà-öø-ÿ])('+e+'[a-zà-öø-ÿ]*)').exec(t);
+      if(!m)return termo;
+      return textoOriginal.substr(m.index+m[1].length,m[2].length);
+    }
+    // varre título+descrição; retorna o trecho como o adolescente escreveu, ou null
+    function trechoRiscoEvento(titulo,descricao){
+      var texto=[titulo||'',descricao||''].join(' ');
+      var t=texto.toLowerCase();
+      for(var i=0;i<SINAIS_AUTOLESAO.length;i++){
+        if(calContemTermo(t,SINAIS_AUTOLESAO[i]))return calTrechoDetectado(t,SINAIS_AUTOLESAO[i],texto);
+      }
+      return null;
+    }
+    // avisa o responsável vinculado (silencioso pro teen); nunca bloqueia o evento
+    async function avisarCuidadorSeRiscoEvento(titulo,descricao){
+      try{
+        var trecho=trechoRiscoEvento(titulo,descricao);
+        if(!trecho)return;
+        trecho=trecho.slice(0,200);
+        var descAlerta='Um evento no calendário indicou possível risco (autolesão/suicídio). Trecho: "'+trecho+'".';
+        var {error}=await sb.from('alertas').insert({id_neurodivergente:_uid,tipo:'crise',titulo:'Sinal de risco no calendário',descricao:descAlerta,destino:'responsavel'});
+        if(error)console.warn('[Calendário] Não foi possível registrar alerta de segurança:',error.code,'|',error.message);
+      }catch(e){console.warn('[Calendário] Falha ao checar sinal de segurança:',e)}
+    }
+
     (async function(){
       var {data:{session}}=await sb.auth.getSession();
       if(!session){window.location.href='login.html';return}
@@ -476,6 +521,7 @@
           // se falhou por coluna inexistente, salva só o legado
           await sb.from('eventos_calendario').insert(registroLegado);
         }
+        avisarCuidadorSeRiscoEvento(tit,desc);
         document.getElementById('ev-titulo').value='';
         document.getElementById('ev-hora').value='';
         document.getElementById('ev-desc').value='';

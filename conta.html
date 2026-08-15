@@ -17,114 +17,153 @@
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
   <style>
-    .conta-page{max-width:980px;margin:0 auto;width:100%;padding:28px 32px;position:relative;z-index:5;display:flex;flex-direction:column;gap:22px}
+    .conta-page{max-width:1080px;margin:0 auto;width:100%;padding:28px 24px 44px;position:relative;z-index:5;display:flex;flex-direction:column;gap:16px}
+
     /* Hero perfil */
-    .profile-hero{background:linear-gradient(135deg,#2e5fa3 0%,#4a7eb5 50%,#5b90c8 100%);border-radius:24px;padding:32px 36px;display:flex;align-items:center;gap:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(46,95,163,0.25)}
-    .profile-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,0.07)}
-    .profile-hero::after{content:'';position:absolute;bottom:-50px;left:30%;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04)}
-    .ph-avatar{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.18);border:3px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:white;flex-shrink:0;position:relative;z-index:1;box-shadow:0 4px 18px rgba(0,0,0,0.15);overflow:hidden}
-    .ph-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-    .ph-info{flex:1;color:white;position:relative;z-index:1}
-    .ph-name{font-family:'Baloo 2',sans-serif;font-size:1.7rem;font-weight:800;line-height:1.1;margin-bottom:4px}
-    .ph-email{font-size:.82rem;font-weight:600;opacity:.8;margin-bottom:12px}
+    .ph-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:24px;background:linear-gradient(140deg,#1b3a5c 0%,#2e5fa3 58%,#3f86cd 100%);border-radius:24px;padding:26px 30px;box-shadow:0 20px 44px rgba(21,42,69,.28),inset 0 1px 0 rgba(255,255,255,.18);flex-wrap:wrap}
+    .ph-hero-dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1px);background-size:20px 20px;pointer-events:none}
+    .ph-avatar{position:relative;width:92px;height:92px;border-radius:50%;overflow:hidden;display:flex;border:3px solid rgba(255,255,255,.4);flex-shrink:0;box-shadow:0 10px 24px rgba(8,22,40,.34)}
+    .ph-avatar img{width:100%;height:100%;object-fit:cover}
+    .ph-info{position:relative;flex:1;min-width:220px;color:#fff}
+    .ph-name{font-family:'Baloo 2',sans-serif;font-size:1.75rem;font-weight:800;line-height:1.15;margin-bottom:3px}
+    .ph-email{font-size:.85rem;font-weight:600;color:rgba(255,255,255,.78);margin-bottom:13px}
     .ph-badges{display:flex;gap:8px;flex-wrap:wrap}
-    .ph-badge{background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.28);border-radius:99px;padding:4px 12px;font-size:.7rem;font-weight:800}
-    .ph-actions{display:flex;flex-direction:column;gap:8px;position:relative;z-index:1}
-    .ph-btn{padding:9px 20px;border-radius:12px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .18s;white-space:nowrap;border:none}
-    .ph-btn-edit{background:rgba(255,255,255,0.20);color:white;border:1.5px solid rgba(255,255,255,0.30)}
-    .ph-btn-edit:hover{background:rgba(255,255,255,0.30)}
-    .ph-btn-logout{background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.85);border:1.5px solid rgba(255,255,255,0.18)}
-    .ph-btn-logout:hover{background:rgba(255,80,80,0.30);color:white}
+    .ph-badge{padding:5px 13px;border-radius:99px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);font-size:.74rem;font-weight:800;color:#fff}
+    .ph-actions{position:relative;display:flex;flex-direction:column;gap:9px}
+    .ph-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;min-height:44px;border-radius:12px;font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;white-space:nowrap;border:none;transition:background var(--dur-fast) var(--ease-out),box-shadow var(--dur-fast) var(--ease-out)}
+    .ph-btn-edit{background:#fff;color:var(--brand-dark)}
+    .ph-btn-edit:hover{background:var(--primary-pale)}
+    .ph-btn-logout{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.28);color:rgba(255,255,255,.9)}
+    .ph-btn-logout:hover{background:rgba(198,40,40,.4);color:#fff}
+    @media(max-width:560px){.ph-hero{flex-direction:column;text-align:center;padding:24px 22px}.ph-badges{justify-content:center}.ph-actions{flex-direction:row;width:100%}.ph-btn{flex:1}}
+
     /* Grid principal */
-    .conta-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-    .conta-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-    @media(max-width:860px){.conta-grid{grid-template-columns:1fr}.conta-grid-3{grid-template-columns:1fr 1fr}}
-    @media(max-width:560px){.conta-grid-3{grid-template-columns:1fr}.profile-hero{flex-direction:column;text-align:center}.ph-badges{justify-content:center}.ph-actions{flex-direction:row}}
+    .conta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}
+    @media(max-width:720px){.conta-grid{grid-template-columns:1fr}}
+
     /* Cards */
-    .c-card{background:white;border-radius:20px;padding:22px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.07)}
-    .c-card-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--text-main);margin-bottom:16px;display:flex;align-items:center;gap:9px}
-    .cct-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
-    /* Stats XP */
-    .nivel-grande{text-align:center;padding:10px 0 14px}
-    .ng-emoji{font-size:3rem;margin-bottom:4px}
-    .ng-num{font-family:'Baloo 2',sans-serif;font-size:2.2rem;font-weight:800;color:var(--primary-dark);line-height:1}
-    .ng-label{font-size:.8rem;font-weight:700;color:var(--text-muted);margin-bottom:14px}
-    .xp-big-track{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin-bottom:6px}
-    .xp-big-fill{height:100%;background:linear-gradient(90deg,#4a7eb5,#2196f3,#42a5f5);border-radius:99px;transition:width .8s ease;box-shadow:0 0 8px rgba(33,150,243,0.35)}
-    .xp-big-info{display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:var(--text-muted)}
-    /* Stats grid */
-    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
-    .stat-item{background:var(--bg);border-radius:12px;padding:10px 8px;text-align:center}
-    .stat-val{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:var(--primary-dark)}
-    .stat-lbl{font-size:.62rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+    .c-card{background:#fff;border-radius:20px;padding:22px;border:1px solid var(--border-soft);box-shadow:var(--shadow-1)}
+    .c-card-title{font-family:'Baloo 2',sans-serif;font-size:1.02rem;font-weight:800;color:var(--text-main);margin-bottom:16px;display:flex;align-items:center;gap:9px}
+    .cct-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .cct-icon--blue{background:var(--primary-pale);color:var(--primary-dark)}
+    .cct-icon--pink{background:#fdf0f9;color:#a83d8a}
+    .cct-icon--amber{background:var(--warning-bg);color:var(--warning)}
+    .cct-icon--navy{background:var(--panel-1);color:var(--brand-dark)}
+    .cct-icon--violet{background:var(--tint-violet);color:var(--violeta-dark)}
+    .cct-icon--green{background:var(--tint-green);color:#2b7f6f}
+
+    /* Progresso */
+    .prog-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:9px;flex-wrap:wrap}
+    .prog-nivel-lbl{display:block;font-size:.7rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}
+    .prog-nivel-nome{font-family:'Baloo 2',sans-serif;font-size:1.35rem;font-weight:800;color:var(--text-main);line-height:1.1}
+    .prog-xp-frac{font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:800;color:var(--primary-dark);white-space:nowrap}
+    .prog-xp-frac-sub{font-size:.78rem;font-family:'Nunito',sans-serif;font-weight:700;color:var(--text-muted)}
+    .xp-big-track{display:block;height:12px;border-radius:99px;background:var(--panel-3);overflow:hidden;box-shadow:inset 0 1px 2px rgba(74,126,181,.16)}
+    .xp-big-fill{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--violeta));border-radius:99px;transition:width .8s ease}
+    .prog-hint{margin-top:9px;font-size:.78rem;font-weight:700;color:var(--text-muted)}
+    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px}
+    .stat-item{background:var(--bg-2);border:1px solid var(--border-faint);border-radius:14px;padding:12px 10px;text-align:center}
+    .stat-val{display:block;font-family:'Baloo 2',sans-serif;font-size:1.35rem;font-weight:800;color:var(--primary-dark);line-height:1}
+    .stat-lbl{font-size:.62rem;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
     /* Conquistas */
-    .conquistas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .conq-count{margin-left:auto;font-size:.74rem;font-weight:900;color:var(--text-muted)}
+    .conquistas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
     @media(max-width:680px){.conquistas-grid{grid-template-columns:repeat(3,1fr)}}
-    .conq-item{background:var(--bg);border-radius:14px;padding:12px 8px;text-align:center;border:1.5px solid transparent;transition:all .18s;cursor:default}
-    .conq-item.desbloqueado{background:linear-gradient(135deg,#eef4fb,#f0f5ff);border-color:rgba(74,126,181,0.25)}
-    .conq-item.bloqueado{opacity:.45;filter:grayscale(.6)}
-    .conq-em{font-size:1.8rem;margin-bottom:5px;color:var(--text-muted);display:flex;justify-content:center}
-    .conq-em .lt-ic{width:1.5rem;height:1.5rem}
+    .conq-item{background:var(--bg-2);border-radius:14px;padding:13px 6px;text-align:center;border:1.5px solid var(--border-faint);opacity:.5}
+    .conq-item.desbloqueado{background:linear-gradient(150deg,#eef4fb,#f0f5ff);border-color:rgba(74,126,181,.28);opacity:1}
+    .conq-em{display:flex;justify-content:center;color:var(--text-muted)}
     .conq-item.desbloqueado .conq-em{color:var(--primary-dark)}
-    .conq-name{font-size:.65rem;font-weight:800;color:var(--text-soft);line-height:1.3}
-    .conq-desc{font-size:.58rem;color:var(--text-muted);margin-top:2px}
-    /* Formulário editar */
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:540px){.form-grid{grid-template-columns:1fr}}
-    .f-group{display:flex;flex-direction:column;gap:5px}
-    .f-label{font-size:.7rem;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
-    .f-input{background:var(--bg);border:1.5px solid rgba(74,126,181,0.20);border-radius:11px;padding:10px 14px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:600;color:var(--text-main);outline:none;transition:border-color .2s}
-    .f-input:focus{border-color:var(--primary);background:white}
-    .f-input:disabled{opacity:.6;cursor:not-allowed}
-    .f-select{background:var(--bg);border:1.5px solid rgba(74,126,181,0.20);border-radius:11px;padding:10px 14px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;appearance:none;transition:border-color .2s}
-    .f-select:focus{border-color:var(--primary)}
-    .f-full{grid-column:1/-1}
-    .f-hint{font-size:.67rem;color:var(--text-muted);font-weight:600;margin-top:2px}
-    .btn-salvar{background:var(--primary);color:white;border:none;border-radius:12px;padding:11px 24px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(33,150,243,0.28)}
-    .btn-salvar:hover{background:var(--primary-dark);transform:translateY(-1px)}
-    .btn-salvar:disabled{background:var(--border);box-shadow:none;cursor:not-allowed;transform:none}
-    .save-ok{display:none;color:#22c55e;font-size:.8rem;font-weight:800;align-items:center;gap:5px}
-    .save-ok.show{display:flex}
+    .conq-name{display:block;font-size:.64rem;font-weight:900;color:var(--text-soft);line-height:1.3;margin-top:6px}
+
     /* Vínculo */
-    .vinculo-card{background:linear-gradient(135deg,rgba(224,142,48,0.07),rgba(224,142,48,0.03));border:1.5px solid rgba(224,142,48,0.28);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px}
-    .vinc-icon{font-size:2rem;flex-shrink:0}
-    .vinc-info{flex:1}
-    .vinc-title{font-size:.88rem;font-weight:800;color:#7a4f1a;margin-bottom:3px}
-    .vinc-sub{font-size:.75rem;color:#9a6730;font-weight:600}
-    .codigo-badge{background:#fff8ee;border:2px dashed rgba(224,142,48,0.45);border-radius:12px;padding:8px 16px;font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:#7a4f1a;cursor:pointer;letter-spacing:.08em;transition:all .18s;text-align:center;min-width:110px}
-    .codigo-badge:hover{background:#fff3d8;border-style:solid}
-    .vinculo-ativo{background:linear-gradient(135deg,rgba(74,180,130,0.08),rgba(74,180,130,0.03));border:1.5px solid rgba(74,180,130,0.28);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;font-size:.85rem;font-weight:700;color:#1a6b4a}
-    .vinc-cod-input{background:var(--bg);border:1.5px solid rgba(74,126,181,0.22);border-radius:10px;padding:9px 13px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:var(--text-main);outline:none;width:160px;letter-spacing:.06em}
+    .vinc-box{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:16px;flex-wrap:wrap}
+    .vinc-box--ok{background:var(--success-bg);border:1px solid var(--success-border)}
+    .vinc-box--ok strong{display:block;font-size:.92rem;color:var(--success);margin-bottom:2px}
+    .vinc-box--ok span{font-size:.8rem;font-weight:700;color:var(--text-soft)}
+    .vinc-box--code{background:var(--bg-2);border:1px solid var(--border-faint);margin-bottom:14px}
+    .vinc-info{flex:1;min-width:200px}
+    .vinc-title{font-size:.86rem;font-weight:800;color:var(--text-main);margin-bottom:2px}
+    .vinc-sub{font-size:.78rem;font-weight:700;color:var(--text-muted)}
+    .codigo-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;min-height:44px;border-radius:12px;border:2px dashed rgba(224,142,48,.5);background:#fff8ee;color:#7a4f1a;font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:.08em;cursor:pointer;transition:background .18s,border-style .18s}
+    .codigo-badge:hover{border-style:solid;background:#fff3d8}
+    .codigo-badge .lt-i{width:.85em;height:.85em}
+    .vinc-label{font-size:.8rem;color:var(--text-soft);font-weight:600;margin:14px 0 10px}
+    .vinc-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .vinc-cod-input{background:var(--bg-2);border:1.5px solid var(--border);border-radius:10px;padding:9px 13px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:var(--text-main);outline:none;width:160px;letter-spacing:.06em}
     .vinc-cod-input:focus{border-color:var(--primary)}
-    .btn-vincular{background:var(--primary);color:white;border:none;border-radius:10px;padding:9px 16px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s}
+    .btn-vincular{background:var(--primary-action);color:#fff;border:none;border-radius:10px;padding:9px 16px;min-height:44px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:background .2s}
     .btn-vincular:hover{background:var(--primary-dark)}
-    .vinc-err{font-size:.75rem;color:#d95b5b;font-weight:700;margin-top:5px;display:none}
+    .vinc-err{font-size:.75rem;color:var(--danger);font-weight:700;margin-top:8px;display:none}
     .vinc-err.on{display:block}
+
+    /* Formulário editar */
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}
+    .f-group{display:flex;flex-direction:column;gap:5px}
+    .f-label{font-size:.68rem;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
+    .f-input{background:var(--bg-2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;min-height:46px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:600;color:var(--text-main);outline:none;transition:border-color .2s}
+    .f-input:focus{border-color:var(--primary);background:#fff}
+    .f-input:disabled{opacity:.6;cursor:not-allowed}
+    .f-full{grid-column:1/-1}
+    .f-hint{font-size:.76rem;color:var(--text-muted);font-weight:700;margin-top:2px}
+    .btn-salvar{background:linear-gradient(135deg,var(--primary-action),var(--primary-dark));color:#fff;border:none;border-radius:13px;padding:12px 24px;min-height:48px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;transition:box-shadow .2s;box-shadow:0 8px 20px rgba(25,118,210,.26)}
+    .btn-salvar:hover{box-shadow:0 12px 26px rgba(25,118,210,.34)}
+    .btn-salvar:disabled{background:var(--border);box-shadow:none;cursor:not-allowed}
+    .save-ok{display:none;color:var(--success);font-size:.8rem;font-weight:800;align-items:center;gap:5px}
+    .save-ok.show{display:flex}
+
     /* Toggle switch */
-    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(74,126,181,0.08)}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--border-faint)}
     .toggle-row:last-child{border-bottom:none;padding-bottom:0}
-    .toggle-info .tg-title{font-size:.85rem;font-weight:800;color:var(--text-main)}
-    .toggle-info .tg-sub{font-size:.72rem;color:var(--text-muted);font-weight:600;margin-top:2px}
-    .switch{position:relative;width:42px;height:24px;flex-shrink:0}
+    .toggle-row--boxed{padding:13px 15px;border-radius:14px;background:var(--bg-2);border:1px solid var(--border-faint);margin-top:2px}
+    .toggle-info{min-width:0}
+    .toggle-info .tg-title{font-size:.87rem;font-weight:800;color:var(--text-main)}
+    .toggle-info .tg-sub{font-size:.76rem;color:var(--text-muted);font-weight:700;margin-top:2px}
+    .switch{position:relative;width:44px;height:26px;flex-shrink:0}
     .switch input{opacity:0;width:0;height:0;position:absolute}
-    .slider{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:.22s}
-    .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.22s;box-shadow:0 1px 4px rgba(0,0,0,0.18)}
-    input:checked+.slider{background:var(--primary)}
+    .slider{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:background .22s}
+    .slider::before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .22s;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+    input:checked+.slider{background:var(--primary-action)}
     input:checked+.slider::before{transform:translateX(18px)}
+
+    /* Acessibilidade — grupos de botão */
+    .ac-btngrp{display:flex;gap:6px;margin-bottom:16px}
+    .ac-btn{flex:1;min-height:44px;border-radius:12px;border:1.5px solid var(--border-soft);background:var(--bg-2);color:var(--text-soft);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:border-color .18s,color .18s,background .18s}
+    .ac-btn:hover{border-color:var(--brand);color:var(--primary-dark)}
+    .ac-btn--grande{font-size:.92rem}
+    .ac-btn--maior{font-size:1.04rem}
+    .ac-btn[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-pale);color:var(--primary-dark)}
+    .ac-temagrp{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .ac-tema{display:flex;align-items:center;gap:8px;padding:9px 13px;min-height:44px;border-radius:12px;border:1.5px solid var(--border-soft);background:var(--bg-2);color:var(--text-soft);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;transition:border-color .18s,color .18s,background .18s}
+    .ac-tema:hover{border-color:var(--brand)}
+    .ac-tema[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-pale);color:var(--primary-dark)}
+    .ac-swatch{width:16px;height:16px;border-radius:50%;flex-shrink:0}
+    .ac-swatch--padrao{background:var(--primary)}
+    .ac-swatch--calmo{background:var(--verde)}
+    .ac-swatch--escuro{background:#1a2e4a}
+    .ac-swatch--contraste{background:#000;box-shadow:0 0 0 1.5px #fff inset}
+    .ac-group-label{display:block;margin-bottom:7px}
+
+    /* Utilitários de linha (evitam repetir flex inline em cada botão de ação) */
+    .row-actions{display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap}
+    .row-actions--tight{margin-top:14px}
+    .danger-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .vinc-ic{color:var(--warning)}
+    .vinc-box--ok .lt-i{color:var(--success);flex-shrink:0}
+    .save-ok--danger{color:var(--danger)}
+
     /* Danger zone */
-    .danger-card{background:#fff5f5;border:1.5px solid rgba(217,91,91,0.22);border-radius:20px;padding:22px}
-    .danger-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:#d95b5b;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-    .danger-sub{font-size:.8rem;color:#9a3b3b;font-weight:600;margin-bottom:14px}
-    .btn-danger{background:none;border:2px solid rgba(217,91,91,0.40);color:#d95b5b;border-radius:12px;padding:9px 18px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s}
-    .btn-danger:hover{background:#d95b5b;color:white;border-color:#d95b5b}
+    .danger-card{background:linear-gradient(180deg,#fff5f5,#fff);border:1px solid var(--danger-border);border-radius:20px;padding:22px}
+    .danger-title{font-family:'Baloo 2',sans-serif;font-size:1.02rem;font-weight:800;color:var(--danger);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+    .danger-sub{font-size:.83rem;color:#9a3b3b;font-weight:600;line-height:1.6;margin-bottom:15px;max-width:60ch}
+    .btn-danger{display:inline-flex;align-items:center;gap:8px;background:none;border:2px solid rgba(217,91,91,.4);color:var(--danger);border-radius:12px;padding:11px 18px;min-height:46px;font-family:'Nunito',sans-serif;font-size:.83rem;font-weight:800;cursor:pointer;transition:background .2s,color .2s}
+    .btn-danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
     /* Loading */
     .loading-overlay{position:fixed;inset:0;background:rgba(238,247,255,0.80);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px}
     .loader-bear{font-size:3rem;animation:bearBounce 1s ease-in-out infinite}
     @keyframes bearBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
     .loader-txt{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--primary-dark)}
-    /* Tag tipo */
-    .tipo-tag{padding:3px 10px;border-radius:99px;font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
-    .tipo-teen{background:rgba(74,126,181,0.12);color:var(--primary-dark)}
   </style>
   <script src="js/core/icons.js" defer></script>
   <script src="js/core/ui.js" defer></script>
@@ -190,20 +229,21 @@
   <div class="conta-page">
 
     <!-- HERO PERFIL -->
-    <div class="profile-hero">
+    <div class="ph-hero">
+      <span class="ph-hero-dots" aria-hidden="true"></span>
       <div class="ph-avatar" id="ph-avatar"><img src="img/urso-coder.png" alt=""></div>
       <div class="ph-info">
         <div class="ph-name" id="ph-name">Carregando...</div>
         <div class="ph-email" id="ph-email">—</div>
         <div class="ph-badges">
           <span class="ph-badge" id="ph-nivel">Nível 1</span>
-          <span class="ph-badge tipo-tag tipo-teen" style="background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.28);color:white;">Adolescente</span>
+          <span class="ph-badge">Adolescente</span>
           <span class="ph-badge" id="ph-membro">Membro</span>
         </div>
       </div>
       <div class="ph-actions">
-        <button class="ph-btn ph-btn-edit" onclick="scrollTo(0, document.getElementById('secEditar').offsetTop - 80)"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Editar perfil</button>
-        <button class="ph-btn ph-btn-logout" onclick="sairDaConta()">Sair da conta</button>
+        <a href="#secEditar" class="ph-btn ph-btn-edit"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Editar perfil</a>
+        <button type="button" class="ph-btn ph-btn-logout" onclick="sairDaConta()">Sair da conta</button>
       </div>
     </div>
 
@@ -213,21 +253,18 @@
       <!-- XP e Nível -->
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#e3f2fd;color:#1565c0;"><i class="lt-i" data-lt-icon="trending-up" aria-hidden="true"></i></div>
+          <div class="cct-icon cct-icon--blue"><i class="lt-i" data-lt-icon="trending-up" aria-hidden="true"></i></div>
           Meu Progresso
         </div>
-        <div class="nivel-grande">
-          <div class="ng-emoji" id="ng-emoji" style="color:#1565c0"><i class="lt-i lt-i--lg" data-lt-icon="star" aria-hidden="true"></i></div>
-          <div class="ng-num">Nível <span id="ng-nivel">1</span></div>
-          <div class="ng-label" id="ng-nome-nivel">Explorador Iniciante</div>
+        <div class="prog-top">
+          <span>
+            <span class="prog-nivel-lbl">Nível <span id="ng-nivel">1</span></span>
+            <strong class="prog-nivel-nome" id="ng-nome-nivel">Explorador Iniciante</strong>
+          </span>
+          <span class="prog-xp-frac"><span id="xp-atual-num">0</span><span class="prog-xp-frac-sub" id="xp-prox-sub"> / 100 XP</span></span>
         </div>
-        <div class="xp-big-track">
-          <div class="xp-big-fill" id="xp-big-fill" style="width:0%"></div>
-        </div>
-        <div class="xp-big-info">
-          <span id="xp-atual">0 XP</span>
-          <span id="xp-prox">Próximo: 100 XP</span>
-        </div>
+        <span class="xp-big-track"><span class="xp-big-fill" id="xp-big-fill" style="width:0%"></span></span>
+        <p class="prog-hint" id="prog-hint">Continue conversando com o Lumi Theo para ganhar XP.</p>
         <div class="stat-row">
           <div class="stat-item">
             <div class="stat-val" id="st-conversas">0</div>
@@ -247,8 +284,9 @@
       <!-- Conquistas -->
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#fdf0f9;color:#a83d8a;"><i class="lt-i" data-lt-icon="award" aria-hidden="true"></i></div>
+          <div class="cct-icon cct-icon--pink"><i class="lt-i" data-lt-icon="award" aria-hidden="true"></i></div>
           Conquistas
+          <span class="conq-count" id="conq-count">0 de 8</span>
         </div>
         <div class="conquistas-grid" id="conquistas-grid">
           <!-- Gerado pelo JS -->
@@ -259,35 +297,38 @@
     <!-- VÍNCULO COM CUIDADOR -->
     <div class="c-card">
       <div class="c-card-title">
-        <div class="cct-icon" style="background:#fff8ee;color:#9a6730;"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i></div>
+        <div class="cct-icon cct-icon--amber"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i></div>
         Vínculo com Cuidador
       </div>
 
       <!-- Estado: sem vínculo -->
       <div id="secSemVinculo">
-        <div class="vinculo-card" style="margin-bottom:14px">
-          <div class="vinc-icon" style="color:#9a6730"><i class="lt-i lt-i--lg" data-lt-icon="copy" aria-hidden="true"></i></div>
+        <div class="vinc-box vinc-box--code">
+          <i class="lt-i lt-i--lg vinc-ic" data-lt-icon="copy" aria-hidden="true"></i>
           <div class="vinc-info">
             <div class="vinc-title">Seu código de vínculo</div>
             <div class="vinc-sub">Compartilhe com seu cuidador para ficarem conectados no LumiTEA</div>
           </div>
-          <div class="codigo-badge" id="meu-codigo" onclick="copiarCodigo()" title="Clique para copiar">------</div>
+          <button type="button" class="codigo-badge" id="meu-codigo" onclick="copiarCodigo()" title="Clique para copiar">
+            <span id="meu-codigo-txt">------</span>
+            <i class="lt-i" data-lt-icon="copy" aria-hidden="true"></i>
+          </button>
         </div>
 
-        <p style="font-size:.8rem;color:var(--text-soft);font-weight:600;margin-bottom:10px">Ou informe o código que seu cuidador te passou:</p>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <p class="vinc-label">Ou informe o código que seu cuidador te passou:</p>
+        <div class="vinc-form">
           <input type="text" class="vinc-cod-input" id="inp-cod" placeholder="EX: ABC123" maxlength="10" oninput="this.value=this.value.toUpperCase()">
-          <button class="btn-vincular" onclick="vincular()">Vincular</button>
+          <button type="button" class="btn-vincular" onclick="vincular()">Vincular</button>
         </div>
         <div class="vinc-err" id="vinc-err">Código inválido. Verifique com seu cuidador.</div>
       </div>
 
       <!-- Estado: com vínculo -->
-      <div class="vinculo-ativo" id="secComVinculo" style="display:none">
-        <i class="lt-i lt-i--lg" data-lt-icon="heart" aria-hidden="true" style="color:#1a6b4a;flex-shrink:0"></i>
+      <div class="vinc-box vinc-box--ok" id="secComVinculo" style="display:none">
+        <i class="lt-i lt-i--lg" data-lt-icon="check-circle" aria-hidden="true"></i>
         <div>
-          <div style="font-weight:800;margin-bottom:2px">Você está conectado com seu cuidador!</div>
-          <div style="font-size:.75rem;font-weight:600;opacity:.8">Ele acompanha seu progresso e pode adicionar eventos no seu calendário.</div>
+          <strong>Você está conectado com seu cuidador!</strong>
+          <span>Ele acompanha seu progresso e pode adicionar eventos no seu calendário.</span>
         </div>
       </div>
     </div>
@@ -295,36 +336,36 @@
     <!-- EDITAR PERFIL -->
     <div class="c-card" id="secEditar">
       <div class="c-card-title">
-        <div class="cct-icon" style="background:#eef4fb;color:#2e5fa3;"><i class="lt-i" data-lt-icon="user" aria-hidden="true"></i></div>
+        <div class="cct-icon cct-icon--navy"><i class="lt-i" data-lt-icon="user" aria-hidden="true"></i></div>
         Editar Perfil
       </div>
       <div class="form-grid">
         <div class="f-group">
-          <label class="f-label">Nome</label>
+          <label class="f-label" for="f-nome">Nome</label>
           <input type="text" class="f-input" id="f-nome" placeholder="Seu nome">
         </div>
         <div class="f-group">
-          <label class="f-label">Sobrenome</label>
+          <label class="f-label" for="f-sobrenome">Sobrenome</label>
           <input type="text" class="f-input" id="f-sobrenome" placeholder="Seu sobrenome">
         </div>
         <div class="f-group">
-          <label class="f-label">Data de nascimento</label>
+          <label class="f-label" for="f-nascimento">Data de nascimento</label>
           <!-- min/max: sem eles o campo aceita ano de 6 dígitos (foi assim que
                entraram 275760 e 42132 no banco). O max real é posto por JS. -->
           <input type="date" class="f-input" id="f-nascimento" min="1900-01-01" max="2100-12-31">
         </div>
         <div class="f-group">
-          <label class="f-label">Como prefere ser chamado?</label>
+          <label class="f-label" for="f-apelido">Como prefere ser chamado?</label>
           <input type="text" class="f-input" id="f-apelido" placeholder="Apelido (opcional)">
         </div>
         <div class="f-group f-full">
-          <label class="f-label">E-mail (somente leitura)</label>
+          <label class="f-label" for="f-email">E-mail (somente leitura)</label>
           <input type="email" class="f-input" id="f-email" disabled>
           <span class="f-hint">Para alterar o e-mail, entre em contato com o suporte.</span>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:14px;margin-top:16px">
-        <button class="btn-salvar" id="btn-salvar" onclick="salvarPerfil()">Salvar alterações</button>
+      <div class="row-actions">
+        <button type="button" class="btn-salvar" id="btn-salvar" onclick="salvarPerfil()">Salvar alterações</button>
         <div class="save-ok" id="save-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Salvo com sucesso!</div>
       </div>
     </div>
@@ -334,7 +375,7 @@
 
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#f3eeff;color:#5b3fa3;"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i></div>
+          <div class="cct-icon cct-icon--violet"><i class="lt-i" data-lt-icon="settings" aria-hidden="true"></i></div>
           Preferências
         </div>
 
@@ -362,17 +403,6 @@
 
         <div class="toggle-row">
           <div class="toggle-info">
-            <div class="tg-title">Sons e animações</div>
-            <div class="tg-sub">Animações suaves na interface</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="pref-anim" checked onchange="aplicarCalmo();salvarPrefs()">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div class="toggle-info">
             <div class="tg-title">Lembrete diário</div>
             <div class="tg-sub">Receba um lembrete para registrar seu humor</div>
           </div>
@@ -385,36 +415,32 @@
 
       <div class="c-card">
         <div class="c-card-title">
-          <div class="cct-icon" style="background:#eaf7f2;color:#1a6b4a;"><i class="lt-i" data-lt-icon="type" aria-hidden="true"></i></div>
+          <div class="cct-icon cct-icon--green"><i class="lt-i" data-lt-icon="type" aria-hidden="true"></i></div>
           Acessibilidade
         </div>
 
-        <div class="f-group" style="margin-bottom:12px">
-          <label class="f-label">Tamanho do texto</label>
-          <select class="f-select" id="pref-fonte" onchange="aplicarFonte()">
-            <option value="normal">Normal</option>
-            <option value="grande">Grande</option>
-            <option value="muito-grande">Muito grande</option>
-          </select>
+        <span class="f-label ac-group-label" id="lbl-fonte">Tamanho do texto</span>
+        <div class="ac-btngrp" id="grp-fonte" role="group" aria-labelledby="lbl-fonte">
+          <button type="button" class="ac-btn" data-v="normal" aria-pressed="true" onclick="setFonte('normal')">Normal</button>
+          <button type="button" class="ac-btn ac-btn--grande" data-v="grande" aria-pressed="false" onclick="setFonte('grande')">Grande</button>
+          <button type="button" class="ac-btn ac-btn--maior" data-v="muito-grande" aria-pressed="false" onclick="setFonte('muito-grande')">Maior</button>
         </div>
 
-        <div class="f-group" style="margin-bottom:12px">
-          <label class="f-label">Tema de cores</label>
-          <select class="f-select" id="pref-tema" onchange="aplicarTema()">
-            <option value="default">Padrão (Azul)</option>
-            <option value="calmo">Calmo (Verde)</option>
-            <option value="escuro">Escuro</option>
-            <option value="alto-contraste">Alto contraste</option>
-          </select>
+        <span class="f-label ac-group-label" id="lbl-tema">Tema de cores</span>
+        <div class="ac-temagrp" id="grp-tema" role="group" aria-labelledby="lbl-tema">
+          <button type="button" class="ac-tema" data-v="default" aria-pressed="true" onclick="setTema('default')"><span class="ac-swatch ac-swatch--padrao" aria-hidden="true"></span> Padrão</button>
+          <button type="button" class="ac-tema" data-v="calmo" aria-pressed="false" onclick="setTema('calmo')"><span class="ac-swatch ac-swatch--calmo" aria-hidden="true"></span> Calmo</button>
+          <button type="button" class="ac-tema" data-v="escuro" aria-pressed="false" onclick="setTema('escuro')"><span class="ac-swatch ac-swatch--escuro" aria-hidden="true"></span> Escuro</button>
+          <button type="button" class="ac-tema" data-v="alto-contraste" aria-pressed="false" onclick="setTema('alto-contraste')"><span class="ac-swatch ac-swatch--contraste" aria-hidden="true"></span> Alto contraste</button>
         </div>
 
-        <div class="toggle-row" style="border-bottom:none;padding-bottom:0">
+        <div class="toggle-row toggle-row--boxed">
           <div class="toggle-info">
-            <div class="tg-title">Reduzir animações</div>
-            <div class="tg-sub">Para quem tem sensibilidade a movimento</div>
+            <div class="tg-title">Modo calmo</div>
+            <div class="tg-sub">Desliga todo movimento do site</div>
           </div>
           <label class="switch">
-            <input type="checkbox" id="pref-reduz-anim" onchange="aplicarCalmo();salvarPrefs()">
+            <input type="checkbox" id="pref-modocalmo" onchange="aplicarCalmo();salvarPrefs()">
             <span class="slider"></span>
           </label>
         </div>
@@ -424,33 +450,32 @@
     <!-- ALTERAR SENHA -->
     <div class="c-card">
       <div class="c-card-title">
-        <div class="cct-icon" style="background:#fef9ee;color:#9a6730;"><i class="lt-i" data-lt-icon="key" aria-hidden="true"></i></div>
+        <div class="cct-icon cct-icon--amber"><i class="lt-i" data-lt-icon="key" aria-hidden="true"></i></div>
         Alterar Senha
       </div>
       <div class="form-grid">
         <div class="f-group">
-          <label class="f-label">Nova senha</label>
+          <label class="f-label" for="f-nova-senha">Nova senha</label>
           <input type="password" class="f-input" id="f-nova-senha" placeholder="Mínimo 8 caracteres">
         </div>
         <div class="f-group">
-          <label class="f-label">Confirmar nova senha</label>
+          <label class="f-label" for="f-conf-senha">Confirmar nova senha</label>
           <input type="password" class="f-input" id="f-conf-senha" placeholder="Repita a senha">
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap">
-        <button class="btn-salvar" onclick="alterarSenha()">Alterar senha</button>
+      <div class="row-actions row-actions--tight">
+        <button type="button" class="btn-salvar" onclick="alterarSenha()">Alterar senha</button>
         <div class="save-ok" id="save-senha-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Senha alterada!</div>
-        <div class="save-ok" id="save-senha-err" style="color:#d95b5b;display:none">Erro: senhas não coincidem ou muito curtas.</div>
+        <div class="save-ok save-ok--danger" id="save-senha-err">Erro: senhas não coincidem ou muito curtas.</div>
       </div>
     </div>
 
     <!-- ZONA DE PERIGO -->
     <div class="danger-card">
       <div class="danger-title"><i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i> Zona de perigo</div>
-      <div class="danger-sub">Essas ações são permanentes e não podem ser desfeitas. Tenha certeza antes de continuar.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-danger" onclick="confirmarExcluirDados()"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Limpar histórico de conversas</button>
-        <button class="btn-danger" onclick="confirmarExcluirConta()"><i class="lt-i" data-lt-icon="x" aria-hidden="true"></i> Excluir minha conta</button>
+      <div class="danger-sub">Essa ação é permanente e não pode ser desfeita. Tenha certeza antes de continuar. Para excluir sua conta, peça ao seu cuidador — só ele pode fazer isso.</div>
+      <div class="danger-actions">
+        <button type="button" class="btn-danger" onclick="confirmarExcluirDados()"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Limpar histórico de conversas</button>
       </div>
     </div>
 
@@ -463,6 +488,7 @@
     const sb = createClient(SB_URL, SB_KEY);
 
     var _uid = null, _perfil = null, _email = null;
+    var _fonteAtual = 'normal', _temaAtual = 'default';
 
     /* CONQUISTAS */
     var CONQUISTAS = [
@@ -527,7 +553,8 @@
     function renderPerfil(){
       document.getElementById('ph-name').textContent = (_perfil.apelido||_perfil.nome)+' '+(_perfil.sobrenome||'');
       document.getElementById('ph-email').textContent = _perfil.email||'';
-      document.getElementById('ph-nivel').textContent = 'Nível '+_perfil.nivel;
+      var n=Math.min(_perfil.nivel||1,NIVEL_NOMES.length-1);
+      document.getElementById('ph-nivel').textContent = 'Nível '+(_perfil.nivel||1)+' · '+(NIVEL_NOMES[n]||'Explorador');
       document.getElementById('nav-user-name').textContent = _perfil.nome;
       if(_perfil.criado_em){
         var dt = new Date(_perfil.criado_em);
@@ -540,11 +567,15 @@
       var b=NIVEL_XP[n-1]||0, nx=NIVEL_XP[n]||NIVEL_XP[NIVEL_XP.length-1];
       var pct=nx>b?Math.min(Math.round((x-b)/(nx-b)*100),100):100;
       document.getElementById('ng-nivel').textContent=n;
-      document.getElementById('ng-emoji').innerHTML=_icone(NIVEL_ICONES[Math.min(n-1,NIVEL_ICONES.length-1)]);
       document.getElementById('ng-nome-nivel').textContent=NIVEL_NOMES[Math.min(n,NIVEL_NOMES.length-1)]||'Explorador';
       document.getElementById('xp-big-fill').style.width=pct+'%';
-      document.getElementById('xp-atual').textContent=(x-b)+' XP';
-      document.getElementById('xp-prox').textContent='Próximo: '+(nx-b)+' XP';
+      document.getElementById('xp-atual-num').textContent=x;
+      document.getElementById('xp-prox-sub').textContent=' / '+nx+' XP';
+      var falta=Math.max(nx-x,0);
+      var noMaximo = n>=NIVEL_XP.length-1 && x>=nx;
+      document.getElementById('prog-hint').textContent = noMaximo
+        ? 'Você atingiu o nível máximo! Continue conversando para manter seu progresso.'
+        : ('Faltam '+falta+' XP para o nível '+(n+1)+'.');
       document.getElementById('st-xp-total').textContent=x;
       // Stats estimadas
       document.getElementById('st-conversas').textContent=Math.floor(x/10)||0;
@@ -569,6 +600,7 @@
           await sb.from('conquistas_usuario').upsert({ id_neurodivergente: _uid, conquista_id: id, desbloqueada_em: new Date().toISOString() }, { onConflict: 'id_neurodivergente,conquista_id', ignoreDuplicates: true });
         } catch(e) {}
       }
+      document.getElementById('conq-count').textContent = desbloq.length+' de '+CONQUISTAS.length;
       var grid=document.getElementById('conquistas-grid');
       grid.innerHTML='';
       CONQUISTAS.forEach(function(c){
@@ -576,11 +608,11 @@
         var div=document.createElement('div');
         div.className='conq-item '+(on?'desbloqueado':'bloqueado');
         div.title=c.desc+(on?'':' (bloqueado)');
-        div.innerHTML='<div class="conq-em">'+(on?_icone(c.icon):_icone('lock'))+'</div><div class="conq-name">'+c.nome+'</div><div class="conq-desc">'+(on?c.desc:'???')+'</div>';
+        div.innerHTML='<div class="conq-em">'+(on?_icone(c.icon):_icone('lock'))+'</div><div class="conq-name">'+c.nome+'</div>';
         grid.appendChild(div);
       });
       // Vínculo
-      document.getElementById('meu-codigo').textContent=_perfil.codigo||'------';
+      document.getElementById('meu-codigo-txt').textContent=_perfil.codigo||'------';
       if(_perfil.id_resp){
         document.getElementById('secSemVinculo').style.display='none';
         document.getElementById('secComVinculo').style.display='flex';
@@ -677,9 +709,9 @@
     }
 
     function copiarCodigo(){
-      var el=document.getElementById('meu-codigo');
-      if(!el||el.textContent==='------')return;
-      navigator.clipboard.writeText(el.textContent).then(function(){var old=el.textContent;el.textContent='Copiado!';setTimeout(function(){el.textContent=old},1800)});
+      var txt=document.getElementById('meu-codigo-txt');
+      if(!txt||txt.textContent==='------')return;
+      navigator.clipboard.writeText(txt.textContent).then(function(){var old=txt.textContent;txt.textContent='Copiado!';setTimeout(function(){txt.textContent=old},1800)});
     }
 
     async function vincular(){
@@ -694,9 +726,35 @@
       }catch(e){err.textContent='Erro de conexão.';err.classList.add('on')}
     }
 
+    /* ACESSIBILIDADE — grupos de botão (substituem os <select> antigos) */
+    function setFonte(v){
+      _fonteAtual=v;
+      document.querySelectorAll('#grp-fonte .ac-btn').forEach(function(b){b.setAttribute('aria-pressed', b.dataset.v===v?'true':'false')});
+      aplicarFonteSilencioso();
+      salvarPrefs();
+    }
+    function setTema(v){
+      _temaAtual=v;
+      document.querySelectorAll('#grp-tema .ac-tema').forEach(function(b){b.setAttribute('aria-pressed', b.dataset.v===v?'true':'false')});
+      document.documentElement.setAttribute('data-tema', v||'default');
+      try{ localStorage.setItem('lt-tema', v||'default'); }catch(e){}
+      salvarPrefs();
+    }
+    function aplicarFonteSilencioso(){
+      document.documentElement.style.fontSize = _fonteAtual==='grande'?'108%':_fonteAtual==='muito-grande'?'116%':'100%';
+    }
+    // "Modo calmo" liga o modo calmo global (data-modo-calmo) que o jogo,
+    // a voz e os tokens de motion respeitam em todo o site.
+    function aplicarCalmo(){
+      var on=document.getElementById('pref-modocalmo').checked;
+      document.documentElement.setAttribute('data-modo-calmo', on?'true':'false');
+      try{ localStorage.setItem('lt-modo-calmo', on?'1':'0'); localStorage.setItem('lt_modo_calmo', on?'1':'0'); }catch(e){}
+    }
+
     /* PREFERÊNCIAS — Supabase */
     async function salvarPrefs(){
-      var prefs={sugestoes:document.getElementById('pref-sugestoes').checked,urso:document.getElementById('pref-urso').checked,anim:document.getElementById('pref-anim').checked,lembrete:document.getElementById('pref-lembrete').checked,fonte:document.getElementById('pref-fonte').value,tema:document.getElementById('pref-tema').value,reduzAnim:document.getElementById('pref-reduz-anim').checked};
+      var modoCalmo=document.getElementById('pref-modocalmo').checked;
+      var prefs={sugestoes:document.getElementById('pref-sugestoes').checked,urso:document.getElementById('pref-urso').checked,anim:!modoCalmo,lembrete:document.getElementById('pref-lembrete').checked,fonte:_fonteAtual,tema:_temaAtual,reduzAnim:modoCalmo};
       try{
         await sb.from('preferencias_usuario').upsert({id_neurodivergente:_uid,...prefs,updated_at:new Date().toISOString()},{onConflict:'id_neurodivergente'});
       }catch(e){console.warn('[Prefs] Erro ao salvar:',e.message);}
@@ -704,33 +762,23 @@
     async function carregarPrefs(){
       try{
         var {data:p}=await sb.from('preferencias_usuario').select('*').eq('id_neurodivergente',_uid).single();
-        if(!p)return;
-        if(p.sugestoes!==undefined)document.getElementById('pref-sugestoes').checked=p.sugestoes;
-        if(p.urso!==undefined)document.getElementById('pref-urso').checked=p.urso;
-        if(p.anim!==undefined)document.getElementById('pref-anim').checked=p.anim;
-        if(p.lembrete!==undefined)document.getElementById('pref-lembrete').checked=p.lembrete;
-        if(p.fonte)document.getElementById('pref-fonte').value=p.fonte;
-        if(p.tema)document.getElementById('pref-tema').value=p.tema;
-        if(p.reduzAnim!==undefined)document.getElementById('pref-reduz-anim').checked=p.reduzAnim;
+        if(p){
+          if(p.sugestoes!==undefined)document.getElementById('pref-sugestoes').checked=p.sugestoes;
+          if(p.urso!==undefined)document.getElementById('pref-urso').checked=p.urso;
+          if(p.lembrete!==undefined)document.getElementById('pref-lembrete').checked=p.lembrete;
+          if(p.fonte)_fonteAtual=p.fonte;
+          if(p.tema)_temaAtual=p.tema;
+          document.getElementById('pref-modocalmo').checked = !!(p.reduzAnim || p.anim===false);
+        }
       }catch(e){console.warn('[Prefs] Erro ao carregar:',e.message);}
-      // aplica de fato as preferências que afetam a interface
+      // reflete o estado carregado nos grupos de botão e aplica de fato as
+      // preferências que afetam a interface
+      document.querySelectorAll('#grp-fonte .ac-btn').forEach(function(b){b.setAttribute('aria-pressed', b.dataset.v===_fonteAtual?'true':'false')});
+      document.querySelectorAll('#grp-tema .ac-tema').forEach(function(b){b.setAttribute('aria-pressed', b.dataset.v===_temaAtual?'true':'false')});
+      document.documentElement.setAttribute('data-tema', _temaAtual||'default');
+      try{ localStorage.setItem('lt-tema', _temaAtual||'default'); }catch(e){}
       aplicarFonteSilencioso();
       aplicarCalmo();
-    }
-    function aplicarFonteSilencioso(){var v=document.getElementById('pref-fonte').value;document.documentElement.style.fontSize=v==='grande'?'108%':v==='muito-grande'?'116%':'100%';}
-    function aplicarFonte(){aplicarFonteSilencioso();salvarPrefs()}
-    // "Reduzir animações" liga o modo calmo global (data-modo-calmo) que o jogo,
-    // a voz e os tokens de motion respeitam em todo o site.
-    function aplicarCalmo(){
-      var on=document.getElementById('pref-reduz-anim').checked || document.getElementById('pref-anim').checked===false;
-      document.documentElement.setAttribute('data-modo-calmo', on?'true':'false');
-      try{ localStorage.setItem('lt-modo-calmo', on?'1':'0'); localStorage.setItem('lt_modo_calmo', on?'1':'0'); }catch(e){}
-    }
-    function aplicarTema(){
-      var v=document.getElementById('pref-tema').value;
-      document.documentElement.setAttribute('data-tema', v||'default');
-      try{ localStorage.setItem('lt-tema', v||'default'); }catch(e){}
-      salvarPrefs();
     }
 
     async function confirmarExcluirDados(){
@@ -741,7 +789,6 @@
         alert('Histórico e memória limpos com sucesso!');
       }catch(e){alert('Erro ao limpar histórico: '+e.message);}
     }
-    function confirmarExcluirConta(){if(confirm('Você tem certeza que quer excluir sua conta? ESSA AÇÃO NÃO PODE SER DESFEITA.')){if(confirm('Última confirmação: excluir conta permanentemente?')){alert('Para excluir sua conta definitivamente, entre em contato com o suporte do LumiTEA.')}}}
 
     async function sairDaConta(){await sb.auth.signOut();window.location.href='login.html'}
   </script>

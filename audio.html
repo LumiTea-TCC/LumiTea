@@ -156,6 +156,7 @@
 
     var mediaRecorder = null, chunks = [], stream = null, historico = [], muted = false;
     var perfil = { nome: 'amigo', humorRecente: null };
+    var recognizer = null, recogAtivo = false, browserTranscript = '';
 
     // sessão (a IA e o proxy exigem login)
     (async function () {
@@ -231,13 +232,43 @@
       mediaRecorder.start();
       setEstado('listening', 'Estou te ouvindo...');
       btnGravar.disabled = true; btnParar.disabled = false;
+
+      // reconhecimento ao vivo (roda em paralelo à gravação, nunca depois dela —
+      // é o que permite usar o texto na hora, sem tocar o áudio gravado de volta)
+      browserTranscript = '';
+      recognizer = criarReconhecedor();
+      if (recognizer) { recogAtivo = true; try { recognizer.start(); } catch (e) {} }
     });
 
     btnParar.addEventListener('click', function () {
+      recogAtivo = false;
+      if (recognizer) { try { recognizer.stop(); } catch (e) {} }
       if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
       btnParar.disabled = true;
     });
+
+    function criarReconhecedor() {
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return null;
+      var r = new SR();
+      r.lang = 'pt-BR'; r.continuous = true; r.interimResults = true;
+      r.onresult = function (e) {
+        var texto = '';
+        for (var i = 0; i < e.results.length; i++) texto += e.results[i][0].transcript;
+        browserTranscript = texto;
+        if (texto.trim() && statusEl.classList.contains('listening')) statusTxt.textContent = texto.trim();
+      };
+      r.onerror = function (e) {
+        console.warn('[STT navegador]', e.error);
+        if (e.error === 'not-allowed' || e.error === 'audio-capture' || e.error === 'service-not-allowed') recogAtivo = false;
+      };
+      r.onend = function () {
+        // alguns navegadores encerram sozinhos após um silêncio; reinicia se a gravação continua
+        if (recogAtivo) { try { r.start(); } catch (e) {} }
+      };
+      return r;
+    }
 
     async function onGravacaoTerminada() {
       setEstado('thinking', 'Processando o que você disse...');
@@ -268,34 +299,33 @@
       btnGravar.disabled = false;
     }
 
-    // --- STT pelo proxy, com fallback do navegador ---
+    // um proxy fora do ar não pode travar a conversa — corta a espera e cai no fallback
+    function comTimeout(promise, ms) {
+      return new Promise(function (resolve, reject) {
+        var t = setTimeout(function () { reject(new Error('tempo esgotado')); }, ms);
+        promise.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
+      });
+    }
+
+    // --- STT: proxy ElevenLabs primeiro; fallback é o texto que o navegador já
+    // captou AO VIVO durante a gravação (ver criarReconhecedor) — nunca tenta
+    // reconhecer depois, porque nesse ponto o microfone já foi desligado.
     async function transcrever(blob) {
       if (LT.elevenSTT) {
         try {
-          var res = await LT.elevenSTT(blob);
-          if (res.ok) { var d = await res.json(); if (d && d.text) return d.text.trim(); }
-        } catch (e) { console.warn('[STT] proxy falhou:', e.message); }
+          var res = await comTimeout(LT.elevenSTT(blob), 7000);
+          if (res.ok) { var d = await res.json(); if (d && d.text && d.text.trim()) return d.text.trim(); }
+        } catch (e) { console.warn('[STT] proxy indisponível, usando o texto já captado pelo navegador:', e.message); }
       }
-      return await transcreverBrowser(blob);
-    }
-    function transcreverBrowser(blob) {
-      return new Promise(function (resolve, reject) {
-        var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) return reject(new Error('SpeechRecognition indisponível'));
-        var url = URL.createObjectURL(blob), audio = new Audio(url), recog = new SR();
-        recog.lang = 'pt-BR'; recog.continuous = false; recog.interimResults = false;
-        recog.onresult = function (e) { resolve(e.results[0][0].transcript); };
-        recog.onerror = function (e) { reject(e); };
-        recog.onend = function () { URL.revokeObjectURL(url); };
-        try { recog.start(); audio.play().catch(function(){}); } catch (e) { reject(e); }
-      });
+      if (browserTranscript && browserTranscript.trim()) return browserTranscript.trim();
+      throw new Error('Não consegui identificar sua fala.');
     }
 
     // --- TTS pelo proxy, com fallback do navegador ---
     async function falar(texto) {
       if (LT.elevenTTS) {
         try {
-          var res = await LT.elevenTTS(texto);
+          var res = await comTimeout(LT.elevenTTS(texto), 7000);
           if (res.ok) {
             var audioBlob = await res.blob();
             var url = URL.createObjectURL(audioBlob);

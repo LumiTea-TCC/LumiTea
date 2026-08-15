@@ -394,6 +394,26 @@ adolescente é bloqueado de postar por **1 hora** e o **responsável vinculado �
   lados (teen e cuidador) — corrigido com `window.LUMITEA.esc()` em `calendario.html` e um `esc()` local em
   `calendario-cuidador.html` (essa página não carrega `config.js`).
 
+## 📅 Sinal de risco em evento do calendário (2026-08-15)
+Extensão do mesmo padrão do diário (ver seção abaixo) pro calendário: usuário pediu depois de o bug do
+diário aparecer — e se o adolescente marcar um compromisso como "Dia de me matar"/"Dia do suicidio"/
+"Suicidio"? O calendário não passa por IA (só cadastro direto), então a única camada possível aqui é a
+determinística.
+- **`calendario.html`** ganhou `trechoRiscoEvento(titulo,descricao)` + `avisarCuidadorSeRiscoEvento()`,
+  chamada dentro de `adicionarEvento()` logo após o insert (roda nos dois caminhos, com ou sem as colunas
+  novas da migration). Escopo confirmado com o usuário: **só autolesão/suicídio** (mesma lista
+  `SINAIS_AUTOLESAO` do diário/chat — não inclui a lista de agressão a terceiros), **título + descrição**
+  do evento, **nunca bloqueia** a criação (evento sempre salva, alerta é só um efeito colateral silencioso),
+  e **só do lado do adolescente** — `calendario-cuidador.html` não tem esse código, de propósito (o
+  cuidador não é o público de risco). Mesmo padrão de "o teen não sabe que foi avisado".
+- Não existe função de editar evento em `calendario.html` (só `adicionarEvento`/`delEv`), então um único
+  ponto de chamada cobre o fluxo inteiro.
+- Cópia local das funções (`calContemTermo`/`calTrechoDetectado`), mesma razão do diário: não importar de
+  `js/chat.js` pra não arriscar aquele sistema.
+- Conferido com `node --check` + script Node isolado testando os 3 exemplos exatos do usuário ("Dia de me
+  matar", "Dia do suicidio", "Suicidio" — todos → alerta), um caso com o sinal só na descrição (→ alerta) e
+  2 eventos normais (→ `null`).
+
 ## 📖 Diário: reflexão da IA não podia validar dano a si/outros (2026-08-14)
 Usuário reportou: entrada de diário dizendo "bati em um amigo"/"matei um amigo" recebia uma reflexão da
 Lumi Theo que **apoiava a fala inteira** sem nomear o problema — o prompt só mandava "validar o sentimento",

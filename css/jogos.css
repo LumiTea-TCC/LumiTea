@@ -82,18 +82,30 @@
   .jg-cabecalho h1 { font-size: 1.3rem; }
 }
 
-/* ── Cabeçalho do hub e dos jogos ─────────────────────────── */
+/* ── Cabeçalho do hub (só games.html — .jg-cabecalho acima é
+   o cabeçalho das páginas de jogo individuais) ───────────── */
 .jg-hero {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: var(--sp-6);
-  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  background: linear-gradient(140deg, #1b3a5c 0%, var(--brand-dark) 58%, #3f86cd 100%);
   color: white;
   border-radius: var(--r-xl);
   padding: var(--sp-7) var(--sp-7);
   margin-bottom: var(--sp-6);
-  box-shadow: var(--shadow-2);
+  box-shadow: 0 20px 44px rgba(21, 42, 69, .28), inset 0 1px 0 rgba(255, 255, 255, .18);
+  flex-wrap: wrap;
 }
+.jg-hero-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, .10) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+.jg-hero-texto { position: relative; flex: 1; min-width: 260px; }
 .jg-hero-tag {
   display: inline-block;
   font-size: .64rem;
@@ -113,15 +125,30 @@
 .jg-hero p {
   font-size: .95rem;
   line-height: 1.6;
-  opacity: .94;
+  color: rgba(255, 255, 255, .86);
   max-width: 58ch;
   margin: 0;
 }
+.jg-hero-pills { display: flex; gap: 9px; flex-wrap: wrap; margin-top: var(--sp-4); }
+.jg-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .26);
+  font-size: .78rem;
+  font-weight: 800;
+  color: #fff;
+}
+.jg-hero-pill .lt-i { width: 1em; height: 1em; }
+.jg-hero-urso { position: relative; flex-shrink: 0; }
 .jg-hero-urso img {
   display: block;
-  width: 148px;
+  width: 160px;
   height: auto;
-  flex-shrink: 0;
+  filter: drop-shadow(0 18px 30px rgba(8, 22, 40, .38));
 }
 @media (max-width: 760px) {
   .jg-hero { flex-direction: column-reverse; align-items: flex-start; gap: var(--sp-4); padding: var(--sp-5); }
@@ -144,14 +171,14 @@
    ============================================================ */
 .jg-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: var(--sp-5);
 }
 
 .jg-card {
   display: flex;
   flex-direction: column;
-  background: var(--surface);
+  background: linear-gradient(180deg, #fff, #fbfdff);
   border: 1.5px solid var(--border-soft);
   border-radius: var(--r-xl);
   padding: var(--sp-6);
@@ -165,6 +192,66 @@
   box-shadow: var(--shadow-2);
   transform: translateY(-3px);
 }
+/* Faixa colorida no topo — só nos 4 cards de jogo (têm --jg-cor de tema);
+   o card especial da lousa e o card de progresso definem o próprio visual. */
+.jg-card.jg-tema-memoria,
+.jg-card.jg-tema-classificar,
+.jg-card.jg-tema-encaixe,
+.jg-card.jg-tema-palavra {
+  border-top: 4px solid var(--jg-cor);
+}
+
+/* Rodapé do card do hub: botão "Jogar" + atalho de ajustes */
+.jg-card-rodape { display: flex; align-items: center; gap: 10px; }
+.jg-card-rodape .jg-btn { flex: 1; }
+.jg-card-rodape .jg-icone-btn { flex-shrink: 0; }
+
+/* Botão claro (fundo branco) — usado sobre cards com fundo colorido cheio */
+.jg-btn-claro { background: #fff; color: var(--jg-cor-ink, var(--brand-dark)); }
+.jg-btn-claro:hover { background: var(--jg-cor-bg, var(--panel-1)); color: var(--jg-cor-ink, var(--brand-dark)); }
+
+/* Card especial (cheio de cor, com padrão de pontinhos) — usado pela lousa */
+.jg-card--especial {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(150deg, var(--rosa-dark) 0%, var(--rosa) 100%);
+  border: none;
+  box-shadow: 0 18px 38px rgba(156, 59, 127, .28), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+.jg-card--especial::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, .14) 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: .6;
+  pointer-events: none;
+}
+.jg-card--especial:hover { border-color: transparent; }
+.jg-card--especial .jg-card-icone { background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .3); color: #fff; }
+.jg-card--especial h2 { color: #fff; }
+.jg-card--especial p { color: rgba(255, 255, 255, .86); }
+
+/* Card de progresso — resumo do próprio jogador, sem tema de cor */
+.jg-card--progresso { background: var(--bg-2); border: 1.5px dashed var(--border); }
+.jg-progresso-titulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: var(--sp-4);
+}
+.jg-progresso-titulo .lt-i { color: var(--ambar); }
+.jg-progresso-nums { display: flex; gap: 10px; margin-bottom: var(--sp-4); }
+.jg-progresso-stat { flex: 1; background: #fff; border: 1px solid var(--border-soft); border-radius: 14px; padding: 12px 14px; }
+.jg-progresso-valor { display: block; font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; line-height: 1; color: var(--text-main); }
+.jg-progresso-rotulo { font-size: .66rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.jg-card--progresso .jg-progresso-texto { font-size: .84rem; line-height: 1.6; color: var(--text-soft); margin: 0; }
+.jg-progresso-texto strong { color: var(--text-main); }
 .jg-card-icone {
   width: 62px;
   height: 62px;
