@@ -68,10 +68,10 @@ Sem Node/CLI (ver acima), deploy de Edge Function e secrets são feitos direto n
 - Escape de HTML: **`window.LUMITEA.esc()` / `.escBr()`** (em `js/core/config.js`). SEMPRE escapar dado de
   usuário/IA/teen antes de injetar via `innerHTML`.
 
-## 🎮 Jogos do Theo (`games.html` = hub + 5 páginas)
+## 🎮 Jogos do Theo (`games.html` = hub + 6 páginas)
 Substituiu o antigo "Mundo Gelado do Theo" (mundo aberto em canvas), **removido do projeto em 2026-08-04**.
-- `games.html` (hub) → `jogo-memoria.html`, `jogo-classificar.html`, `jogo-encaixe.html`, `jogo-imagem-palavra.html`
-  e **`lousa-pintar.html`** (ver seção própria abaixo).
+- `games.html` (hub) → `jogo-memoria.html`, `jogo-classificar.html`, `jogo-encaixe.html`, `jogo-imagem-palavra.html`,
+  **`lousa-pintar.html`** e **`roleplay.html`** (as duas últimas têm seção própria abaixo).
 - Estilo comum: `css/jogos.css` (prefixo `.jg-`). Motor comum: **`js/jogos/base.js`** (`window.LUMIJOGOS`):
   `boot()`, `pronto()`, `prefs(jogoId)`, `montarAjustes()`, `arrastar()`, `salvarSessao()`, `ganharXP()`, `som`, `embaralhar()`.
 - **XP/nível dos jogos (implementado 2026-08-05):** cada `finalizar()` chama `J.ganharXP(pontuacao)` (pontuação
@@ -88,8 +88,104 @@ Substituiu o antigo "Mundo Gelado do Theo" (mundo aberto em canvas), **removido 
   `speechSynthesis` (pt-BR, offline, sem custo — não usa o proxy ElevenLabs). O **modo calmo silencia tudo**.
 - Regras que NÃO podem ser revertidas: sem cronômetro visível, sem pontuação negativa, **erro é silencioso**
   (sem som, sem vermelho, sem mensagem — a peça só volta), reiniciar sempre à mão, dificuldade só sobe se o
-  usuário pedir. Partidas vão para `sessoes_jogo` com `jogo_id` = `memoria`/`classificar`/`encaixe`/`imagem-palavra`.
-- `roleplay.html` e `rpg-social.html` continuam como redirects para `games.html`.
+  usuário pedir. Partidas vão para `sessoes_jogo` com `jogo_id` = `memoria`/`classificar`/`encaixe`/`imagem-palavra`/
+  `lousa`/`roleplay`.
+- `rpg-social.html` continua como redirect pra `games.html` ("A Jornada (RPG)", mundo aberto antigo — não confundir
+  com o Roleplay atual, que é outro conceito). **`roleplay.html` NÃO é mais redirect** desde 2026-08-16 — ver seção
+  própria abaixo.
+
+## 🎭 Roleplay — encenação de conversas do dia a dia (`roleplay.html`, 2026-08-16)
+6º item do hub. Importado do projeto Claude Design **`ce3cca9b-0386-4c5c-a63a-65f221777eff`**
+(`Roleplay.dc.html`) via `claude_design`/DesignSync — igual à landing e ao painel do cuidador, o `.dc.html`
+(100% estilo inline, motor de preview `sc-if`/`sc-for`/`DCLogic` em React) foi **traduzido** pra classes +
+tokens + JS vanilla no padrão dos outros jogos, não copiado. `roleplay.html` **reaproveitou o arquivo que já
+existia como stub de redirect** (mundo aberto antigo, removido em 2026-08-04) — não foi criado um nome novo.
+- Escolha de cenário: 7 cards com o mesmo `.jg-grid`/`.jg-card` do hub (tema `.jg-tema-roleplay`: `--jg-cor`/
+  `-ink`/`-bg` = `--primary`/`--primary-dark`/`--info-bg`, batem exatamente com os hex do design). Como o tema
+  vive no `<main class="jg-wrap jg-tema-roleplay">` (não em cada card, diferente do hub), a faixa colorida do
+  topo precisou de uma regra própria: `.jg-tema-roleplay .jg-card { border-top: 4px solid var(--jg-cor); }`
+  logo abaixo da regra equivalente dos cards do hub em `css/jogos.css`.
+- **Conduzida por IA (Groq), não roteirizada — mudou em 2026-08-16.** A primeira versão (mesmo dia, mais cedo)
+  era 100% determinística: cada cenário tinha um roteiro fixo de 3 respostas + 3 dicas que ciclava em
+  `estado.turno % length`. O usuário pediu conversa de verdade com a IA conduzindo o papel — agora cada
+  cenário só define `personagem`/`objetivo`/`tag` (a "cena") e `montarPromptSistema(c)` monta um prompt de
+  sistema instruindo a IA a **nunca sair do personagem**, responder curto (1–3 frases) e, a cada mensagem,
+  avaliar se o adolescente **já demonstrou** a habilidade central da cena (não precisa resolver a situação
+  toda, só demonstrar a habilidade). A IA responde **sempre em JSON**
+  (`{"resposta":...,"dica":...,"concluido":true|false}`), parseado por `interpretarRespostaIA()` (tolera cerca
+  de código ```` ```json ```` e tenta extrair `{...}` mesmo se vier texto solto em volta — modelos nem sempre
+  obedecem "só JSON" à risca). Usa `window.LUMITEA.groqFetch` (mesmo proxy/chave de sempre) com o mesmo padrão
+  de fallback de modelo do `diario.html` (`chamarGroq`: tenta `GROQ_MODEL`, se falhar tenta
+  `llama-3.1-8b-instant`).
+  - **Roteiro fixo de 2026-08-16 virou só uma RESERVA.** `respostas`/`dicas` continuam em cada item de
+    `CENARIOS` — se as duas tentativas de IA falharem (proxy fora do ar, sem rede), `enviarMensagem()` cai
+    nesse roteiro cíclico antigo pra encenação continuar funcionando offline. Diferença importante: no
+    fallback **o objetivo nunca é marcado como cumprido** (só a IA consegue avaliar isso), então uma rodada
+    inteira em modo de reserva não gera XP — é uma limitação aceita, não um bug.
+  - **Indicador "digitando"** (`mostrarDigitando`/`esconderDigitando`, 3 pontinhos pulsando dentro de um balão
+    do personagem) enquanto espera a resposta; campo e botão de enviar ficam `disabled`
+    (`travarCompositor`) pra não deixar mandar 2 mensagens em paralelo.
+  - **Guarda de corrida (`estado.sessaoId`):** se o adolescente fechar o cenário (ou abrir outro) enquanto uma
+    resposta da IA ainda está a caminho, a resposta atrasada é descartada ao chegar (`estado.sessaoId !==
+    sessaoId capturado no envio`) — sem isso, uma resposta tardia do cenário A poderia aparecer dentro do
+    cenário B já aberto.
+  - Não existe "resposta errada" do lado da mensagem em si — qualquer mensagem sempre avança a cena e sempre
+    vem com uma dica (mesma filosofia de erro-silencioso dos outros jogos, adaptada pra conversa).
+- **Sinal de risco (autolesão/agressão) — mesmo padrão do diário/calendário.** Como o campo agora é conversa
+  livre pra uma IA (antes só disparava uma de 3 respostas fixas), ficou exposto ao mesmo risco que já existia
+  no diário: `categoriaRiscoRoleplay()` + `SINAIS_AUTOLESAO`/`SINAIS_AGRESSAO` são **cópia local** (prefixo
+  `rp*`, mesmas listas e mesma lógica de borda de `diario.html` — não importa de lá de propósito, pra não
+  arriscar aquele sistema). Roda em `avisarCuidadorSeNecessario()` a cada mensagem enviada, **em paralelo**
+  com a chamada da IA (não trava o envio): se detectar, insere direto em `alertas` (`tipo:'crise'` pra
+  autolesão / `'aviso'` pra agressão, `destino:'responsavel'`) — mesmo insert direto do cliente que o diário
+  usa (a policy `alertas_self` já permite). **O adolescente nunca é avisado disso e a mensagem nunca é
+  bloqueada** — só a resposta da IA para aquela mensagem segue normal.
+- **Modal de encenação** (`.rp-backdrop`/`.rp-modal`) é construção nova, não a `LumiUI.painel()` genérica
+  (`js/core/ui.js`): a `LumiUI` resolve UMA vez com um botão e fecha — não serve pra um chat que fica aberto
+  recebendo várias mensagens. Mas reaproveita os MESMOS princípios de acessibilidade dela (foco vai pro campo
+  de digitação ao abrir, Tab/Shift+Tab presos dentro do modal, Esc fecha, foco volta pro botão "Tentar de
+  novo" ao concluir, `overflow:hidden` no body enquanto aberto) — escritos de novo em `roleplay.js` porque a
+  `LumiUI` não expõe o elemento do diálogo pra ser mutado depois de aberto.
+  ⚠️ **Achado só no screenshot, não na leitura do código:** o cabeçalho do modal tem DOIS botões circulares
+  (som + fechar). `J.ligarBotaoSom` (o helper de todo jogo) usa os ícones `radio`/`x` — com o som desligado
+  (padrão), ele mostra um X **idêntico** ao X de fechar do lado, os dois ficam indistinguíveis visualmente. Em
+  todo outro jogo esse botão fica sozinho numa barra, longe de qualquer X; aqui é o primeiro caso em que ele
+  fica ao lado de um close real. Resolvido com `ligarBotaoSomModal()` (função própria em `roleplay.js`) que
+  reaproveita o ESTADO/lógica de verdade (`J.som.alternar/ligado/disponivel/acerto/calar` — mesma chave de
+  localStorage `lt-jogos-som`, mesmo respeito ao modo calmo) mas troca só o ícone por `volume-2`, com opacidade
+  reduzida quando desligado (`#rp-btn-som[aria-pressed="false"] svg`). O botão de fechar também ganhou
+  `.rp-icone-btn--fechar` (preenchimento mais sólido) como reforço visual. **Se algum dia esse botão de som
+  voltar a ficar sozinho numa barra (fora do modal), pode voltar a usar `J.ligarBotaoSom` direto.**
+- **Sugestão de frase ("Ideia"):** banner âmbar com a frase pronta do cenário; "Usar essa frase" só copia pro
+  campo, não envia sozinho — o adolescente ainda escolhe apertar enviar (ou editar antes). Continua estático
+  (não vem da IA), então funciona mesmo se a IA estiver fora do ar.
+- **XP só é concedido se a IA marcar o objetivo da cena como cumprido em algum momento da conversa**
+  (`estado.objetivoCumprido`, decisão do usuário em 2026-08-16 — a v1 dava XP só por fechar/tentar, sem checar
+  se a habilidade foi realmente praticada). Ao concluir (`concluirTreino`, disparado pelo X, pelo botão
+  "Concluir treino", por Esc ou por clicar fora do cartão): se cumpriu, `pontuacao = Math.max(20, falasDoUsuário
+  × 10)` e a tela de fim é a de sempre (urso-joia, "+N XP"); se NÃO cumpriu, `pontuacao = 0` (sem `J.ganharXP`),
+  tela de fim neutra (`img/urso-conersando.png`, "Tudo bem por hoje... pode voltar quando quiser") — **de
+  propósito sem soar como fracasso** (decisão do usuário). Nos dois casos `J.salvarSessao` grava a tentativa em
+  `sessoes_jogo` (útil pro cuidador ver que houve prática, mesmo com pontuação 0). Uma vez cumprido, um banner
+  verde (`#rp-objetivo-ok`) fica visível pro resto da conversa — o adolescente pode continuar treinando ou
+  concluir quando quiser, o XP não é perdido se ele continuar depois de já ter alcançado o objetivo.
+- ⚠️ **Achado só no screenshot, não na leitura do código (avatar cortado ao meio):** a versão importada do
+  `.dc.html` original punha o círculo do personagem com `margin-top: -26px`, flutuando de propósito meio na
+  faixa azul do cabeçalho, meio no corpo branco do modal — no navegador de verdade isso lê como um círculo
+  cortado ao meio (foi assim que o usuário descreveu, achando que era bug), não como um efeito estético.
+  Corrigido: `.rp-avatar` perdeu a margem negativa e a borda branca, mora inteiro dentro do corpo branco logo
+  abaixo do cabeçalho, só com `box-shadow` pra dar sensação de elevação. **Não reintroduzir esse overlap.**
+- Verificado com **jsdom** (42 asserções: 7 cards com os 7 ids certos, abrir/fechar do modal, foco indo pro
+  campo ao abrir, conversa real com `groqFetch` mockado — indicador "digitando" aparece/some e o compositor
+  trava/destrava durante a chamada —, XP concedido só quando `concluido:true`, tela de fim neutra sem XP e sem
+  linguagem de fracasso quando `concluido:false`, roteiro de reserva assume quando as duas tentativas de IA
+  falham (e nunca dá XP nesse caso), sinal de risco gera exatamente 1 alerta com `tipo`/`destino`/`titulo`
+  corretos e o adolescente não vê nenhuma menção a isso, falso-positivo "matei aula" não dispara alerta,
+  **XSS escapado tanto na mensagem do usuário quanto na resposta/dica "vindas da IA"** — o `esc()` em
+  `bolhaHTML` não confia em nenhuma fonte —, Escape sem enviar nada conclui sem XP) + `node --check` +
+  Chrome headless (grade, modal com indicador "digitando", banner de objetivo cumprido, tela de fim com
+  sucesso) — foi assim que a colisão visual dos dois botões circulares do cabeçalho (som vs. fechar) apareceu
+  na v1, só no render (ver memória `render-visual-com-chrome-headless`).
 
 ## 🖥️ Painel do cuidador = 13 páginas .html + uma casca comum (2026-08-07)
 Antes, quase tudo do painel eram **abas escondidas** dentro de `home-cuidador.html` (`<div class="cui-tela">`
@@ -529,6 +625,8 @@ Só apareceu quando `relatorios-cuidador.html` passou a checar o `error`.
 - **Insert de relatório falhando com 400 + badge de humor sempre "Neutro" (2026-08-10)** — ver a seção
   "Relatórios da IA: o JSON da Lumi nunca vai direto pro banco".
 - Landing pública redesenhada a partir do Claude Design (2026-08-13) — ver a seção "Landing pública".
+- Novo jogo "Roleplay" (6º item do hub, `roleplay.html`) importado do Claude Design e adicionado ao
+  `games.html` (2026-08-16) — ver a seção "Roleplay — encenação de conversas do dia a dia".
 
 ## 📋 Backlog (próximos passos, sem quebrar nada)
 1. Migrar os ~27 `alert/confirm` nativos restantes (conta, diário, calendário, conversa) para `LumiUI`.
