@@ -323,6 +323,29 @@
       try { _atualizarXP(); } catch(e) { console.warn('Falha ao atualizar XP:', e); }
       try { _atualizarVinculo(); } catch(e) { console.warn('Falha ao atualizar vínculo:', e); }
       try { await _carregarProximoEvento(); } catch(e) { console.warn('Falha ao ler o calendário:', e); }
+      try { await _lembreteDiario(); } catch(e) { console.warn('Falha ao checar lembrete diário:', e); }
+    }
+
+    /* "Lembrete diário" (preferencias_usuario.lembrete, ligado em conta.html):
+       se estiver ativo e o teen ainda não registrou humor hoje, avisa uma vez
+       por dia que o check-in (já visível ali em cima, na cena) está esperando.
+       Data LOCAL, mesmo motivo do _carregarProximoEvento: perto da meia-noite
+       no fuso do Brasil, a data UTC já teria virado. */
+    async function _lembreteDiario() {
+      if (!_userId) return;
+      var { data: prefs } = await sb.from('preferencias_usuario').select('lembrete').eq('id_neurodivergente', _userId).maybeSingle();
+      if (!prefs || !prefs.lembrete) return;
+
+      var d = new Date();
+      var hoje = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      if (localStorage.getItem('lt-lembrete-ultimo') === hoje) return;
+      localStorage.setItem('lt-lembrete-ultimo', hoje);
+
+      var { data: humorHoje } = await sb.from('humores').select('timestamp')
+        .eq('id_neurodivergente', _userId).gte('timestamp', hoje + 'T00:00:00').limit(1);
+      if (humorHoje && humorHoje.length) return;
+
+      if (window.LumiUI) LumiUI.toast('Já parou pra sentir como você está hoje? O check-in de humor está logo ali em cima.', { type: 'info', duration: 6000 });
     }
 
     function _atualizarXP() {

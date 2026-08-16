@@ -3727,8 +3727,8 @@ body.cui-page { overflow: hidden; }
 .b-info   { background: var(--info-bg); color: var(--info); }
 
 /* ── HUMOR ───────────────────────────────────────────────── */
-.humor-bars { display: flex; align-items: flex-end; gap: 8px; height: 90px; }
-.humor-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.humor-bars { display: flex; align-items: stretch; gap: 8px; height: 90px; }
+.humor-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; height: 100%; }
 .humor-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height var(--dur-slow) var(--ease-out); background: var(--accent2); min-height: 4px; }
 .humor-bar.h5 { background: #4ade80; }
 .humor-bar.h4 { background: #86efac; }
@@ -4791,6 +4791,11 @@ body.conv-v2 .suggestion-chip:hover {
   .hb-urso { animation: none; left: 5%; top: 14%; }
 }
 html[data-modo-calmo="true"] .hb-camada { display: none; }
+/* .cap-hero--sem-orbita: hero-bolhas.js é compartilhado (calendario.html,
+   ferramentas-aba.html também usam .lt-hero-bolhas) — isso desliga só o
+   urso orbitando nos cards das duas páginas de Comunidade, sem mexer nas
+   outras. */
+.cap-hero--sem-orbita .hb-urso { display: none; }
 
 /* ================================================================
    HOME DO ADOLESCENTE — layout "Cena"

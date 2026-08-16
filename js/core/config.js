@@ -164,4 +164,39 @@
       g.LUMITEA.SUPABASE_ANON_KEY
     );
   }
+
+  // "Modo calmo" mora de verdade em preferencias_usuario.reduzAnim (banco,
+  // padrão desligado) — o localStorage acima é só um cache pra aplicar sem
+  // esperar a rede (evita flash) e pra páginas deslogadas. Aqui a gente
+  // confere a conta e corrige o cache se o valor salvo for diferente, pra
+  // ligar/desligar valer em qualquer aparelho, não só no navegador onde foi
+  // trocado. A troca em si continua em conta.html (aplicarCalmo/salvarPrefs).
+  function sincronizarModoCalmo() {
+    try {
+      // Período de graça: se o modo calmo acabou de ser trocado nesta aba
+      // (FAB "Estou sobrecarregado" em sobrecarga.js ou o toggle de
+      // conta.html), o upsert que grava isso no banco pode ainda estar a
+      // caminho quando a PRÓXIMA página carrega e chama esta função. Sem essa
+      // guarda, ela lia o valor antigo do banco e desligava o modo calmo que
+      // o usuário tinha acabado de ligar.
+      var ts = parseInt(localStorage.getItem('lt-modo-calmo-ts') || '0', 10);
+      if (ts && (Date.now() - ts) < 15000) return;
+      if (!g.supabaseClient || !g.supabaseClient.auth) return;
+      g.supabaseClient.auth.getSession().then(function (r) {
+        var uid = r && r.data && r.data.session && r.data.session.user && r.data.session.user.id;
+        if (!uid) return;
+        return g.supabaseClient.from('preferencias_usuario').select('reduzAnim,anim')
+          .eq('id_neurodivergente', uid).maybeSingle().then(function (res) {
+            if (!res || res.error || !res.data) return;
+            var ligado = !!(res.data.reduzAnim || res.data.anim === false);
+            document.documentElement.setAttribute('data-modo-calmo', ligado ? 'true' : 'false');
+            try {
+              localStorage.setItem('lt-modo-calmo', ligado ? '1' : '0');
+              localStorage.setItem('lt_modo_calmo', ligado ? '1' : '0');
+            } catch (e) {}
+          });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  sincronizarModoCalmo();
 })(window);

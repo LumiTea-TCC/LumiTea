@@ -381,28 +381,6 @@
 
         <div class="toggle-row">
           <div class="toggle-info">
-            <div class="tg-title">Sugestões de resposta</div>
-            <div class="tg-sub">O Lumi Theo sugere respostas rápidas após cada mensagem</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="pref-sugestoes" checked onchange="salvarPrefs()">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div class="toggle-info">
-            <div class="tg-title">Urso Professor</div>
-            <div class="tg-sub">Dicas do Lumi Theo quando você usar palavras difíceis</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="pref-urso" checked onchange="salvarPrefs()">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div class="toggle-info">
             <div class="tg-title">Lembrete diário</div>
             <div class="tg-sub">Receba um lembrete para registrar seu humor</div>
           </div>
@@ -748,23 +726,28 @@
     function aplicarCalmo(){
       var on=document.getElementById('pref-modocalmo').checked;
       document.documentElement.setAttribute('data-modo-calmo', on?'true':'false');
-      try{ localStorage.setItem('lt-modo-calmo', on?'1':'0'); localStorage.setItem('lt_modo_calmo', on?'1':'0'); }catch(e){}
+      try{
+        localStorage.setItem('lt-modo-calmo', on?'1':'0'); localStorage.setItem('lt_modo_calmo', on?'1':'0');
+        // Período de graça pro config.js (sincronizarModoCalmo): evita que a
+        // PRÓXIMA página carregue antes do upsert de salvarPrefs() chegar no
+        // banco e acabe lendo o valor antigo, desligando o que acabou de ligar.
+        localStorage.setItem('lt-modo-calmo-ts', String(Date.now()));
+      }catch(e){}
     }
 
     /* PREFERÊNCIAS — Supabase */
     async function salvarPrefs(){
       var modoCalmo=document.getElementById('pref-modocalmo').checked;
-      var prefs={sugestoes:document.getElementById('pref-sugestoes').checked,urso:document.getElementById('pref-urso').checked,anim:!modoCalmo,lembrete:document.getElementById('pref-lembrete').checked,fonte:_fonteAtual,tema:_temaAtual,reduzAnim:modoCalmo};
+      var prefs={anim:!modoCalmo,lembrete:document.getElementById('pref-lembrete').checked,fonte:_fonteAtual,tema:_temaAtual,reduzAnim:modoCalmo};
       try{
-        await sb.from('preferencias_usuario').upsert({id_neurodivergente:_uid,...prefs,updated_at:new Date().toISOString()},{onConflict:'id_neurodivergente'});
+        var res = await sb.from('preferencias_usuario').upsert({id_neurodivergente:_uid,...prefs,updated_at:new Date().toISOString()},{onConflict:'id_neurodivergente'});
+        if(res.error) console.warn('[Prefs] Erro ao salvar:',res.error.message);
       }catch(e){console.warn('[Prefs] Erro ao salvar:',e.message);}
     }
     async function carregarPrefs(){
       try{
         var {data:p}=await sb.from('preferencias_usuario').select('*').eq('id_neurodivergente',_uid).single();
         if(p){
-          if(p.sugestoes!==undefined)document.getElementById('pref-sugestoes').checked=p.sugestoes;
-          if(p.urso!==undefined)document.getElementById('pref-urso').checked=p.urso;
           if(p.lembrete!==undefined)document.getElementById('pref-lembrete').checked=p.lembrete;
           if(p.fonte)_fonteAtual=p.fonte;
           if(p.tema)_temaAtual=p.tema;
