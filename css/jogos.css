@@ -216,14 +216,16 @@
 .jg-btn-claro { background: #fff; color: var(--jg-cor-ink, var(--brand-dark)); }
 .jg-btn-claro:hover { background: var(--jg-cor-bg, var(--panel-1)); color: var(--jg-cor-ink, var(--brand-dark)); }
 
-/* Card especial (cheio de cor, com padrão de pontinhos) — usado pela lousa */
+/* Card especial (cheio de cor, com padrão de pontinhos) — usado pela lousa
+   e pelo Roleplay em destaque. Cor vem do tema do card (--jg-cor/-ink),
+   com a lousa como fallback pra quem não define um tema. */
 .jg-card--especial {
   position: relative;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(150deg, var(--rosa-dark) 0%, var(--rosa) 100%);
+  background: linear-gradient(150deg, var(--jg-cor-ink, var(--rosa-dark)) 0%, var(--jg-cor, var(--rosa)) 100%);
   border: none;
-  box-shadow: 0 18px 38px rgba(156, 59, 127, .28), inset 0 1px 0 rgba(255, 255, 255, .2);
+  box-shadow: 0 18px 38px rgba(20, 30, 60, .28), inset 0 1px 0 rgba(255, 255, 255, .2);
 }
 .jg-card--especial::before {
   content: '';

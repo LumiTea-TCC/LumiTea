@@ -3839,6 +3839,10 @@ body.cui-page { overflow: hidden; }
 .cui-vinculo-titulo { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
 .cui-sep { border: none; border-top: 1px solid var(--border-faint); margin: 20px 0; }
 .cui-tela-topo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+/* Agrupa mais de um botão de ação no lado direito de .cui-tela-topo (ex.: um
+   botão perigoso + o botão principal), sem que o space-between do pai os
+   espalhe pelos dois extremos. */
+.cui-tela-topo-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 /* Linha de explicação logo abaixo do título (o que aquele botão vai fazer). */
 .cui-rel-explica { max-width: 62ch; margin: -8px 0 20px; line-height: 1.55; }
 /* Ação dentro do estado vazio: é onde o olhar cai quando não há nada listado. */

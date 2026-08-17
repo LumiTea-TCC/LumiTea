@@ -26,7 +26,7 @@
 
   // IA (Groq). Em DEV usa a chave de secrets.js (direto, sem deploy).
   // Em produção: sem chave no cliente → usa o proxy "groq-proxy".
-  g.LUMITEA.GROQ_MODEL     = 'llama-3.3-70b-versatile';
+  g.LUMITEA.GROQ_MODEL     = 'openai/gpt-oss-120b';
   g.LUMITEA.GROQ_API_KEY   = _devKey(SECRETS.GROQ_API_KEY);
   g.LUMITEA.GROQ_DIRECT_URL = 'https://api.groq.com/openai/v1/chat/completions';
   g.LUMITEA.GROQ_PROXY_URL = g.LUMITEA.SUPABASE_URL.replace(/\/+$/, '') + '/functions/v1/groq-proxy';

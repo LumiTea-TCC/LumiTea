@@ -256,7 +256,7 @@
       el.palco.classList.add('escondido');
       el.instrucao.classList.add('escondido');
       el.fim.innerHTML =
-        '<img src="img/urso-joia.png" alt="">' +
+        '<img src="img/urso-joinha.png" alt="">' +
         '<h2>Tudo guardado no lugar certo!</h2>' +
         '<p>Você separou ' + estado.total + ' figuras olhando só para o que importava. ' +
         'Isso é atenção e lógica trabalhando juntas.</p>' +

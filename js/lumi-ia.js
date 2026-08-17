@@ -57,8 +57,8 @@ var LumiIA = (function () {
 
   async function chamarGroq(messages, opts) {
     opts = opts || {};
-    var modelPrimary = cfg().GROQ_MODEL || 'llama-3.3-70b-versatile';
-    var modelFallback = 'llama-3.1-8b-instant';
+    var modelPrimary = cfg().GROQ_MODEL || 'openai/gpt-oss-120b';
+    var modelFallback = 'openai/gpt-oss-20b';
     var url = proxyUrl();
     var auth = await authHeader();
     var anon = cfg().SUPABASE_ANON_KEY || '';

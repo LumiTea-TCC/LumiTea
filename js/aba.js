@@ -53,7 +53,7 @@ var Aba = (function () {
     if (opts.historico) msgs = msgs.concat(opts.historico);
     if (userMsg) msgs.push({ role: 'user', content: userMsg });
     var res = await LT.groqFetch({
-      model: LT.GROQ_MODEL || 'llama-3.3-70b-versatile',
+      model: LT.GROQ_MODEL || 'openai/gpt-oss-120b',
       messages: msgs, max_tokens: opts.maxTokens || 600, temperature: opts.temp == null ? 0.7 : opts.temp
     });
     if (!res.ok) throw new Error('proxy ' + res.status);

@@ -359,7 +359,7 @@ var Comunidade = (function () {
       : 'Você ajuda um adolescente autista a reescrever um post para uma comunidade de apoio entre adolescentes. Deixe claro e gentil, mantendo a voz e a mensagem dele. Responda APENAS com o texto reescrito, em português do Brasil, sem aspas, sem markdown, sem emojis, frases curtas.';
     try {
       var res = await LT.groqFetch({
-        model: LT.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        model: LT.GROQ_MODEL || 'openai/gpt-oss-120b',
         messages: [{ role: 'system', content: sys }, { role: 'user', content: texto }],
         max_tokens: 400, temperature: 0.6
       });

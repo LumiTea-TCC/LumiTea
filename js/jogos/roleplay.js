@@ -32,7 +32,7 @@
   'use strict';
   var J = g.LUMIJOGOS;
   var esc = (g.LUMITEA && g.LUMITEA.esc) || function (s) { return String(s == null ? '' : s); };
-  var GROQ_MODEL = (g.LUMITEA && g.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
+  var GROQ_MODEL = (g.LUMITEA && g.LUMITEA.GROQ_MODEL) || 'openai/gpt-oss-120b';
 
   var JOGO = 'roleplay';
 
@@ -312,19 +312,27 @@
   async function chamarGroq(systemPrompt, msgs, maxTokens) {
     async function tentar(modelo) {
       var r = await g.LUMITEA.groqFetch({
-        model: modelo, max_tokens: maxTokens || 350, temperature: 0.7,
+        model: modelo, max_tokens: maxTokens || 450, temperature: 0.7,
         messages: [{ role: 'system', content: systemPrompt }].concat(msgs)
       });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.ok) {
+        var corpo = await r.text().catch(function () { return ''; });
+        throw new Error('HTTP ' + r.status + (corpo ? ' — ' + corpo.slice(0, 300) : ''));
+      }
       var d = await r.json();
       return (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '';
     }
     try { return await tentar(GROQ_MODEL); }
-    catch (e) { return await tentar('llama-3.1-8b-instant'); }
+    catch (e) { return await tentar('openai/gpt-oss-20b'); }
   }
 
   function tentarParseJSON(s) { try { return JSON.parse(s); } catch (e) { return null; } }
 
+  /* Se a IA não devolver um JSON completo e válido (ex.: cortado no meio por
+     falta de tokens, ou algum texto solto que não dá pra recuperar), retorna
+     null — NUNCA deve aparecer um pedaço de JSON quebrado como se fosse a
+     fala do personagem. null aqui é tratado pelo chamador exatamente como
+     uma falha de rede: cai no roteiro de reserva do cenário. */
   function interpretarRespostaIA(texto) {
     var limpo = (texto || '').trim();
     var fence = limpo.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -334,9 +342,9 @@
       var m = limpo.match(/\{[\s\S]*\}/);
       if (m) obj = tentarParseJSON(m[0]);
     }
-    if (!obj) return { resposta: limpo || 'Desculpa, pode repetir?', dica: '', concluido: false };
+    if (!obj || typeof obj.resposta !== 'string' || !obj.resposta.trim()) return null;
     return {
-      resposta: String(obj.resposta || '').trim() || 'Hmm, deixa eu pensar melhor nisso...',
+      resposta: obj.resposta.trim(),
       dica: obj.dica ? String(obj.dica).trim() : '',
       concluido: !!obj.concluido
     };
@@ -478,8 +486,9 @@
 
     var parsed = null;
     try {
-      var respostaTexto = await chamarGroq(montarPromptSistema(c), construirHistoricoIA(), 350);
+      var respostaTexto = await chamarGroq(montarPromptSistema(c), construirHistoricoIA());
       parsed = interpretarRespostaIA(respostaTexto);
+      if (!parsed) console.warn('[Roleplay] Resposta da IA não veio em JSON válido, usando roteiro de reserva:', respostaTexto);
     } catch (e) {
       console.warn('[Roleplay] Falha ao falar com a IA, usando roteiro de reserva:', e);
     }
@@ -602,7 +611,7 @@
     el.grade.classList.add('escondido');
     if (sucesso) {
       el.fim.innerHTML =
-        '<img src="img/urso-joia.png" alt="">' +
+        '<img src="img/urso-joinha.png" alt="">' +
         '<h2>Muito bem! Você treinou com ' + esc(c.personagem) + '</h2>' +
         '<p>Você praticou ' + esc(c.tag.toLowerCase()) + ' e conseguiu o objetivo da cena. Cada vez que ' +
         'você treina uma conversa difícil aqui, fica um pouco mais fácil quando ela acontecer de verdade.</p>' +

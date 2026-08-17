@@ -215,7 +215,7 @@
     // Reusa o cliente global criado por js/core/config.js (evita o aviso
     // "Multiple GoTrueClient instances" e a disputa pela mesma storage key).
     const sb = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
+    const GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'openai/gpt-oss-120b';
     async function chamarGroq(systemPrompt, msgs, maxTokens) {
       async function tryModel(model) {
         const r = await window.LUMITEA.groqFetch({ model: model, max_tokens: maxTokens || 700, temperature: 0.7,
@@ -225,7 +225,7 @@
         return d.choices?.[0]?.message?.content || '';
       }
       try { return await tryModel(GROQ_MODEL); }
-      catch(e) { return await tryModel('llama-3.1-8b-instant'); }
+      catch(e) { return await tryModel('openai/gpt-oss-20b'); }
     }
 
     var _userId = null, _nomeUsuario = 'amigo';

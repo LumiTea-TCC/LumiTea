@@ -83,7 +83,7 @@ var Apoio = (function () {
   async function chamar(messages, maxTokens, temp) {
     if (!LT.groqFetch) throw new Error('sem proxy');
     var res = await LT.groqFetch({
-      model: LT.GROQ_MODEL || 'llama-3.3-70b-versatile',
+      model: LT.GROQ_MODEL || 'openai/gpt-oss-120b',
       messages: messages, max_tokens: maxTokens || 600, temperature: temp || 0.7
     });
     if (!res.ok) throw new Error('proxy ' + res.status);

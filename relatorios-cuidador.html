@@ -40,10 +40,13 @@
       <div class="cui-tela ativa">
         <div class="cui-tela-topo">
           <div class="cui-section-title cui-section-title--reto"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i> Relatórios</div>
-          <!-- Ação principal da página: fica SEMPRE visível. Antes nascia com
-               `hidden` e só aparecia se o carregamento da lista desse certo —
-               qualquer falha no caminho deixava o cuidador sem como gerar nada. -->
-          <button class="btn-primary" id="btn-gerar-relatorio" disabled><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar relatório</button>
+          <div class="cui-tela-topo-acoes">
+            <button class="btn-danger-ghost" id="btn-limpar-relatorios" disabled><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Limpar histórico de relatórios</button>
+            <!-- Ação principal da página: fica SEMPRE visível. Antes nascia com
+                 `hidden` e só aparecia se o carregamento da lista desse certo —
+                 qualquer falha no caminho deixava o cuidador sem como gerar nada. -->
+            <button class="btn-primary" id="btn-gerar-relatorio" disabled><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar relatório</button>
+          </div>
         </div>
         <p class="cui-hint cui-rel-explica">O Lumi Theo lê as conversas recentes do adolescente e monta um resumo com pontos de atenção e orientações para você.</p>
         <div id="relatorios-list"><div class="empty-state"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i><p>Carregando relatórios...</p></div></div>
@@ -53,7 +56,98 @@
   </div><!-- /cui-layout -->
 
   <script>
-    var GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'llama-3.3-70b-versatile';
+    var GROQ_MODEL = (window.LUMITEA && window.LUMITEA.GROQ_MODEL) || 'openai/gpt-oss-120b';
+
+    /* A IA às vezes devolve um "\n" cru (caractere de controle de verdade, não a
+       sequência de escape "\n") dentro de uma string do JSON — inválido, derruba o
+       JSON.parse inteiro com "Expected ',' or ']' after array element". Escapa só os
+       caracteres de controle que estão DENTRO de aspas (fora delas, quebra de linha é
+       só espaço em branco entre os campos do JSON, mexer ali quebraria o parse de novo). */
+    function escaparControleEmStringsJSON(txt) {
+      var out = '', dentroString = false, escapando = false;
+      for (var i = 0; i < txt.length; i++) {
+        var ch = txt[i];
+        if (!dentroString) {
+          if (ch === '"') dentroString = true;
+          out += ch;
+          continue;
+        }
+        if (escapando) { out += ch; escapando = false; continue; }
+        if (ch === '\\') { out += ch; escapando = true; }
+        else if (ch === '"') { out += ch; dentroString = false; }
+        else if (ch === '\n') out += '\\n';
+        else if (ch === '\r') out += '\\r';
+        else if (ch === '\t') out += '\\t';
+        else out += ch;
+      }
+      return out;
+    }
+
+    /* ── SINAL DE RISCO (autolesão) E DE AGRESSÃO — determinístico, independente
+       da IA. Mesmo padrão de diario.html/calendario.html/js/jogos/roleplay.js
+       (cópia local, de propósito — não importa daqueles arquivos pra não
+       arriscá-los). O alerta de crise desta página vinha SÓ do campo
+       `nivel_crise` que a própria IA marca dentro do JSON do relatório: se esse
+       JSON falha ao parsear (aconteceu de verdade em 2026-08-17, com uma sessão
+       contendo sinal real de ideação suicida), o relatório inteiro não era
+       salvo e nenhum alerta chegava pro cuidador. Isso roda direto em cima das
+       mensagens da conversa, ANTES/independente da chamada à IA — dispara o
+       alerta mesmo que a geração do relatório falhe. */
+    var SINAIS_AUTOLESAO = ['me matar', 'suicíd', 'suicid', 'não aguento mais', 'nao aguento mais',
+      'me cortar', 'queria morrer', 'quero morrer', 'vou morrer', 'sumir do mundo', 'acabar com tudo',
+      'me machucar', 'tirar minha vida', 'não quero viver', 'nao quero viver'];
+    var SINAIS_AGRESSAO = ['bati em', 'bati no', 'bati na', 'agredi', 'espanquei', 'esmurrei', 'soquei',
+      'dei um soco', 'dei uma surra', 'chutei ele', 'chutei ela', 'machuquei de propósito',
+      'machuquei ele', 'machuquei ela', 'quebrei a cara', 'parti a cara', 'matei ele', 'matei ela',
+      'matei um amigo', 'matei uma amiga', 'matei meu amigo', 'matei minha amiga'];
+    function relContemTermo(t, termo) {
+      if (termo.indexOf(' ') !== -1) return t.indexOf(termo) !== -1;
+      var e = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp('(^|[^a-zà-öø-ÿ])' + e).test(t);
+    }
+    function relPrimeiroTermo(lista, t) {
+      for (var i = 0; i < lista.length; i++) { if (relContemTermo(t, lista[i])) return lista[i]; }
+      return null;
+    }
+    function relTrechoDetectado(t, termo, textoOriginal) {
+      if (termo.indexOf(' ') !== -1) return termo;
+      var e = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var m2 = new RegExp('(^|[^a-zà-öø-ÿ])(' + e + '[a-zà-öø-ÿ]*)').exec(t);
+      if (!m2) return termo;
+      return textoOriginal.substr(m2.index + m2[1].length, m2[2].length);
+    }
+    function categoriaRiscoRelatorio(texto) {
+      var t = (texto || '').toLowerCase();
+      var termo = relPrimeiroTermo(SINAIS_AUTOLESAO, t);
+      if (termo) return { categoria: 'autolesao', trecho: relTrechoDetectado(t, termo, texto) };
+      termo = relPrimeiroTermo(SINAIS_AGRESSAO, t);
+      if (termo) return { categoria: 'agressao', trecho: relTrechoDetectado(t, termo, texto) };
+      return null;
+    }
+    async function avisarCuidadorSeRiscoNaConversa(resumoMsgs, teenId) {
+      try {
+        var deteccao = categoriaRiscoRelatorio(resumoMsgs);
+        if (!deteccao) return;
+        var trecho = (deteccao.trecho || '').slice(0, 200);
+        var autolesao = deteccao.categoria === 'autolesao';
+        var r = await CUI.sb.from('alertas').insert({
+          id_neurodivergente: teenId,
+          tipo: autolesao ? 'crise' : 'aviso',
+          titulo: autolesao ? 'Sinal de risco na conversa' : 'Sinal de agressão na conversa',
+          descricao: (autolesao
+            ? 'Uma mensagem recente da conversa indicou possível risco (autolesão/suicídio).'
+            : 'Uma mensagem recente da conversa mencionou ter machucado outra pessoa.')
+            + (trecho ? ' Trecho: "' + trecho + '".' : ''),
+          destino: 'responsavel',
+          lido: false,
+          timestamp: new Date().toISOString()
+        });
+        if (r.error) console.warn('[relatorios] Não foi possível registrar alerta de segurança:', r.error.code, '|', r.error.message);
+        else CUI.atualizarBadgeAlertas();
+      } catch (e) {
+        console.warn('[relatorios] Falha ao checar sinais de segurança:', e);
+      }
+    }
 
     /* ── O QUE A TABELA `relatorios` ACEITA DE VERDADE ─────────
        O insert vinha falhando com HTTP 400 e ninguém via: a versão antiga
@@ -153,10 +247,23 @@
                          : 'Escolha um adolescente na barra acima para gerar o relatório';
     }
 
+    /* Diferente do botão de gerar, este SÓ faz sentido se já existir algo pra
+       apagar — fica desabilitado tanto sem adolescente escolhido quanto com a
+       lista vazia. `temRelatorios` vem de quem já consultou a lista. */
+    function ajustarBotaoLimpar(teenId, temRelatorios) {
+      var btn = document.getElementById('btn-limpar-relatorios');
+      if (!btn) return;
+      btn.disabled = !teenId || !temRelatorios;
+      btn.title = !teenId ? 'Escolha um adolescente na barra acima'
+                : !temRelatorios ? 'Não há relatórios salvos pra limpar'
+                : 'Apagar todos os relatórios salvos deste adolescente';
+    }
+
     /* ── LISTA ─────────────────────────────────────────────── */
     async function carregarRelatorios(teenId) {
       var lista = document.getElementById('relatorios-list');
       ajustarBotao(teenId);
+      ajustarBotaoLimpar(teenId, false);
       if (!lista) return;
 
       if (!teenId) {
@@ -177,6 +284,7 @@
       }
 
       var rels = res.data || [];
+      ajustarBotaoLimpar(teenId, rels.length > 0);
       if (!rels.length) {
         /* Estado vazio com a ação junto: é onde o olho do cuidador está.
            O botão do topo continua lá, este é um atalho. */
@@ -262,20 +370,42 @@
         var resumoMsgs = convs.map(function (m) { return (m.role || '').toUpperCase() + ': ' + (m.content || ''); }).join('\n');
         if (!resumoMsgs) resumoMsgs = 'Sem conversas recentes. O adolescente está começando a usar a plataforma.';
 
+        // Silencioso, em paralelo — nunca bloqueia nem depende da geração do
+        // relatório pela IA (ver comentário na definição da função acima).
+        avisarCuidadorSeRiscoNaConversa(resumoMsgs, teenId);
+
         var res = await window.LUMITEA.groqFetch({
           model: GROQ_MODEL,
+          response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: 'Você é o Lumi Theo, especialista em TEA. Gere um relatório para o cuidador. RESPONDA SOMENTE COM JSON VÁLIDO: {"resumo":"","humor_geral":"neutro","pontos_atencao":[],"dicas_cuidador":[],"sugestoes":[],"nivel_crise":false}. - resumo: 2-3 frases. - pontos_atencao: o que observar. - dicas_cuidador: [{titulo,descricao}]. - sugestoes: ações práticas. Português brasileiro. SOMENTE JSON.' },
             { role: 'user', content: 'Sessão de ' + nomeTeen + ':\n\n' + resumoMsgs }
           ],
-          max_tokens: 700, temperature: 0.4
+          max_tokens: 1000, temperature: 0.4
         });
 
         var data = await res.json();
         var raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '{}';
         raw = raw.replace(/```json|```/g, '').trim();
         var m = raw.match(/\{[\s\S]*\}/);
-        var rel = m ? JSON.parse(m[0]) : { resumo: 'Relatório gerado.', humor_geral: 'neutro', pontos_atencao: [], sugestoes: [] };
+        var rel;
+        if (m) {
+          try { rel = JSON.parse(m[0]); }
+          catch (eParse) {
+            /* A IA às vezes escreve um "\n" de verdade (quebra de linha crua) dentro de
+               uma frase do resumo/dicas, o que não é JSON válido. Tenta de novo escapando
+               só os caracteres de controle que estão DENTRO de strings (fora delas, quebra
+               de linha é só espaço em branco entre os campos e não pode ser mexida). */
+            try { rel = JSON.parse(escaparControleEmStringsJSON(m[0])); }
+            catch (eParse2) {
+              console.error('[relatorios] JSON da IA não pôde ser interpretado, nem depois de sanitizar:',
+                            eParse2, '| bruto:', raw);
+              throw new Error('JSON_INVALIDO');
+            }
+          }
+        } else {
+          rel = { resumo: 'Relatório gerado.', humor_geral: 'neutro', pontos_atencao: [], sugestoes: [] };
+        }
         rel.timestamp = new Date().toISOString();
 
         // Visão psicológica (complementar — se falhar, o relatório continua válido)
@@ -323,7 +453,11 @@
           CUI.atualizarBadgeAlertas();
         }
       } catch (e) {
-        LumiUI.toast('Erro ao gerar relatório. Verifique sua conexão.', { type: 'error' });
+        if (e && e.message === 'JSON_INVALIDO') {
+          LumiUI.toast('A resposta da IA veio num formato inesperado dessa vez. Tente gerar de novo.', { type: 'error' });
+        } else {
+          LumiUI.toast('Erro ao gerar relatório. Verifique sua conexão.', { type: 'error' });
+        }
         console.error(e);
       }
 
@@ -335,6 +469,36 @@
       var vazio = document.getElementById('btn-gerar-primeiro');
       if (vazio) { vazio.disabled = false; vazio.innerHTML = CUI.ic('sparkles') + ' Gerar o primeiro relatório'; }
       ajustarBotao(CUI.teenId);
+    }
+
+    /* ── LIMPAR HISTÓRICO ──────────────────────────────────────
+       Apaga TODOS os relatórios salvos do adolescente escolhido (não só os
+       10 mais recentes que a lista mostra — o delete não tem o `.limit()` da
+       leitura). Irreversível, por isso passa pelo LumiUI.confirm (nunca
+       `confirm()` nativo — muito abrupto pro público deste app) antes. */
+    async function limparHistoricoRelatorios() {
+      var teenId = CUI.teenId;
+      if (!teenId) return;
+      var teen = CUI.teen();
+      var nomeTeen = teen ? teen.nome : 'adolescente';
+
+      var ok = await LumiUI.confirm(
+        'Isso vai apagar TODOS os relatórios salvos de ' + nomeTeen + '. Essa ação não pode ser desfeita.',
+        { titulo: 'Limpar histórico de relatórios?', ok: 'Sim, apagar tudo', cancelar: 'Cancelar' }
+      );
+      if (!ok) return;
+
+      var btn = document.getElementById('btn-limpar-relatorios');
+      if (btn) { btn.disabled = true; btn.innerHTML = CUI.ic('trash') + ' Apagando…'; }
+
+      var r = await CUI.sb.from('relatorios').delete().eq('id_neurodivergente', teenId);
+      if (r.error) {
+        LumiUI.toast('Não foi possível limpar o histórico. Tente de novo.', { type: 'error' });
+        console.error('[relatorios] limpar histórico falhou:', r.error.code, '|', r.error.message);
+      } else {
+        LumiUI.toast('Histórico de relatórios apagado.', { type: 'success' });
+      }
+      await carregarRelatorios(teenId);
     }
 
     /* ── PDF (janela de impressão do navegador) ────────────────
@@ -416,6 +580,7 @@
     }
 
     document.getElementById('btn-gerar-relatorio').addEventListener('click', gerarRelatorioManual);
+    document.getElementById('btn-limpar-relatorios').addEventListener('click', limparHistoricoRelatorios);
     CUI.aoTrocarTeen(carregarRelatorios);
   </script>
 </body>

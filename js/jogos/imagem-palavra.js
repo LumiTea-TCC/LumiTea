@@ -228,7 +228,7 @@
       el.palco.classList.add('escondido');
       el.instrucao.classList.add('escondido');
       el.fim.innerHTML =
-        '<img src="img/urso-estrelhinha.png" alt="">' +
+        '<img src="img/urso-joinha.png" alt="">' +
         '<h2>Todas as ligações certas!</h2>' +
         '<p>Você ligou ' + estado.total + (estado.total === 1 ? ' palavra' : ' palavras') +
         ' às figuras certas. Cada uma dessas é uma palavra que agora é sua.</p>' +

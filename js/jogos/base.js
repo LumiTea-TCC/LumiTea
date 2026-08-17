@@ -390,7 +390,11 @@
      Mesma tabela e mesmos limiares de nível usados em app-teen.js
      e home-autista.html — assim o XP ganho aqui aparece lá também.
      ============================================================ */
-  var sb = LT.criarSupabase ? LT.criarSupabase() : null;
+  // Reusa o cliente global criado por js/core/config.js (mesmo padrão de
+  // diario.html) — criar uma segunda instância aqui gera duas GoTrueClient
+  // em paralelo e desincroniza a sessão que groqFetch() lê pra autenticar
+  // no proxy da IA, derrubando toda chamada de IA nesta suíte de jogos.
+  var sb = g.supabaseClient || (LT.criarSupabase ? LT.criarSupabase() : null);
   var usuario = { id: null, nome: 'amigo', xp: 0, nivel: 1 };
   var NIVEL_XP = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000];
   J.usuario = usuario;

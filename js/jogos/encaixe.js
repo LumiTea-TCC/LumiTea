@@ -212,7 +212,7 @@
       el.palco.classList.add('escondido');
       el.instrucao.classList.add('escondido');
       el.fim.innerHTML =
-        '<img src="img/urso-estrelhinha.png" alt="">' +
+        '<img src="img/urso-joinha.png" alt="">' +
         '<h2>Tudo no lugar!</h2>' +
         '<p>Você encaixou ' + estado.total + (estado.total === 1 ? ' peça' : ' peças') +
         '. Reconhecer contornos e encontrar onde cada coisa se encaixa é um treino e tanto.</p>' +

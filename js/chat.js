@@ -418,7 +418,7 @@ var Chat = (function () {
   async function chamarIA(messages, maxTokens, temp) {
     if (!LT.groqFetch) throw new Error('sem-ia');
     var res = await LT.groqFetch({
-      model: LT.GROQ_MODEL || 'llama-3.3-70b-versatile',
+      model: LT.GROQ_MODEL || 'openai/gpt-oss-120b',
       messages: messages, max_tokens: maxTokens || 500, temperature: temp == null ? 0.7 : temp
     });
     if (!res.ok) throw new Error('proxy ' + res.status);

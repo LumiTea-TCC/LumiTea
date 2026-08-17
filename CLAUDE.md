@@ -186,6 +186,44 @@ existia como stub de redirect** (mundo aberto antigo, removido em 2026-08-04) �
   Chrome headless (grade, modal com indicador "digitando", banner de objetivo cumprido, tela de fim com
   sucesso) — foi assim que a colisão visual dos dois botões circulares do cabeçalho (som vs. fechar) apareceu
   na v1, só no render (ver memória `render-visual-com-chrome-headless`).
+- **🚨 A Groq descontinuou `llama-3.3-70b-versatile` e `llama-3.1-8b-instant` em 16/08/2026 — causa raiz
+  de "o personagem só repete um roteiro decorado" (2026-08-17).** Esses dois IDs eram o modelo principal E
+  o de reserva de **toda chamada de IA do site inteiro** (não só roleplay): `js/core/config.js`
+  (`GROQ_MODEL` padrão), `js/chat.js`, `js/apoio.js`, `js/comunidade.js`, `js/aba.js`, `js/lumi-ia.js`,
+  `js/jogos/roleplay.js`, `diario.html`, `calendario.html`, `consultoria-cuidador.html`,
+  `relatorios-cuidador.html`, e a whitelist `MODELOS_OK` do `groq-proxy` (Edge Function). A partir do
+  desligamento, toda chamada à Groq passou a devolver **404 "model not found"** — o proxy repassa isso como
+  `502 {"error":"Erro na IA","status":404}`, as duas tentativas (principal + reserva) falham, e todo `catch`
+  no cliente cai no roteiro fixo por cenário — no roleplay isso lê como "a IA não conversa de verdade, só
+  repete falas decoradas ignorando o que o adolescente escreveu" (era **literalmente** o roteiro, na ordem).
+  **Substitutos oficiais da Groq** ([console.groq.com/docs/deprecations](https://console.groq.com/docs/deprecations)):
+  `openai/gpt-oss-120b` no lugar de `llama-3.3-70b-versatile` (modelo principal), `openai/gpt-oss-20b` no
+  lugar de `llama-3.1-8b-instant` (modelo de reserva rápido). **Trocado nos 11 pontos client-side listados
+  acima** + `MODELOS_OK`/default do `groq-proxy`, que foi **reimplantado (v4, `ACTIVE`)** — sem isso a
+  whitelist do proxy rejeitaria o modelo novo mesmo com o cliente já corrigido.
+  ⚠️ **Se um relato parecido voltar ("IA só repete script", "IA não responde de verdade")**: é quase sempre
+  isso — chamada de IA falhando 100% das vezes (não é sobre prompt/personagem). Primeiro olhar o console do
+  navegador (`chamarGroq` em todo lugar já loga o corpo do erro, não só o status HTTP) antes de mexer em
+  prompt ou lógica de conversa. Sinal claro: as respostas batem exatamente com o array de fallback do
+  cenário, na ordem — a IA de verdade nunca repete a mesma frase pronta duas vezes.
+  ⚠️ **Groq desativa modelos com aviso prévio por e-mail e um prazo (~2 meses aqui: anúncio 17/06,
+  desligamento 16/08) — não é um evento único.** Da próxima vez que a Groq depreciar `openai/gpt-oss-120b`/
+  `openai/gpt-oss-20b`, o sintoma vai ser o mesmo. Não tem como o app detectar isso sozinho (não é bug de
+  código, é o catálogo de modelos do fornecedor mudando por baixo) — só descobre testando uma conversa real
+  ou lendo `console.groq.com/docs/deprecations`.
+- Durante essa investigação, duas correções paralelas foram feitas em `js/jogos/roleplay.js`/`base.js` —
+  **bugs reais, mantidos, mas nenhum dos dois era a causa deste relato** (a causa era só a deprecation
+  acima; guardar a distinção ajuda a debugar mais rápido da próxima vez):
+  1. Quando a Groq corta o JSON no meio (`max_tokens` insuficiente), `interpretarRespostaIA()` não casava o
+     regex de extração (exige `}` de fechamento) e jogava o **texto cru e quebrado** na bolha do personagem
+     em vez de cair no roteiro de reserva. Agora retorna `null` nesse caso, tratado como falha igual a erro
+     de rede. (Chegou a levar a uma tentativa de reforço via `response_format:{type:"json_object"}" + deploy
+     do `groq-proxy` v3 — **revertida** depois, sem efeito real na causa raiz; não deixa de ser uma ideia
+     válida pro futuro, só não foi testada contra uma chamada de verdade antes de deployar.)
+  2. `js/jogos/base.js` cria a própria instância do cliente Supabase em vez de reusar `window.supabaseClient`
+     (o único que `config.js` cria e que todo o resto do site já reusa, ex. `diario.html`). Duas instâncias
+     de GoTrueClient em paralelo é documentado pela própria supabase-js como não suportado — corrigido pra
+     `var sb = g.supabaseClient || (LT.criarSupabase ? ... )`, afeta os 6 jogos que usam `base.js`.
 
 ## 🖥️ Painel do cuidador = 13 páginas .html + uma casca comum (2026-08-07)
 Antes, quase tudo do painel eram **abas escondidas** dentro de `home-cuidador.html` (`<div class="cui-tela">`
@@ -566,6 +604,74 @@ Só apareceu quando `relatorios-cuidador.html` passou a checar o `error`.
 - ⚠️ `js/cuidador.js` tem um `salvarRelatorioSupabase()` com o mesmo defeito (`Object.assign` do objeto cru),
   mas o arquivo está **órfão** (nenhum `.html` o carrega) — sem efeito em produção. Se algum dia voltar a ser
   usado, corrigir junto.
+- **Bug diferente, mesma família — relatório parava de ser gerado com `JSON.parse` estourando "Expected ','
+  or ']' after array element" (2026-08-17).** Não é sobre coluna/CHECK (isso é depois do parse) — é ANTES:
+  `JSON.parse(m[0])` (linha ~278) não tinha `try/catch` próprio, só o `try/catch` externo da função inteira,
+  que mostrava "Erro ao gerar relatório. Verifique sua conexão." — mensagem enganosa, não era conexão.
+  Causa raiz: a IA às vezes escreve uma quebra de linha **crua** (caractere de controle de verdade) dentro de
+  uma frase de `resumo`/`dicas_cuidador`/`sugestoes`, em vez da sequência de escape `\n` — JSON não permite
+  caractere de controle literal dentro de string, e o `JSON.parse` derruba o objeto inteiro por causa disso
+  (mesma classe de problema do roleplay — IA não obedecendo "só JSON" à risca — mas aqui não tem
+  `response_format` nem roteiro de reserva pra cair, porque cada relatório é único, não dá pra ter uma
+  versão "decorada"). **Corrigido com `escaparControleEmStringsJSON()`** (função nova, topo do `<script>`):
+  varre o texto caractere a caractere rastreando se está DENTRO de uma string (respeitando `\"` escapado) e
+  só escapa `\n`/`\r`/`\t` **quando estão dentro de aspas** — fora delas, quebra de linha é só espaço em
+  branco de formatação do JSON e não pode ser tocada, ou quebra o parse de novo. Fluxo: tenta `JSON.parse`
+  direto, se falhar tenta nesse texto sanitizado, se falhar OS DOIS lança um erro `JSON_INVALIDO` que o catch
+  externo agora distingue com uma mensagem honesta ("A resposta da IA veio num formato inesperado dessa vez.
+  Tente gerar de novo.") em vez do "verifique sua conexão" — os botões já destravam de qualquer jeito
+  (código logo depois do try/catch, não mudou), então o cuidador só clica em gerar de novo. Confirmado com
+  teste Node isolado: JSON com quebra de linha crua dentro de string (falha no parse direto, funciona depois
+  de sanitizar), JSON bem formatado com quebras de linha legítimas fora de strings (continua funcionando
+  igual depois de passar pela função — não quebra o caso são), e um JSON genuinamente irrecuperável (continua
+  falhando, a função não finge consertar qualquer coisa).
+- **`escaparControleEmStringsJSON()` sozinha não bastou — voltou a falhar no mesmo dia, com um relatório
+  contendo sinal de ideação suicida real (2026-08-17, mesmo relato, resolvido de vez).** O `JSON.parse`
+  estourava de novo (aspas/formatação diferente do primeiro caso, não só quebra de linha crua) — a causa de
+  fundo é que essa chamada nunca usava `response_format:{type:"json_object"}` (ao contrário do roleplay, que
+  já foi corrigido nesse sentido), então a Groq só respeitava "SOMENTE JSON" por instrução de prompt, sem
+  garantia estrutural. **Corrigido de vez**: a chamada de gerar o relatório agora manda
+  `response_format:{type:"json_object"}` (o `groq-proxy` v4 já repassa esse campo, não precisou de novo
+  deploy) + `max_tokens` subiu de 700 pra 1000 (o relatório completo — resumo, 4 pontos de atenção, 4 dicas
+  com título+descrição, sugestões — é longo, 700 arriscava cortar no meio de qualquer forma).
+  `escaparControleEmStringsJSON()` continua no código como segunda camada de defesa (não faz mal, e outros
+  modelos/circunstâncias futuras podem voltar a escapar quebras de linha cruas mesmo em JSON mode).
+- ⚠️ **Efeito colateral do bug acima, achado no mesmo print: quando o `m` (regex `\{[\s\S]*\}`) não encontra
+  NENHUM JSON na resposta da IA**, o código cai no fallback `{resumo:'Relatório gerado.', humor_geral:
+  'neutro', pontos_atencao:[], sugestoes:[]}` — um relatório quase vazio, que É SALVO normalmente (não lança
+  `JSON_INVALIDO`, esse fallback só existe pro caso de `m` null, não pro caso de JSON malformado). A
+  "Visão psicológica" desse relatório então recebe `JSON.stringify(rel)` com esse conteúdo mínimo e
+  (corretamente) responde pedindo o conteúdo do relatório — não é a IA "sem acesso aos dados do
+  adolescente", é o relatório de origem que já chegou vazio. Como `response_format:json_object` agora
+  torna esse caminho (nenhum JSON na resposta) bem mais raro, não foi tratado à parte — se voltar a
+  acontecer com frequência mesmo com JSON mode ligado, vale trocar esse fallback por uma mensagem que deixe
+  claro pro cuidador que a geração falhou, em vez de salvar um relatório fantasma silenciosamente.
+- 🚨→✅ **Risco de segurança identificado e CORRIGIDO no mesmo dia (2026-08-17):** diferente do diário/
+  calendário/chat da comunidade/roleplay (que têm checagem determinística de sinal de risco independente da
+  IA — `categoriaRisco*`/`SINAIS_AUTOLESAO`, sempre roda, nunca depende de JSON parsear), o alerta de crise
+  do relatório dependia 100% do campo `nivel_crise` dentro do JSON que a própria IA gera. Se esse JSON
+  falhasse ao parsear (aconteceu de verdade, com um relato real de ideação suicida), o relatório não era
+  salvo e **nenhum alerta disparava** — o cuidador nunca ficava sabendo. `response_format` (acima) reduz a
+  chance de falha de parse, mas não elimina (rate limit, timeout, resposta vazia etc.). **Corrigido**: nova
+  checagem determinística em `relatorios-cuidador.html` — mesmas listas `SINAIS_AUTOLESAO`/`SINAIS_AGRESSAO`
+  e mesma lógica de borda de palavra do diário/calendário/roleplay (cópia local, prefixo `rel*`, mesma razão
+  de não importar dos outros arquivos: não arriscar aqueles sistemas). `avisarCuidadorSeRiscoNaConversa()`
+  roda em cima de `resumoMsgs` (a conversa crua já concatenada) **antes/independente da chamada à IA** —
+  silenciosa, em paralelo (sem `await`, sem travar a geração), insere direto em `alertas`
+  (`tipo:'crise'`/`'aviso'`, `destino:'responsavel'`) mesmo que o relatório da IA falhe inteiro depois.
+  Confirmado com teste Node isolado contra os mesmos 9 casos usados no roleplay (autolesão, agressão, e os
+  falso-positivos de borda "matei aula"/"bati um recorde"/"disputa acirrada") — todos corretos.
+- **Botão "Limpar histórico de relatórios" (2026-08-17).** `.cui-tela-topo-acoes` (classe nova em `app.css`)
+  agrupa esse botão + "Gerar relatório" no lado direito do topo, sem que o `space-between` do pai espalhe os
+  dois. `.btn-danger-ghost` (mesma classe já usada em "Excluir minha conta" de `conta-cuidador.html`) +
+  `LumiUI.confirm()` antes de apagar (nunca `confirm()` nativo, convenção do projeto). Apaga TODOS os
+  relatórios do adolescente escolhido via `CUI.sb.from('relatorios').delete().eq('id_neurodivergente',
+  teenId)` — sem `.limit()`, diferente da leitura da lista (que só mostra os 10 mais recentes); a policy
+  `rel_resp` da tabela já é `FOR ALL` (cobre delete), confirmado por essa mesma página já inserir com sucesso
+  usando a mesma policy — não precisou reconferir produção. Fica desabilitado sem adolescente escolhido OU
+  sem nenhum relatório salvo (`ajustarBotaoLimpar(teenId, temRelatorios)`, chamado de dentro de
+  `carregarRelatorios` nos três caminhos: sem teen, erro de leitura por omissão fica desabilitado, e com a
+  lista carregada de verdade).
 
 ## 🔐 Segurança (estado atual e regras)
 - **Chaves de IA/voz são gated por origem** (`js/core/config.js` + `js/core/secrets.js`): só carregam em DEV

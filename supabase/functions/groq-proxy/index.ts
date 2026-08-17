@@ -13,8 +13,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODELOS_OK = new Set([
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
 ]);
 
 // Defina ALLOW_ORIGIN no deploy para travar a origem (ex.: https://seu-site).
@@ -74,10 +74,16 @@ Deno.serve(async (req: Request) => {
 
   const model = MODELOS_OK.has(payload?.model)
     ? payload.model
-    : "llama-3.3-70b-versatile";
+    : "openai/gpt-oss-120b";
   const max_tokens = Math.min(Math.max(parseInt(payload?.max_tokens) || 700, 1), 1000);
   let temperature = typeof payload?.temperature === "number" ? payload.temperature : 0.78;
   temperature = Math.min(Math.max(temperature, 0), 1.3);
+  // Repassado só se vier exatamente nesse formato — usado pelo roleplay pra
+  // forçar a Groq devolver JSON completo e válido (evita resposta cortada
+  // no meio virando texto quebrado exibido como fala do personagem).
+  const response_format = (payload?.response_format?.type === "json_object")
+    ? { type: "json_object" as const }
+    : undefined;
 
   // ── 4) Repasse pra Groq (com a chave secreta) ──
   let groqRes: Response;
@@ -88,7 +94,7 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${GROQ_API_KEY}`,
       },
-      body: JSON.stringify({ model, messages, max_tokens, temperature }),
+      body: JSON.stringify({ model, messages, max_tokens, temperature, response_format }),
     });
   } catch (_e) {
     return json({ error: "Falha ao contatar a IA" }, 502);

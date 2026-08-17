@@ -189,7 +189,7 @@
       timerFim = null;
       el.palco.classList.add('escondido');
       el.fim.innerHTML =
-        '<img src="img/urso-joia.png" alt="">' +
+        '<img src="img/urso-joinha.png" alt="">' +
         '<h2>Você encontrou todos os pares!</h2>' +
         '<p>Foram ' + pares + (pares === 1 ? ' par' : ' pares') + ' em ' + estado.tentativas +
         (estado.tentativas === 1 ? ' tentativa' : ' tentativas') + '. Cada carta que você lembrou foi sua memória trabalhando.</p>' +
