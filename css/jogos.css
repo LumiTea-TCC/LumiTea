@@ -1257,6 +1257,23 @@ html[data-modo-calmo="true"] .jg-carta { perspective: none; }
 .rp-msg--dica svg { width: 16px; height: 16px; color: var(--primary-dark); flex-shrink: 0; margin-top: 2px; }
 .rp-msg--dica span { font-size: .8rem; color: var(--primary-dark); line-height: 1.5; }
 
+/* Quebra acolhedora quando a mensagem do adolescente indicou risco e a IA
+   está fora do ar — deliberadamente diferente da "dica" (não é uma dica de
+   comunicação, é um cuidado). */
+.rp-msg--cuidado {
+  align-self: center;
+  max-width: 92%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--tint-rose);
+  border: 1px solid var(--rosa);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+}
+.rp-msg--cuidado svg { width: 16px; height: 16px; color: var(--rosa-dark); flex-shrink: 0; margin-top: 2px; }
+.rp-msg--cuidado span { font-size: .82rem; color: var(--rosa-dark); line-height: 1.5; font-weight: 600; }
+
 /* "Digitando": três pontinhos pulsando dentro de um balão normal do
    personagem, enquanto a IA (Groq) ainda não respondeu. */
 .rp-digitando-pontos { display: inline-flex; align-items: center; gap: 4px; }

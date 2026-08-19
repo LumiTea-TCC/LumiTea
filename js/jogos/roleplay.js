@@ -256,9 +256,20 @@
     if (termo) return { categoria: 'agressao', trecho: rpTrechoDetectado(t, termo, texto) };
     return null;
   }
-  async function avisarCuidadorSeNecessario(texto) {
+  /* Mensagem NÃO-roteirizada usada quando: (a) a IA está fora do ar/falhou E
+     (b) a própria mensagem do adolescente já indicou sinal de risco. Mostrar
+     a fala cíclica de sempre ("Mostra onde você travou...") nesse momento
+     seria ignorar o que a pessoa acabou de dizer — melhor uma quebra breve
+     e acolhedora do que fingir que a encenação continua normal. */
+  function mensagemAcolhedoraRisco() {
+    return 'Vamos pausar a encenação por um instante. O que você disse importa de verdade — não tem problema ' +
+      'nenhum conversar sobre isso com um adulto de confiança. Você pode continuar treinando quando quiser, ' +
+      'sem pressa nenhuma.';
+  }
+
+  async function avisarCuidadorSeNecessario(texto, deteccaoJaFeita) {
     try {
-      var deteccao = categoriaRiscoRoleplay(texto);
+      var deteccao = deteccaoJaFeita !== undefined ? deteccaoJaFeita : categoriaRiscoRoleplay(texto);
       if (!deteccao) return;
       var sb = J.supabase;
       if (!sb || !J.usuario.id) return;
@@ -299,7 +310,16 @@
       'conduza a cena para uma resolução positiva.\n' +
       '- Depois de CADA mensagem do adolescente, avalie se ele JÁ demonstrou a habilidade central desta cena ' +
       'de forma clara, mesmo que de um jeito simples ou imperfeito — não exija perfeição nem que a situação ' +
-      'toda se resolva, só que a habilidade tenha aparecido.\n\n' +
+      'toda se resolva, só que a habilidade tenha aparecido.\n' +
+      '- ATENÇÃO — isto tem prioridade sobre todas as regras acima: se a mensagem do adolescente trouxer ' +
+      'sinal real de sofrimento grave (ex.: falar em se machucar, em morrer, em desistir de tudo, em se sentir ' +
+      'sem saída, xingamentos dirigidos a si mesmo de forma destrutiva), NÃO continue o roteiro da cena como ' +
+      'se nada tivesse acontecido e NÃO trate isso como parte do objetivo de comunicação. Sem sair do papel de ' +
+      c.personagem + ' de um jeito estranho, responda com uma quebra breve e calorosa: acolha o que a pessoa ' +
+      'disse com genuína preocupação humana, deixe claro que ela pode parar a encenação a qualquer momento e ' +
+      'que não tem problema conversar sobre isso com um adulto de confiança, e só depois, se fizer sentido, ' +
+      'pergunte gentilmente se ela quer continuar treinando ou prefere parar por agora. Nesse caso "concluido" ' +
+      'deve ser false — o objetivo da cena não importa nesse momento.\n\n' +
       'Responda SEMPRE e SOMENTE com um JSON válido, sem nenhum texto antes ou depois e sem marcação de ' +
       'código, exatamente neste formato: {"resposta":"sua fala como ' + c.personagem + ', em português do ' +
       'Brasil","dica":"uma dica curta (1 frase) de comunicação pro adolescente, sobre o que ele acabou de ' +
@@ -316,6 +336,7 @@
     async function tentar(modelo) {
       var r = await g.LUMITEA.groqFetch({
         model: modelo, max_tokens: maxTokens || 450, temperature: 0.7,
+        response_format: { type: 'json_object' },
         messages: [{ role: 'system', content: systemPrompt }].concat(msgs)
       });
       if (!r.ok) {
@@ -371,6 +392,10 @@
       return '<div class="rp-msg rp-msg--dica' + classeAnim + '">' + J.icone('lightbulb') +
         '<span>' + esc(msg.texto) + '</span></div>';
     }
+    if (msg.tipo === 'cuidado') {
+      return '<div class="rp-msg rp-msg--cuidado' + classeAnim + '">' + J.icone('heart') +
+        '<span>' + esc(msg.texto) + '</span></div>';
+    }
     return '<div class="rp-msg rp-msg--personagem' + classeAnim + '">' +
       '<div class="rp-msg-av" aria-hidden="true">' + J.icone('smile') + '</div>' +
       '<div class="rp-msg-corpo">' +
@@ -387,7 +412,7 @@
     estado.mensagens.push(msg);
     el.mensagens.insertAdjacentHTML('beforeend', bolhaHTML(msg, true));
     rolarParaFinal();
-    if ((msg.tipo === 'personagem' || msg.tipo === 'dica') && J.som.ligado()) J.som.falar(msg.texto);
+    if ((msg.tipo === 'personagem' || msg.tipo === 'dica' || msg.tipo === 'cuidado') && J.som.ligado()) J.som.falar(msg.texto);
   }
 
   function mostrarDigitando() {
@@ -476,7 +501,8 @@
 
     adicionarMensagem({ tipo: 'usuario', texto: texto });
     J.som.encaixe();
-    avisarCuidadorSeNecessario(texto); // silencioso, em paralelo — nunca bloqueia o envio
+    var deteccaoRisco = categoriaRiscoRoleplay(texto);
+    avisarCuidadorSeNecessario(texto, deteccaoRisco); // silencioso, em paralelo — nunca bloqueia o envio
 
     el.input.value = '';
     ajustarAlturaInput();
@@ -503,6 +529,11 @@
       adicionarMensagem({ tipo: 'personagem', texto: parsed.resposta });
       if (parsed.dica) adicionarMensagem({ tipo: 'dica', texto: parsed.dica });
       if (parsed.concluido) marcarObjetivoCumprido();
+    } else if (deteccaoRisco && deteccaoRisco.categoria === 'autolesao') {
+      // IA fora do ar E a mensagem indicou risco: nada de roteiro cíclico
+      // alheio ao que foi dito — mensagem acolhedora, sem sair muito do
+      // personagem. Também nunca marca o objetivo como cumprido.
+      adicionarMensagem({ tipo: 'cuidado', texto: mensagemAcolhedoraRisco() });
     } else {
       // IA fora do ar: roteiro fixo de reserva (nunca marca o objetivo como cumprido —
       // só a IA consegue avaliar isso, então essa rodada não vai gerar XP).

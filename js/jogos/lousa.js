@@ -214,6 +214,7 @@
   function terminar() {
     traco.ativo = false;
     traco.ponteiro = null;
+    agendarEnvioAutomatico();
   }
 
   /* Os listeners de mover/soltar ficam no document (mesmo padrão do
@@ -521,15 +522,23 @@
   }
 
   /* ============================================================
-     ANÁLISE DE RISCO (visão) — roda toda vez que um desenho é
-     guardado, silenciosa, em paralelo, NUNCA bloqueia o guardar.
-     Mesmo espírito do diário/roleplay/comunidade (o adolescente
-     nunca sabe que foi avisado) — só que aqui o sinal não vem de
-     palavra-chave, vem da IA "olhando" o desenho (único modelo com
-     visão da Groq hoje, qwen/qwen3.6-27b, adicionado ao groq-proxy
-     só pra esse uso).
+     ANÁLISE E ENVIO AO CUIDADOR (visão) — roda pra TODO desenho,
+     tenha ou não sinal preocupante, e mesmo que o adolescente nunca
+     clique em "Guardar desenho" (ver agendarEnvioAutomatico). A
+     galeria de miniaturas (acima) continua só neste aparelho — é a
+     análise+envio que sempre sobe pro cuidador, decisão do usuário:
+     toda produção da Lousa vira uma cópia + resumo da IA pra quem
+     cuida, e sinal preocupante vira alerta de verdade (crise/aviso)
+     em cima disso. Silenciosa, em paralelo, NUNCA bloqueia o
+     desenhar/guardar. O adolescente não é avisado desse envio (mesmo
+     espírito de "silencioso" já usado no diário/roleplay/comunidade,
+     mas aqui o envio acontece sempre, não só quando há risco — texto
+     da tela já avisa isso, ver lousa-pintar.html). O sinal não vem
+     de palavra-chave, vem da IA "olhando" o desenho (único modelo
+     com visão da Groq hoje, qwen/qwen3.6-27b, no groq-proxy só pra
+     esse uso).
      ============================================================ */
-  async function analisarDesenhoRisco(dataUrlCompleto, dataUrlMini) {
+  async function analisarEEnviarDesenho(dataUrlCompleto, dataUrlMini) {
     try {
       var LT = g.LUMITEA;
       if (!LT || !LT.groqFetch || !J.supabase || !J.usuario || !J.usuario.id) return;
@@ -539,13 +548,16 @@
         messages: [
           { role: 'system', content:
             'Você analisa um desenho feito por um adolescente autista numa lousa digital de um app de apoio ' +
-            'socioemocional. Olhe a imagem e responda SOMENTE com um JSON: ' +
+            'socioemocional, para um resumo curto que vai direto para o cuidador dele — não só em caso de ' +
+            'risco, TODO desenho gera esse resumo. Olhe a imagem e responda SOMENTE com um JSON: ' +
             '{"nivel":"ok"|"atencao"|"risco","motivo":"..."}. ' +
             'Use "risco" só se o desenho sugerir de forma clara autolesão, suicídio, ou violência grave contra ' +
             'si ou terceiros. Use "atencao" para sinais mais brandos de sofrimento (tristeza intensa, ' +
             'isolamento, algo incomum que vale um olhar) sem ser uma emergência. Use "ok" pra desenhos sem ' +
             'nenhum sinal preocupante — rabiscos, formas abstratas ou sem sentido óbvio são "ok", não "atencao". ' +
-            '"motivo" em no máximo 1 frase curta, em português.' },
+            '"motivo": em "ok", uma frase curta e neutra descrevendo o que foi desenhado (ex.: "Desenho de um ' +
+            'sol e uma casa, sem sinais preocupantes."); em "atencao"/"risco", uma frase curta explicando o ' +
+            'que chamou atenção. Sempre em português.' },
           { role: 'user', content: [
             { type: 'text', text: 'Analise este desenho.' },
             { type: 'image_url', image_url: { url: dataUrlCompleto } }
@@ -554,33 +566,72 @@
         max_tokens: 150, temperature: 0.2,
         response_format: { type: 'json_object' }
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        var corpoErro = await res.text().catch(function () { return ''; });
+        console.warn('[Lousa] IA de visão recusou a análise: HTTP ' + res.status + (corpoErro ? ' — ' + corpoErro.slice(0, 300) : ''));
+        return;
+      }
       var data = await res.json();
       var texto = data && data.choices && data.choices[0] && data.choices[0].message
         ? data.choices[0].message.content : '';
       if (!texto) return;
 
-      var r = JSON.parse(texto);
-      if (!r || !r.nivel || r.nivel === 'ok') return;
+      // Tolerante a cerca de código ```json``` ou texto solto ao redor do
+      // JSON — mesma defesa usada em js/jogos/roleplay.js, mesmo com
+      // response_format:json_object pedido (o modelo às vezes ainda foge
+      // do formato em temas sensíveis).
+      var r = null;
+      try { r = JSON.parse(texto); } catch (e) {
+        var m = texto.match(/\{[\s\S]*\}/);
+        if (m) { try { r = JSON.parse(m[0]); } catch (e2) {} }
+      }
+      if (!r) { console.warn('[Lousa] Resposta da IA de visão não veio em JSON válido:', texto.slice(0, 300)); return; }
 
-      var tipo = r.nivel === 'risco' ? 'crise' : 'aviso';
-      var titulo = r.nivel === 'risco' ? 'Sinal de risco em um desenho' : 'Desenho pode merecer atenção';
-      var descricao = r.motivo || 'A análise de imagem identificou algo que pode merecer atenção neste desenho.';
+      var nivel = r.nivel === 'risco' || r.nivel === 'atencao' ? r.nivel : 'ok';
+      var tipo = nivel === 'risco' ? 'crise' : (nivel === 'atencao' ? 'aviso' : 'info');
+      var titulo = nivel === 'risco' ? 'Sinal de risco em um desenho'
+        : nivel === 'atencao' ? 'Desenho pode merecer atenção'
+        : 'Novo desenho na Lousa';
+      var descricao = r.motivo || 'A Lumi Theo analisou um novo desenho na Lousa.';
 
       var ins = await J.supabase.from('alertas').insert({
         id_neurodivergente: J.usuario.id, tipo: tipo, titulo: titulo, descricao: descricao,
         destino: 'responsavel', metadata: { imagem: dataUrlMini }
       }).select('id').single();
       if (ins.error) {
-        console.warn('[Lousa] Não foi possível registrar alerta de segurança:', ins.error.code, '|', ins.error.message);
+        console.warn('[Lousa] Não foi possível enviar o desenho ao cuidador:', ins.error.code, '|', ins.error.message);
         return;
       }
-      if (r.nivel === 'risco' && ins.data && LT.gerarAnaliseCritica) {
+      if (nivel === 'risco' && ins.data && LT.gerarAnaliseCritica) {
         LT.gerarAnaliseCritica({ idAlerta: ins.data.id, origem: 'um desenho na Lousa', categoria: 'risco', trecho: descricao });
       }
     } catch (e) {
-      console.warn('[Lousa] Falha ao analisar risco do desenho:', e);
+      console.warn('[Lousa] Falha ao analisar/enviar o desenho:', e);
     }
+  }
+
+  /* Dispara a análise mesmo sem "Guardar": alguns segundos depois do
+     último traço (o adolescente pausou/terminou por ora) e ao sair
+     da página com algo não enviado ainda. Nunca reenvia o mesmo
+     desenho sem mudança nenhuma (dedupe pelo próprio PNG). */
+  var ENVIO_AUTO_DEBOUNCE_MS = 6000;
+  var envioAuto = { ultimoEnviado: null, timer: null };
+
+  function capturarEEnviarSeMudou() {
+    if (!estado.sujo || !el.tela) return;
+    var completo;
+    try { completo = el.tela.toDataURL('image/png'); } catch (e) { return; }
+    if (completo === envioAuto.ultimoEnviado) return; // nada novo desde o último envio
+    envioAuto.ultimoEnviado = completo;
+    analisarEEnviarDesenho(completo, miniatura());
+  }
+
+  function agendarEnvioAutomatico() {
+    if (envioAuto.timer) clearTimeout(envioAuto.timer);
+    envioAuto.timer = setTimeout(function () {
+      envioAuto.timer = null;
+      capturarEEnviarSeMudou();
+    }, ENVIO_AUTO_DEBOUNCE_MS);
   }
 
   /* ============================================================
@@ -614,7 +665,13 @@
     var mini = miniatura();
     var coube = guardarNaGaleria(mini);
     renderGaleria();
-    analisarDesenhoRisco(completo, mini); // silencioso, em paralelo — nunca trava o guardar
+    // silencioso, em paralelo — nunca trava o guardar. Cancela o envio automático
+    // pendente (se houver) pra não mandar o mesmo desenho duas vezes seguidas.
+    if (envioAuto.timer) { clearTimeout(envioAuto.timer); envioAuto.timer = null; }
+    if (completo !== envioAuto.ultimoEnviado) {
+      envioAuto.ultimoEnviado = completo;
+      analisarEEnviarDesenho(completo, mini);
+    }
 
     var ganho = xpDoDia();
     J.salvarSessao({
@@ -711,5 +768,13 @@
     }
     if (g.ResizeObserver) new g.ResizeObserver(aoRedimensionar).observe(el.telaCx);
     else g.addEventListener('resize', aoRedimensionar);
+
+    /* Sai da página (troca de aba ou navega pra outro lugar) com algo
+       desenhado e ainda não enviado: captura e manda antes de ir embora
+       (best-effort — a página pode fechar de vez no meio do envio). */
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') capturarEEnviarSeMudou();
+    });
+    g.addEventListener('pagehide', capturarEEnviarSeMudou);
   });
 })(window);

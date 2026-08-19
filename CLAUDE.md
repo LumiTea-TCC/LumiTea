@@ -281,10 +281,12 @@ fim de rodada. Não existe estado de erro porque não há como fazer errado — 
   **teclado** (setas movem, espaço encosta/levanta). O canvas é `role="application"` + `tabindex="0"` para as
   setas chegarem nele. `pointermove`/`pointerup` ficam no **document**, não no canvas: sair da folha no meio
   do traço e voltar não corta o traço, e soltar o dedo fora não deixa o traço preso.
-- **Nada vai para o servidor além de `sessoes_jogo` + XP.** "Guardar desenho" baixa o PNG em tamanho cheio e
-  guarda uma **miniatura de 560px** em `localStorage['lt-lousa-galeria']` (máx. 8; `guardarNaGaleria` trata
-  `QuotaExceededError` sacrificando o mais antigo e tentando de novo). Ao ler a galeria, só entra no `src`
-  string que começa com `data:image/`.
+- ⚠️ **Desde 2026-08-19, isto NÃO é mais verdade** (decisão explícita do usuário, ver seção abaixo): **todo
+  desenho é analisado e uma cópia + resumo da IA vai pro cuidador**, tenha ou não sinal preocupante e mesmo
+  sem o adolescente guardar. Só a **galeria de miniaturas** continua local. "Guardar desenho" baixa o PNG em
+  tamanho cheio e guarda uma **miniatura de 560px** em `localStorage['lt-lousa-galeria']` (máx. 8;
+  `guardarNaGaleria` trata `QuotaExceededError` sacrificando o mais antigo e tentando de novo). Ao ler a
+  galeria, só entra no `src` string que começa com `data:image/`.
 - XP: 20 por desenho guardado, **teto de 3 por dia** (`localStorage['lt-lousa-xp']`), pela mesma
   `J.ganharXP` dos outros jogos — não criar segunda fonte de XP. `jogo_id` = `lousa` (a coluna é TEXT puro,
   sem CHECK — conferido em `db/LUMITEA_SCHEMA.sql`).
@@ -292,6 +294,59 @@ fim de rodada. Não existe estado de erro porque não há como fazer errado — 
   (regra da landing, linha ~422). Qualquer `<section>` novo numa tela interna nasce com um buraco de 72px em
   cima e desalinhado das outras caixas. As seções da lousa zeram isso explicitamente; os outros jogos
   escapavam por acaso, porque `.jg-palco`/`.jg-ajustes`/`.jg-fim` já declaram o próprio `padding`.
+
+## 🚨 Lousa: TODO desenho vai pro cuidador + correções de segurança do Roleplay (2026-08-19)
+Retomado após o usuário testar a Lousa (desenhou uma forca) e o Roleplay (mensagem com "vou me matar msm")
+logo depois de puxar o commit "comit brennin" — achou que os dois tinham falhado em avisar o cuidador.
+Investigação direta no banco (`select * from alertas order by timestamp desc`) mostrou que o alerta do
+**Roleplay tinha sido criado normalmente** (dois alertas `tipo:'crise'` com o trecho certo) — o problema era
+outro (ver abaixo). Já a **Lousa realmente não tinha gerado nada**: o primeiro desenho foi feito antes do
+redeploy do `groq-proxy` com `qwen/qwen3.6-27b` (pendência que já estava anotada acima), o segundo foi feito
+depois do redeploy e mesmo assim não gerou alerta — causa exata não confirmada (a função engolia erro HTTP
+em silêncio, sem log nenhum; corrigido).
+
+**1. Mudança de política da Lousa, decisão explícita do usuário (`AskUserQuestion`, escolheu a opção mais
+ampla depois de eu apontar que ela contradiz o texto que já estava na tela "nem o seu cuidador vê"):**
+agora **TODO desenho é analisado e uma cópia (miniatura) + um resumo curto da IA vão pro cuidador**, tenha
+ou não sinal preocupante, e **mesmo que o adolescente nunca clique em "Guardar desenho"**. Antes, só desenho
+guardado E com `nivel` diferente de `'ok'` gerava algo pro cuidador; a galeria (miniaturas locais) e o
+princípio de "espaço privado" continuam existindo só pra a **galeria em si** — a análise+envio agora é
+sempre-ligado. O texto de `lousa-pintar.html` ("Seus desenhos") foi reescrito pra não prometer mais
+privacidade que não existe.
+- `js/jogos/lousa.js`: `analisarDesenhoRisco` virou **`analisarEEnviarDesenho`** — insere em `alertas` pra
+  QUALQUER `nivel` (`'risco'`→`tipo:'crise'`, `'atencao'`→`'aviso'`, `'ok'`→**`'info'`**, valor novo pra esse
+  fluxo mas já é `CHECK`-válido e é o `DEFAULT` da coluna; `alertaIcone()` de `cuidador-shell.js` já trata
+  `'info'` como default, nenhuma mudança de UI do cuidador precisou). `metadata.imagem` (miniatura) agora vai
+  em TODO envio, não só nos de risco. O prompt da IA foi ajustado pra pedir um `motivo` que funcione como
+  resumo de rotina em `nivel:'ok'`, não só como justificativa de alerta.
+- **Disparo independente de "Guardar"**: `terminar()` (fim de traço — mesmo ponto usado pelo ponteiro E pelo
+  teclado) chama `agendarEnvioAutomatico()`, um debounce de 6s que captura e envia o canvas se ele mudou
+  desde o último envio (dedupe comparando o PNG em si, `envioAuto.ultimoEnviado` — nunca reenvia o mesmo
+  desenho parado). Reforçado por `visibilitychange`/`pagehide` (sair da aba/página com algo não enviado
+  ainda) — best-effort, like todo handler de saída de página, pode não completar se a aba fechar de vez no
+  meio do envio. `guardar()` cancela o timer pendente e usa o mesmo dedupe, pra não mandar o mesmo desenho
+  duas vezes seguidas quando o adolescente clica em guardar logo depois de parar de desenhar.
+- Erros de rede/parse da IA agora são **logados** (`console.warn` com status HTTP + corpo, e com o texto cru
+  se o JSON não parsear) — antes `if (!res.ok) return` engolia tudo em silêncio, o que impediu diagnosticar
+  por que o segundo desenho de teste (feito depois do redeploy) ainda assim não gerou nada. Parsing agora
+  tolera cerca de código/texto solto ao redor do JSON, mesma defesa do roleplay.
+
+**2. Roleplay: o alerta funcionava, a CONVERSA que ignorava a crise é que era o problema.** A resposta
+"Mostra onde você travou..." que apareceu depois de "vou me matar" era **o roteiro fixo de reserva**
+(bate palavra por palavra com `respostas[0]` do cenário) — ou seja, a chamada à Groq falhou (provável: o
+modelo quebra o formato JSON exigido ao lidar com autolesão/xingamento juntos) e caiu no script cíclico, que
+é cego a qualquer conteúdo por definição. Três correções em `js/jogos/roleplay.js`:
+- `chamarGroq` ganhou `response_format:{type:'json_object'}` (não tinha — tinha sido tirado antes numa
+  investigação anterior porque não era a causa raiz *daquela vez*, mas não tem por que não ajudar agora).
+- `montarPromptSistema` ganhou uma regra de prioridade máxima: sinal real de sofrimento grave na mensagem do
+  adolescente faz o personagem **quebrar o script da cena** pra acolher de verdade (sem sair do papel de um
+  jeito estranho) em vez de conduzir pro objetivo do roleplay — `concluido` fica `false` nesse turno.
+- Se a IA falhar MESMO ASSIM e a mensagem tiver sinal de autolesão (`categoriaRiscoRoleplay`, calculado uma
+  vez em `enviarMensagem` e reusado), o fallback deixa de ser o roteiro cíclico alheio: aparece uma bolha
+  nova, tipo `'cuidado'` (ícone coração, cor rosa — `.rp-msg--cuidado` em `css/jogos.css`, distinta da
+  `.rp-msg--dica` azul de comunicação), com uma mensagem acolhedora fixa que reconhece o que foi dito. O
+  alerta pro cuidador (`avisarCuidadorSeNecessario`) já disparava certo antes e continua disparando igual,
+  só passou a reusar a detecção já calculada em vez de rodar duas vezes.
 
 ## 🛬 Landing pública (`index.html`) — redesign "Landing-A produto" (2026-08-13)
 Importada do projeto Claude Design **LumiTEA-TCC redesign** (`43c671f9-f91d-43d2-beaa-1b560669d04b`,
