@@ -17,6 +17,7 @@
   <script src="js/core/icons.js" defer></script>
   <script src="js/core/reveal.js" defer></script>
   <script src="js/core/ui.js" defer></script>
+  <script src="js/core/alerta-critico.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
@@ -43,6 +44,13 @@
           <button class="btn-secondary btn-sm" id="btn-marcar-lidos" hidden><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Marcar todos como lidos</button>
         </div>
         <div id="alertas-lista"><div class="empty-state"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i><p>Selecione um adolescente para ver os alertas.</p></div></div>
+      </div>
+
+      <div class="cui-tela ativa" style="margin-top:var(--sp-5)">
+        <div class="cui-tela-topo">
+          <div class="cui-section-title cui-section-title--reto"><i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i> Bloqueios na comunidade</div>
+        </div>
+        <div id="bloqueios-lista"><div class="empty-state"><i class="lt-i" data-lt-icon="shield" aria-hidden="true"></i><p>Selecione um adolescente para ver os bloqueios.</p></div></div>
       </div>
 
     </div><!-- /cui-main -->
@@ -115,8 +123,69 @@
       if (strip) strip.classList.remove('show');
     }
 
+    /* ── BLOQUEIOS NA COMUNIDADE (escalada: 1h → 1 dia → 3 dias → permanente) ── */
+    async function carregarBloqueios(teenId) {
+      var lista = document.getElementById('bloqueios-lista');
+      if (!lista) return;
+
+      if (!teenId) {
+        lista.innerHTML = CUI.vazio('shield', 'Selecione um adolescente para ver os bloqueios.');
+        return;
+      }
+
+      var res = await CUI.sb.from('comunidade_bloqueios').select('*')
+        .eq('user_id', teenId).gt('ate', new Date().toISOString())
+        .order('criado_em', { ascending: false });
+
+      if (res.error) {
+        lista.innerHTML = CUI.vazio('alert-triangle', 'Não foi possível carregar os bloqueios agora.');
+        return;
+      }
+
+      var bloqueios = res.data || [];
+      if (!bloqueios.length) {
+        lista.innerHTML = CUI.vazio('check-circle', 'Nenhum bloqueio ativo na comunidade. Tudo em ordem.');
+        return;
+      }
+
+      lista.innerHTML = bloqueios.map(function (b) {
+        var data = b.criado_em ? new Date(b.criado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        var quando = b.permanente
+          ? 'Banido da comunidade — precisa da sua liberação'
+          : 'Pausado até ' + new Date(b.ate).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+        return '<div class="bloq-item' + (b.permanente ? ' permanente' : '') + '">' +
+                 '<div class="bloq-info"><label>' + CUI.esc(data) + '</label><p>' + CUI.esc(quando) + '</p></div>' +
+                 '<button type="button" class="bloq-liberar" data-id="' + b.id + '">Liberar</button>' +
+               '</div>';
+      }).join('');
+    }
+
+    async function liberarBloqueio(id, btn) {
+      var ok = await LumiUI.confirm(
+        'Isso libera a comunidade pra esse adolescente agora mesmo.',
+        { titulo: 'Liberar bloqueio?', ok: 'Liberar', cancelar: 'Cancelar' }
+      );
+      if (!ok) return;
+
+      btn.disabled = true;
+      var res = await CUI.sb.rpc('liberar_bloqueio_comunidade', { p_bloqueio_id: id });
+      if (res.error || res.data !== true) {
+        LumiUI.toast('Não foi possível liberar o bloqueio agora. Tente novamente.', { type: 'error' });
+        btn.disabled = false;
+        return;
+      }
+      LumiUI.toast('Bloqueio liberado.', { type: 'success' });
+      await carregarBloqueios(CUI.teenId);
+    }
+
+    document.getElementById('bloqueios-lista').addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.bloq-liberar') : null;
+      if (btn) liberarBloqueio(btn.getAttribute('data-id'), btn);
+    });
+
     document.getElementById('btn-marcar-lidos').addEventListener('click', marcarTodosLidos);
     CUI.aoTrocarTeen(carregarAlertas);
+    CUI.aoTrocarTeen(carregarBloqueios);
   </script>
 </body>
 </html>

@@ -17,6 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/analise-critica.js"></script>
   <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
@@ -474,10 +475,13 @@
           ? 'Uma entrada no diário indicou possível risco (autolesão/suicídio).'
           : 'Uma entrada no diário mencionou ter machucado outra pessoa.')
           + (trecho ? ` Trecho: "${trecho}".` : '');
-        const { error } = await sb.from('alertas').insert({
+        const { data, error } = await sb.from('alertas').insert({
           id_neurodivergente: _userId, tipo, titulo, descricao, destino: 'responsavel'
-        });
-        if (error) console.warn('[Diário] Não foi possível registrar alerta de segurança:', error.code, '|', error.message);
+        }).select('id').single();
+        if (error) { console.warn('[Diário] Não foi possível registrar alerta de segurança:', error.code, '|', error.message); return; }
+        if (autolesao && data && window.LUMITEA && window.LUMITEA.gerarAnaliseCritica) {
+          window.LUMITEA.gerarAnaliseCritica({ idAlerta: data.id, origem: 'diário', categoria: deteccao.categoria, trecho });
+        }
       } catch (e) {
         console.warn('[Diário] Falha ao checar sinais de segurança:', e);
       }

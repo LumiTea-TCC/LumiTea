@@ -640,6 +640,20 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
 .lt-dialog-btn--ghost { background: var(--bg-2); color: var(--text-soft); border: 1px solid var(--border-soft); }
 .lt-dialog-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
+/* Alerta crítico (js/core/alerta-critico.js): modal bloqueante, mais largo
+   (o texto de análise da IA é longo) e com acento de urgência. */
+.lt-dialog-ov--critico { background: rgba(20, 10, 10, .55); }
+.lt-dialog-box--critico { max-width: 520px; text-align: left; border: 2px solid var(--danger); }
+.lt-dialog-box--critico .lt-ac-icone { display: flex; justify-content: center; color: var(--danger); margin-bottom: 6px; }
+.lt-dialog-box--critico .lt-dialog-tit { text-align: center; }
+.lt-dialog-box--critico .lt-ac-desc { text-align: center; }
+.lt-ac-imagem { display: block; max-width: 100%; max-height: 220px; margin: 0 auto 16px; border-radius: var(--r-md); border: 1px solid var(--border-soft); }
+.lt-ac-analise { background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: var(--r-md);
+  padding: 14px 16px; margin: 0 0 20px; font-size: .88rem; line-height: 1.6; color: var(--text-soft); }
+.lt-ac-analise--carregando { color: var(--text-muted); font-style: italic; }
+.lt-dialog-box--critico .lt-dialog-acoes { justify-content: stretch; }
+.lt-dialog-box--critico .lt-dialog-btn--primary { width: 100%; background: linear-gradient(135deg, var(--danger), #a02020); }
+
 /* Entrada/saída animada SÓ quando o movimento é permitido. */
 @media (prefers-reduced-motion: no-preference) {
   html:not([data-modo-calmo="true"]) {

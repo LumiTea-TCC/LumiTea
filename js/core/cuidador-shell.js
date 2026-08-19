@@ -499,6 +499,10 @@
       if (msg) msg.textContent = alertas[0].titulo || 'Estado de crise detectado. Verifique os alertas.';
       strip.classList.add('show');
     }
+
+    // Alerta crítico (js/core/alerta-critico.js): modal bloqueante, além da
+    // faixa dispensável acima. Mesmo escopo (adolescente selecionado).
+    if (g.LUMITEA && g.LUMITEA.checarAlertaCritico) g.LUMITEA.checarAlertaCritico(CUI.teenId);
   }
   CUI.atualizarBadgeAlertas = atualizarBadgeAlertas;
 

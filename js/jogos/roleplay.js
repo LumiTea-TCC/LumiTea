@@ -272,8 +272,11 @@
         + (trecho ? ' Trecho: "' + trecho + '".' : '');
       var r = await sb.from('alertas').insert({
         id_neurodivergente: J.usuario.id, tipo: tipo, titulo: titulo, descricao: descricao, destino: 'responsavel'
-      });
-      if (r.error) console.warn('[Roleplay] Não foi possível registrar alerta de segurança:', r.error.code, '|', r.error.message);
+      }).select('id').single();
+      if (r.error) { console.warn('[Roleplay] Não foi possível registrar alerta de segurança:', r.error.code, '|', r.error.message); return; }
+      if (autolesao && r.data && window.LUMITEA && window.LUMITEA.gerarAnaliseCritica) {
+        window.LUMITEA.gerarAnaliseCritica({ idAlerta: r.data.id, origem: 'roleplay', categoria: deteccao.categoria, trecho: trecho });
+      }
     } catch (e) {
       console.warn('[Roleplay] Falha ao checar sinais de segurança:', e);
     }

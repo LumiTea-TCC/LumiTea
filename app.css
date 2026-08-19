@@ -3726,6 +3726,25 @@ body.cui-page { overflow: hidden; }
 .b-aviso  { background: var(--warning-bg); color: var(--warning); }
 .b-info   { background: var(--info-bg); color: var(--info); }
 
+/* ── BLOQUEIOS DA COMUNIDADE (alertas-cuidador.html) ────────── */
+.bloq-item {
+  display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 14px;
+  background: var(--bg-2); border-radius: var(--r-md); border: 1px solid var(--border-soft);
+  margin-bottom: var(--sp-2);
+}
+.bloq-item.permanente { border-color: var(--danger-border); background: var(--danger-bg); }
+.bloq-info { flex: 1; }
+.bloq-info label { font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 700; }
+.bloq-info p { font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.4; }
+.bloq-liberar {
+  background: var(--surface); border: 1.5px solid var(--danger-border); color: var(--danger);
+  border-radius: var(--r-md); padding: 7px 14px; min-height: 38px; font-family: 'Nunito', sans-serif;
+  font-size: .78rem; font-weight: 800; cursor: pointer; flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.bloq-liberar:hover:not(:disabled) { background: var(--danger); color: #fff; }
+.bloq-liberar:disabled { opacity: .6; cursor: progress; }
+
 /* ── HUMOR ───────────────────────────────────────────────── */
 .humor-bars { display: flex; align-items: stretch; gap: 8px; height: 90px; }
 .humor-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; height: 100%; }

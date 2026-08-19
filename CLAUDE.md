@@ -673,6 +673,108 @@ Só apareceu quando `relatorios-cuidador.html` passou a checar o `error`.
   `carregarRelatorios` nos três caminhos: sem teen, erro de leitura por omissão fica desabilitado, e com a
   lista carregada de verdade).
 
+## 🚨 Checkup de IA + Monitoramento e alerta crítico (2026-08-19)
+Brenno assumiu a continuidade do projeto (antes era o Arthur) e pediu um checkup geral da IA + um sistema
+de monitoramento que avisa o cuidador com urgência de verdade quando algo preocupante aparece — jogos
+(Lousa), roleplay, diário e comunidade. Ponto de partida: os sistemas de checagem determinística já
+documentados nas seções acima (diário/roleplay/calendário/relatórios) e o **sistema de moderação da
+comunidade, que nunca tinha sido documentado aqui apesar de estar em produção desde 14/08** — ver
+`js/core/moderacao.js` + `db/MODERACAO_SCHEMA.sql`: analisa texto ANTES de publicar em mural/comentário/
+chat, 4 níveis (risco/ofensa/cuidado/apoio), dicionário de termos em `moderacao_termos` (ilegível pela
+API, só funções `SECURITY DEFINER` leem), reforçado por RLS + gatilho `mod_filtrar` no banco (defesa em
+duas camadas — filtro do cliente responde rápido, o gatilho garante que nada escapa mesmo se o
+navegador for adulterado). Esse sistema é anterior e mais completo que o descrito na seção "🛡️ Bloqueio
+de segurança do chat da comunidade" acima (a de 14/08, tabela `chat_bloqueios`) — aquela ficou **órfã**
+(nenhum `.js` referencia mais `chat_bloqueios`/`registrar_bloqueio_chat`/`SINAIS_RISCO`/
+`PALAVRAS_OFENSIVAS`; `db/CHAT_SEGURANCA.sql` não é mais executado), a tabela provavelmente ainda existe
+no banco mas não é mais escrita por ninguém — não apagar sem confirmar antes.
+
+**1. O bug relatado ("bati em um coleguinha" e a IA incentivou) já estava corrigido no diário desde
+14/08, mas não em todo lugar.** O prompt de `js/lumi-ia.js` (usado pela conversa principal, `conversa.html`
+— a maior superfície de chat livre do app) e o de `js/apoio.js` (chat de apoio, `perguntar()`) ainda só
+tinham "VALIDE sempre os sentimentos", sem a ressalva de que validar o sentimento não é validar a ação.
+**Corrigido nos dois** com a mesma regra já usada no diário: acolher o sentimento por trás (raiva,
+frustração, desespero) mas nomear a ação como não certa, orientar reparação ou buscar um adulto de
+confiança, nunca elogiar/comemorar. `js/comunidade.js` tem um assistente de "reescrever meu post" que só
+reformula o texto do próprio usuário (não dá conselho/validação) — não tinha o mesmo risco, não mexido.
+
+**2. Pipeline novo e compartilhado de "alerta crítico"** — a peça que faltava pro "alerta PRINCIPAL" que
+o Brenno pediu. Sem tabela nova: reusa `alertas` (`tipo='crise'`) + a coluna `metadata jsonb` que já
+existia (vazia em todo lugar até agora).
+- **`js/core/analise-critica.js`** → `window.LUMITEA.gerarAnaliseCritica({idAlerta, origem, categoria,
+  trecho, contexto})`: chama a IA (mesmo proxy) pedindo um retorno estruturado (resumo, o que pode
+  significar, ações concretas, quando buscar ajuda profissional) e grava em `alertas.metadata.analise_ia`
+  via `update` (mescla com o que já houver em `metadata`, nunca sobrescreve). Roda **depois** do insert
+  determinístico do alerta, em paralelo, nunca bloqueia — mesmo padrão "silencioso" já usado em todo o
+  resto do app. Chamada hoje a partir de: diário e roleplay (só no nível autolesão/'crise', não em
+  agressão/'aviso'), Lousa (nível 'risco'), e banimento na comunidade (4ª+ ofensa).
+- **`js/core/alerta-critico.js`** → `window.LUMITEA.checarAlertaCritico(teenId)`, chamado por
+  `cuidador-shell.js` dentro de `atualizarBadgeAlertas()` (mesmo ponto/escopo que já existia — roda no
+  boot da casca, ao trocar de adolescente e ao recarregar vinculados). Busca o alerta `tipo='crise' AND
+  lido=false` mais recente do adolescente selecionado e, se achar, mostra um **modal bloqueante** — sem
+  Esc, sem clique fora, sem X, só o botão "Entendi, vou ver" fecha (e é ele que grava `lido=true`; antes
+  disso só existia o botão "Marcar todos como lidos" em massa de `alertas-cuidador.html`). Reusa as
+  classes `.lt-dialog-*` de `js/core/ui.js` + modificador `.lt-dialog-ov--critico`/`.lt-dialog-box--critico`
+  (`css/enhance.css`) — não dá pra reusar `LumiUI.painel()` direto porque ele sempre fecha no Esc/clique
+  fora quando tem `acoes`, e um alerta de crise real não pode fechar sozinho. Script carregado nas 13
+  páginas do cuidador (mesmo padrão de `js/core/ui.js`, que já estava nas 13).
+- Mostra a miniatura da imagem quando `metadata.imagem` existe (caso da Lousa) e a análise da IA quando
+  `metadata.analise_ia` já chegou (se ainda não chegou — corrida rara, a análise é gerada logo depois do
+  alerta — mostra "Preparando uma análise mais detalhada", o alerta já está salvo de qualquer jeito).
+
+**3. Visão computacional na Lousa** (`js/jogos/lousa.js`). A Groq só tinha modelo de texto até hoje —
+adicionado `qwen/qwen3.6-27b` (único modelo com visão da Groq atualmente) à whitelist `MODELOS_OK` do
+`groq-proxy`, e a validação de `content` foi relaxada pra aceitar o formato multimodal (array com bloco
+de texto + `image_url` em base64), além do formato string simples de sempre — só ativa com esse modelo
+específico, nenhuma chamada de texto existente muda. Limite de ~4M caracteres de base64 por imagem (~3MB
+de imagem crua) na validação do proxy, folga confortável pra um desenho de canvas sem arriscar o limite
+de payload da Edge Function.
+- `guardar()` agora chama `analisarDesenhoRisco(pngCompleto, miniatura)` — silencioso, em paralelo, roda
+  em TODO desenho guardado (não só nos que ganham XP; a análise de segurança não fica presa ao teto de
+  3 XP/dia). Pede à IA um JSON `{"nivel":"ok"|"atencao"|"risco","motivo":"..."}` sobre a imagem em tamanho
+  cheio; se não for "ok", grava alerta (`tipo` conforme o nível) com `metadata.imagem` = a miniatura de
+  560px já existente (mantém o payload salvo pequeno — a chamada de ANÁLISE usa a imagem cheia pra não
+  perder detalhe, só o que fica no banco é a miniatura). Nível 'risco' também dispara
+  `gerarAnaliseCritica`. Escopo confirmado com o Brenno: só a Lousa — os outros 4 jogos são fechados
+  (combinar peças pré-definidas), sem conteúdo livre pra analisar.
+- `qwen/qwen3.6-27b` precisa estar deployado em produção pra isso funcionar (redeploy do `groq-proxy`
+  ainda pendente nesta sessão — ver Backlog).
+
+**4. Ligação diário/roleplay ao alerta crítico.** Nenhuma mudança na detecção determinística (já testada,
+não mexida) — só no ponto em que `avisarCuidadorSeNecessario()` grava `tipo:'crise'` (autolesão): o
+insert agora usa `.select('id').single()` pra pegar o id da linha, e chama `gerarAnaliseCritica` logo
+depois. Agressão (`tipo:'aviso'`) continua só no alerta comum, sem análise/modal — o "alerta PRINCIPAL"
+é reservado pra risco real, pra não gerar fadiga de alerta no cuidador.
+
+**5. Suspensão escalonada + banimento na Comunidade** (decisões combinadas com o Brenno: acumula pra
+sempre, sem reset; banimento só o cuidador libera, direto pelo alerta que já recebe, sem tela de "pedido"
+separada). `comunidade_bloqueios` ganhou a coluna `permanente boolean default false` (migração aditiva,
+mesmo padrão de `nascimento`/`apelido` em `neurodivergente`). `mod_registrar` agora conta quantas pausas
+`nivel='ofensa'` esse usuário já teve (sem filtro de data) e mapeia: 1ª = 1h, 2ª = 1 dia, 3ª = 3 dias, 4ª
+em diante = `permanente=true` (o `ate` vira uma sentinela de 100 anos pra `estou_bloqueado()` continuar
+funcionando sem mudança — a checagem real de "é banimento" é a coluna). Banimento sobe o `tipo` do
+alerta pro cuidador de `'aviso'` pra `'crise'` (dispara o modal bloqueante + `gerarAnaliseCritica`) — um
+padrão de 4 ofensas é sério o bastante pra isso. Nova função `liberar_bloqueio_comunidade(p_bloqueio_id)`,
+mesma autorização de `suspender_vinculo` (só o `id_responsavel` daquele adolescente pode chamar). UI nova
+em `alertas-cuidador.html`: seção "Bloqueios na comunidade" listando bloqueios ativos/permanentes do
+adolescente selecionado com botão "Liberar" (`LumiUI.confirm` antes). `js/core/moderacao.js` ganhou
+`bloqueadoPermanente` (module state, sincronizado da coluna `permanente` real quando via `sincronizar()`,
+ou inferido pelo `ate` estar >1 ano no futuro quando só o `ate` está disponível — a RPC
+`registrar_ocorrencia_moderacao` continua devolvendo só `timestamptz`, não foi preciso mudar a
+assinatura) — a mensagem mostrada ao adolescente muda pra explicar que só o cuidador libera.
+
+**⚠️ Pendências desta sessão (bloqueadas em receber um PAT do Brenno — ver Convenções de trabalho):**
+não confirmado se o `groq-proxy` ativo em produção é a v4 com `openai/gpt-oss-120b` (a Groq descontinuou
+os modelos antigos em 16/08, ver seção Roleplay); o redeploy do `groq-proxy` com `qwen/qwen3.6-27b` pra
+Lousa funcionar; e a migração da coluna `permanente`/funções novas de `MODERACAO_SCHEMA.sql` ainda não
+foi aplicada em produção (só está no arquivo `.sql` do repo). **Não usar a escalada de banimento nem a
+visão da Lousa em produção até essas duas migrações/deploys serem confirmados.**
+
+**⚠️ Node não está disponível nesta sessão** (`node`/`C:\Program Files\nodejs\node.exe` não resolvem, nem
+no Bash tool nem no PowerShell) — ao contrário do que a nota de 2026-08-05 dizia. Todo `node --check`
+desta sessão foi substituído por conferência manual de chaves/parênteses + leitura cuidadosa. Reconferir
+antes de assumir Node disponível de novo.
+
 ## 🔐 Segurança (estado atual e regras)
 - **Chaves de IA/voz são gated por origem** (`js/core/config.js` + `js/core/secrets.js`): só carregam em DEV
   (localhost / `file://` / IP privado). Em domínio público ficam vazias → IA/voz passam pelos **proxies**.
@@ -733,6 +835,9 @@ Só apareceu quando `relatorios-cuidador.html` passou a checar o `error`.
 - Landing pública redesenhada a partir do Claude Design (2026-08-13) — ver a seção "Landing pública".
 - Novo jogo "Roleplay" (6º item do hub, `roleplay.html`) importado do Claude Design e adicionado ao
   `games.html` (2026-08-16) — ver a seção "Roleplay — encenação de conversas do dia a dia".
+- Checkup de IA + pipeline de alerta crítico + visão na Lousa + escalada de banimento na comunidade
+  (2026-08-19) — ver a seção "Checkup de IA + Monitoramento e alerta crítico". Código pronto; deploy da
+  Edge Function e migração SQL ainda pendentes (ver Backlog).
 
 ## 📋 Backlog (próximos passos, sem quebrar nada)
 1. Migrar os ~27 `alert/confirm` nativos restantes (conta, diário, calendário, conversa) para `LumiUI`.
@@ -749,6 +854,16 @@ Só apareceu quando `relatorios-cuidador.html` passou a checar o `error`.
    fluxo real (o teen só precisa compartilhar o próprio código, nunca digitar um), mas confunde se alguém
    clicar. `js/app-teen.js` tem a mesma lógica quebrada, porém o arquivo inteiro está órfão — não é
    carregado por nenhuma página, zero efeito em produção.
+6. **Pendente do checkup de 2026-08-19 (precisa de PAT do Brenno):** confirmar a versão ativa do
+   `groq-proxy` em produção; redeployar com `qwen/qwen3.6-27b` (visão da Lousa) e a validação de `content`
+   multimodal já editada no `.ts`; aplicar em produção a migração de `db/MODERACAO_SCHEMA.sql` (coluna
+   `permanente` + `mod_registrar` com escalada + `liberar_bloqueio_comunidade`) — hoje só está no arquivo
+   do repo. Sem isso: a Lousa não consegue analisar desenho (modelo não existe no servidor) e a comunidade
+   continua sem escalada/banimento (função antiga, sem a coluna nova). Ver seção "Checkup de IA +
+   Monitoramento e alerta crítico".
+7. Confirmar se `chat_bloqueios`/`registrar_bloqueio_chat`/`db/CHAT_SEGURANCA.sql` ainda existem no banco
+   de produção (provável órfãos, substituídos por `js/core/moderacao.js`/`MODERACAO_SCHEMA.sql`, ver seção
+   acima) — só documentar/limpar depois de confirmar via Management API, não mexer sem combinar.
 
 ## Subagents/skills úteis
 `frontend-reviewer`, `accessibility-auditor`, `supabase-security-reviewer` (só rodar se o usuário pedir).

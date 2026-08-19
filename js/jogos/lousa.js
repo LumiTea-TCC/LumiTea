@@ -521,6 +521,69 @@
   }
 
   /* ============================================================
+     ANÁLISE DE RISCO (visão) — roda toda vez que um desenho é
+     guardado, silenciosa, em paralelo, NUNCA bloqueia o guardar.
+     Mesmo espírito do diário/roleplay/comunidade (o adolescente
+     nunca sabe que foi avisado) — só que aqui o sinal não vem de
+     palavra-chave, vem da IA "olhando" o desenho (único modelo com
+     visão da Groq hoje, qwen/qwen3.6-27b, adicionado ao groq-proxy
+     só pra esse uso).
+     ============================================================ */
+  async function analisarDesenhoRisco(dataUrlCompleto, dataUrlMini) {
+    try {
+      var LT = g.LUMITEA;
+      if (!LT || !LT.groqFetch || !J.supabase || !J.usuario || !J.usuario.id) return;
+
+      var res = await LT.groqFetch({
+        model: 'qwen/qwen3.6-27b',
+        messages: [
+          { role: 'system', content:
+            'Você analisa um desenho feito por um adolescente autista numa lousa digital de um app de apoio ' +
+            'socioemocional. Olhe a imagem e responda SOMENTE com um JSON: ' +
+            '{"nivel":"ok"|"atencao"|"risco","motivo":"..."}. ' +
+            'Use "risco" só se o desenho sugerir de forma clara autolesão, suicídio, ou violência grave contra ' +
+            'si ou terceiros. Use "atencao" para sinais mais brandos de sofrimento (tristeza intensa, ' +
+            'isolamento, algo incomum que vale um olhar) sem ser uma emergência. Use "ok" pra desenhos sem ' +
+            'nenhum sinal preocupante — rabiscos, formas abstratas ou sem sentido óbvio são "ok", não "atencao". ' +
+            '"motivo" em no máximo 1 frase curta, em português.' },
+          { role: 'user', content: [
+            { type: 'text', text: 'Analise este desenho.' },
+            { type: 'image_url', image_url: { url: dataUrlCompleto } }
+          ] }
+        ],
+        max_tokens: 150, temperature: 0.2,
+        response_format: { type: 'json_object' }
+      });
+      if (!res.ok) return;
+      var data = await res.json();
+      var texto = data && data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content : '';
+      if (!texto) return;
+
+      var r = JSON.parse(texto);
+      if (!r || !r.nivel || r.nivel === 'ok') return;
+
+      var tipo = r.nivel === 'risco' ? 'crise' : 'aviso';
+      var titulo = r.nivel === 'risco' ? 'Sinal de risco em um desenho' : 'Desenho pode merecer atenção';
+      var descricao = r.motivo || 'A análise de imagem identificou algo que pode merecer atenção neste desenho.';
+
+      var ins = await J.supabase.from('alertas').insert({
+        id_neurodivergente: J.usuario.id, tipo: tipo, titulo: titulo, descricao: descricao,
+        destino: 'responsavel', metadata: { imagem: dataUrlMini }
+      }).select('id').single();
+      if (ins.error) {
+        console.warn('[Lousa] Não foi possível registrar alerta de segurança:', ins.error.code, '|', ins.error.message);
+        return;
+      }
+      if (r.nivel === 'risco' && ins.data && LT.gerarAnaliseCritica) {
+        LT.gerarAnaliseCritica({ idAlerta: ins.data.id, origem: 'um desenho na Lousa', categoria: 'risco', trecho: descricao });
+      }
+    } catch (e) {
+      console.warn('[Lousa] Falha ao analisar risco do desenho:', e);
+    }
+  }
+
+  /* ============================================================
      GUARDAR O DESENHO (download + galeria + XP)
      ============================================================ */
   function xpDoDia() {
@@ -545,10 +608,13 @@
       return;
     }
     var quando = new Date().toISOString();
-    baixar(el.tela.toDataURL('image/png'), nomeArquivo(quando));
+    var completo = el.tela.toDataURL('image/png');
+    baixar(completo, nomeArquivo(quando));
 
-    var coube = guardarNaGaleria(miniatura());
+    var mini = miniatura();
+    var coube = guardarNaGaleria(mini);
     renderGaleria();
+    analisarDesenhoRisco(completo, mini); // silencioso, em paralelo — nunca trava o guardar
 
     var ganho = xpDoDia();
     J.salvarSessao({

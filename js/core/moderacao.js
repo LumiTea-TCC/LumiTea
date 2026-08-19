@@ -359,6 +359,7 @@
      ══════════════════════════════════════════════════════════ */
   var cfg = { sb: null, userId: null, publico: 'teen', nome: 'você' };
   var bloqueadoAte = null;          // Date | null
+  var bloqueadoPermanente = false;  // 4ª+ ofensa: só o cuidador libera (liberar_bloqueio_comunidade)
   var ouvintes = [];
 
   function lerLocal() {
@@ -377,8 +378,20 @@
   }
 
   var timerFim = null;
-  function definirBloqueio(d) {
+  /* `registrar_ocorrencia_moderacao` só devolve o `ate` (timestamptz), não
+     a coluna `permanente` — o banimento (4ª+ ofensa) grava um `ate` bem no
+     futuro (100 anos) como sentinela, então detectar por aí é suficiente e
+     evita mudar a assinatura da RPC. `sincronizar()` usa o valor real da
+     coluna quando disponível (mais preciso), essa função é só o plano B. */
+  function pareceSentinelaPermanente(d) {
+    return !!(d && (d.getFullYear() - new Date().getFullYear()) > 1);
+  }
+
+  function definirBloqueio(d, permanenteExplicito) {
     bloqueadoAte = (d && d > new Date()) ? d : null;
+    bloqueadoPermanente = bloqueadoAte
+      ? (permanenteExplicito !== undefined ? !!permanenteExplicito : pareceSentinelaPermanente(bloqueadoAte))
+      : false;
     gravarLocal(bloqueadoAte);
     /* A pausa tem que acabar sozinha: sem isto, quem deixou a aba aberta
        continuaria com o compositor desligado depois da hora, mesmo o
@@ -407,7 +420,7 @@
     if (!cfg.sb || !cfg.userId) return bloqueadoAte;
     try {
       var r = await cfg.sb.from('comunidade_bloqueios')
-        .select('ate').eq('user_id', cfg.userId)
+        .select('ate, permanente').eq('user_id', cfg.userId)
         .gt('ate', new Date().toISOString())
         .order('ate', { ascending: false }).limit(1);
       if (r.error) {
@@ -415,7 +428,8 @@
         console.warn('[moderacao] bloqueios:', r.error.message);
         return bloqueadoAte;
       }
-      definirBloqueio(r.data && r.data[0] ? new Date(r.data[0].ate) : null);
+      var linha = r.data && r.data[0];
+      definirBloqueio(linha ? new Date(linha.ate) : null, linha ? linha.permanente : false);
     } catch (e) { console.warn('[moderacao] bloqueios:', e.message); }
     return bloqueadoAte;
   }
@@ -469,6 +483,14 @@
     /* Já está em pausa e tentou escrever de novo: não repete a bronca,
        só lembra quando volta. */
     if (cat === 'pausa') {
+      if (bloqueadoPermanente) {
+        return {
+          titulo: 'A comunidade está pausada pra você',
+          corpo: ['Depois de várias mensagens que precisaram ser bloqueadas, só seu cuidador pode liberar a ' +
+                  'comunidade de novo pra você. Dá pra ler tudo normalmente enquanto isso.',
+                  'Se quiser conversar, eu tô aqui.']
+        };
+      }
       return {
         titulo: 'A comunidade está em pausa pra você',
         corpo: [horaFim()
@@ -549,6 +571,15 @@
     }
 
     // ofensa
+    if (bloqueadoPermanente) {
+      return {
+        titulo: 'A comunidade foi pausada pra você',
+        corpo: [cuidador
+          ? 'Essa mensagem não foi publicada. Depois de várias mensagens bloqueadas, a comunidade fica pausada até o cuidador vinculado liberar de novo.'
+          : 'Essa mensagem não foi publicada. Isso já aconteceu várias vezes, então agora só seu cuidador pode liberar a comunidade de novo pra você.',
+          'Enquanto isso, se algo te deixou com raiva ou magoado, vem conversar comigo. Eu escuto.']
+      };
+    }
     var quanto = MINUTOS_BLOQUEIO === 60 ? '1 hora' : MINUTOS_BLOQUEIO + ' minutos';
     return {
       titulo: 'Essa mensagem não pode ficar aqui',

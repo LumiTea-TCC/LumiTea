@@ -15,6 +15,7 @@ const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODELOS_OK = new Set([
   "openai/gpt-oss-120b",
   "openai/gpt-oss-20b",
+  "qwen/qwen3.6-27b", // único modelo com visão da Groq hoje — usado pela análise de risco da Lousa
 ]);
 
 // Defina ALLOW_ORIGIN no deploy para travar a origem (ex.: https://seu-site).
@@ -63,9 +64,32 @@ Deno.serve(async (req: Request) => {
   if (!messages || messages.length === 0 || messages.length > 30) {
     return json({ error: "campo 'messages' inválido" }, 400);
   }
+  // `content` normalmente é string. A análise de risco da Lousa manda também
+  // o formato multimodal do Groq (array com bloco de texto + image_url em
+  // base64), usado só com o modelo de visão qwen/qwen3.6-27b.
+  function contentValido(content: unknown): boolean {
+    if (typeof content === "string") return content.length <= 8000;
+    if (Array.isArray(content)) {
+      if (content.length === 0 || content.length > 3) return false;
+      return content.every((bloco: any) => {
+        if (!bloco || typeof bloco !== "object") return false;
+        if (bloco.type === "text") return typeof bloco.text === "string" && bloco.text.length <= 2000;
+        if (bloco.type === "image_url") {
+          const url = bloco.image_url?.url;
+          // ~4M chars de base64 ≈ 3MB de imagem crua — folga confortável
+          // pra um desenho de canvas, sem arriscar o limite de payload da
+          // Edge Function.
+          return typeof url === "string" && url.length > 0 && url.length <= 4_000_000 &&
+            url.indexOf("data:image/") === 0;
+        }
+        return false;
+      });
+    }
+    return false;
+  }
   for (const m of messages) {
     if (
-      !m || typeof m.content !== "string" || m.content.length > 8000 ||
+      !m || !contentValido(m.content) ||
       !["system", "user", "assistant"].includes(m.role)
     ) {
       return json({ error: "mensagem malformada" }, 400);

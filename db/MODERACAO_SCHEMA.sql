@@ -28,15 +28,22 @@ create extension if not exists pgcrypto;
 
 -- ─────────────────────── 1. BLOQUEIOS ───────────────────────
 create table if not exists comunidade_bloqueios (
-  id        uuid primary key default gen_random_uuid(),
-  user_id   uuid not null references auth.users(id) on delete cascade,
-  nivel     text not null default 'ofensa',
-  categoria text not null default 'desconhecida',
-  contexto  text not null default 'comunidade',   -- mural | comentario | chat
-  criado_em timestamptz not null default now(),
-  ate       timestamptz not null
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  nivel      text not null default 'ofensa',
+  categoria  text not null default 'desconhecida',
+  contexto   text not null default 'comunidade',   -- mural | comentario | chat
+  criado_em  timestamptz not null default now(),
+  ate        timestamptz not null,
+  permanente boolean not null default false         -- 4ª+ ofensa: só o cuidador libera (ver liberar_bloqueio_comunidade)
 );
 create index if not exists idx_com_bloq_user on comunidade_bloqueios (user_id, ate desc);
+
+-- Aditivo: instalação existente que rodou este arquivo antes de `permanente`
+-- existir. Sem efeito numa instalação nova (a coluna já nasce na CREATE TABLE
+-- acima). Mesmo padrão de migração aditiva usado em `nascimento`/`apelido`
+-- de `neurodivergente` (ver CLAUDE.md).
+alter table comunidade_bloqueios add column if not exists permanente boolean not null default false;
 
 alter table comunidade_bloqueios enable row level security;
 
@@ -177,6 +184,14 @@ $$;
 -- Coração do registro: grava a pausa (só em 'ofensa') e o alerta pro
 -- cuidador. Usada pelas DUAS entradas — a RPC chamada pelo navegador e o
 -- gatilho — pra que o alerta saia igual venha de onde vier.
+--
+-- Escalada por reincidência (2026-08-19): conta quantas pausas 'ofensa'
+-- esse usuário já teve, SEM filtro de data (acumula pra sempre, decisão
+-- combinada). 1ª ofensa = 1h, 2ª = 1 dia, 3ª = 3 dias, 4ª em diante =
+-- `permanente` (só some com `liberar_bloqueio_comunidade`, chamável só
+-- pelo cuidador vinculado). O `ate` do bloqueio permanente é só uma
+-- sentinela bem no futuro pra `estou_bloqueado()` continuar funcionando
+-- sem mudança — a checagem "é banimento de verdade" é a coluna `permanente`.
 create or replace function public.mod_registrar(p_nivel text, p_categoria text, p_contexto text)
 returns timestamptz
 language plpgsql
@@ -184,24 +199,45 @@ security definer
 set search_path = public
 as $$
 declare
-  v_ate  timestamptz;
-  v_uid  uuid := auth.uid();
-  v_tipo text;
+  v_ate         timestamptz;
+  v_uid         uuid := auth.uid();
+  v_tipo        text;
+  v_ofensas_ant integer;
+  v_permanente  boolean := false;
 begin
   if v_uid is null then return null; end if;
 
   if p_nivel = 'ofensa' then
-    insert into comunidade_bloqueios (user_id, nivel, categoria, contexto, ate)
-    values (v_uid, p_nivel, p_categoria, p_contexto, now() + interval '1 hour')
-    returning ate into v_ate;
+    select count(*) into v_ofensas_ant
+      from comunidade_bloqueios
+     where user_id = v_uid and nivel = 'ofensa';
+
+    if v_ofensas_ant >= 3 then
+      v_permanente := true;
+      v_ate := now() + interval '100 years';
+    elsif v_ofensas_ant = 2 then
+      v_ate := now() + interval '3 days';
+    elsif v_ofensas_ant = 1 then
+      v_ate := now() + interval '1 day';
+    else
+      v_ate := now() + interval '1 hour';
+    end if;
+
+    insert into comunidade_bloqueios (user_id, nivel, categoria, contexto, ate, permanente)
+    values (v_uid, p_nivel, p_categoria, p_contexto, v_ate, v_permanente);
   end if;
 
   -- Alerta só faz sentido pro adolescente: é o painel do cuidador que lê.
   if public.meu_publico() = 'teen' then
-    v_tipo := case when p_nivel = 'risco' then 'crise' else 'aviso' end;
+    -- Banimento (4ª+ ofensa) sobe pra 'crise': é um padrão sério o
+    -- suficiente pra virar alerta crítico (modal bloqueante no painel do
+    -- cuidador), não só o aviso comum de uma pausa de 1h.
+    v_tipo := case when p_nivel = 'risco' or v_permanente then 'crise' else 'aviso' end;
     -- Trava anti-enxurrada: no máximo um alerta do mesmo tipo a cada 5
     -- minutos. Sem isso, uma criança testando o filtro entope o painel
-    -- e o cuidador para de olhar justamente quando importa.
+    -- e o cuidador para de olhar justamente quando importa. Como o
+    -- banimento vira 'crise' (tipo diferente do 'aviso' das ofensas
+    -- comuns), ele nunca é engolido pela trava de uma ofensa recente.
     if not exists (
       select 1 from alertas a
        where a.id_neurodivergente = v_uid
@@ -212,7 +248,9 @@ begin
       insert into alertas (id_neurodivergente, tipo, titulo, descricao, destino)
       values (v_uid, v_tipo,
               case when p_nivel = 'risco'
-                   then 'Comunidade: sinal de sofrimento'
+                     then 'Comunidade: sinal de sofrimento'
+                   when v_permanente
+                     then 'Comunidade: banido da comunidade após reincidência'
                    else 'Comunidade: mensagem bloqueada' end,
               public.mod_descricao(p_nivel, p_categoria, p_contexto),
               'responsavel');
@@ -222,6 +260,33 @@ begin
   return v_ate;
 end;
 $$;
+
+-- Só o cuidador vinculado libera um bloqueio (temporário ou permanente) —
+-- mesmo padrão de autorização de `suspender_vinculo`. Não existe fluxo de
+-- "pedido" separado: o cuidador já vê o alerta e libera direto quando achar
+-- certo (decisão combinada).
+create or replace function public.liberar_bloqueio_comunidade(p_bloqueio_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then return false; end if;
+
+  update comunidade_bloqueios
+     set ate = now(), permanente = false
+   where id = p_bloqueio_id
+     and user_id in (select id from neurodivergente where id_responsavel = v_uid);
+
+  return found;
+end;
+$$;
+
+revoke all on function public.liberar_bloqueio_comunidade(uuid) from public, anon;
+grant execute on function public.liberar_bloqueio_comunidade(uuid) to authenticated;
 
 -- Entrada do navegador: o filtro do cliente pegou algo, avisa o servidor.
 -- Devolve o fim da pausa (ou NULL quando o nível não bloqueia).
