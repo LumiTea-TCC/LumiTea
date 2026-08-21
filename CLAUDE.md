@@ -225,14 +225,14 @@ existia como stub de redirect** (mundo aberto antigo, removido em 2026-08-04) �
      de GoTrueClient em paralelo é documentado pela própria supabase-js como não suportado — corrigido pra
      `var sb = g.supabaseClient || (LT.criarSupabase ? ... )`, afeta os 6 jogos que usam `base.js`.
 
-## 🖥️ Painel do cuidador = 13 páginas .html + uma casca comum (2026-08-07)
+## 🖥️ Painel do cuidador = 14 páginas .html + uma casca comum (2026-08-07, +1 em 2026-08-21)
 Antes, quase tudo do painel eram **abas escondidas** dentro de `home-cuidador.html` (`<div class="cui-tela">`
 trocadas por `irTela()`). Um erro de JS em qualquer ponto daquele arquivo de 875 linhas derrubava **todas** as
 abas juntas — era essa a causa de "as páginas não abrem". O sistema de abas **foi removido**; cada área virou
 uma página de verdade. **Não recriar abas.**
 - Páginas: `home-cuidador.html` (só o painel geral), `alertas-`, `live-`, `humor-`, `relatorios-`,
-  `observacoes-`, `progresso-`, `estatisticas-`, `consultoria-` (chat com a Lumi), `vinculos-`,
-  `calendario-`, `comunidade-`, `conta-cuidador.html`.
+  `observacoes-`, `desenhos-` (galeria da Lousa, ver seção própria abaixo), `progresso-`, `estatisticas-`,
+  `consultoria-` (chat com a Lumi), `vinculos-`, `calendario-`, `comunidade-`, `conta-cuidador.html`.
 - **`js/core/cuidador-shell.js` (`window.CUI`)** é a casca comum: injeta topo mobile, gaveta, faixa de alerta
   urgente, **sidebar (menu num lugar só — a const `MENU` no topo do arquivo)** e a barra "Adolescente:".
   Também faz sessão + guarda de tipo de conta, `window.sairCui()`, e os helpers `esc/ic/vazio/cuiStat/
@@ -347,6 +347,59 @@ modelo quebra o formato JSON exigido ao lidar com autolesão/xingamento juntos) 
   `.rp-msg--dica` azul de comunicação), com uma mensagem acolhedora fixa que reconhece o que foi dito. O
   alerta pro cuidador (`avisarCuidadorSeNecessario`) já disparava certo antes e continua disparando igual,
   só passou a reusar a detecção já calculada em vez de rodar duas vezes.
+
+## 🖼️ Galeria de desenhos da Lousa no painel do cuidador (2026-08-21)
+Pedido do usuário: uma página no painel do cuidador mostrando os desenhos que o adolescente guarda na Lousa
+de pintar, sem avisar o adolescente. Ao investigar, o "sistema de segurança" que o usuário tinha tentado
+fazer sozinho **já existia no código** (`analisarEEnviarDesenho` em `js/jogos/lousa.js`, ver seção "Checkup
+de IA + Monitoramento" acima) mas não resolvia o pedido: ele só manda um alerta de texto pro cuidador quando
+a IA de visão (`qwen/qwen3.6-27b`) julga o desenho preocupante — não existia nenhuma galeria de verdade, e
+o caminho inteiro depende do `groq-proxy` estar redeployado com esse modelo (não confirmado em produção).
+Combinado com o usuário: manter esse pipeline de IA/risco do jeito que está (é um recurso de segurança à
+parte, não mexido aqui) e criar um **segundo canal, direto e sem IA**, só para a galeria.
+- **Tabela nova `desenhos_lousa`** (migration aplicada em produção via Management API em 2026-08-21):
+  `id`, `id_neurodivergente` (FK `profiles(id)`), `imagem` (TEXT, data URL PNG), `criado_em`. RLS
+  copiada do mesmo molde de `alertas`/`neurodivergente`: policy `desenhos_lousa_self` (`FOR ALL`, o
+  adolescente é dono) + `desenhos_lousa_resp` (`FOR SELECT` apenas — **o cuidador só pode ver e baixar,
+  nunca apagar ou alterar**, de propósito, é o próprio RLS que impede).
+- **`js/jogos/lousa.js`**: `guardar()` agora também chama `enviarDesenhoAoCuidador(mini)` — insert direto e
+  silencioso na tabela nova, reusando a mesma miniatura de 560px que já ia para a galeria local e para a
+  análise de risco. Roda em paralelo, nunca bloqueia, **nenhum toast/aviso na tela do adolescente** (mesmo
+  padrão "silencioso" do resto do app). Só dispara no clique de "Guardar desenho" — ao contrário do canal de
+  IA (que também roda no envio automático por pausa/saída de página), esta cópia é só do que o adolescente
+  escolheu guardar.
+- **`desenhos-cuidador.html`**: página nova, 14ª do painel, segue o contrato de `cuidador-shell.js`
+  (`data-cui-pagina="desenhos" data-cui-teen="1"`, carrega via `CUI.aoTrocarTeen`). Grade de cartões
+  (`.dz-*` em `app.css`, molde do `.lo-item` da própria Lousa mas com `object-fit:contain` — a arte não
+  pode ser cortada como um recorte de galeria comum) com data e botão de baixar; sem botão de apagar (o RLS
+  já impede). Adicionado item "Desenhos da Lousa" ao `MENU` de `cuidador-shell.js` (ícone `image`, novo em
+  `js/core/icons.js`) e à seção "Acompanhamento", logo depois de Observações.
+- Verificado com **jsdom**: casca/menu com o item novo e ativo, teens carregados, grade renderizando só as
+  linhas com `imagem` começando em `data:image/` (mesma defesa de `lerGaleria()` na própria Lousa — a coluna
+  é `TEXT` livre, então um valor malicioso teria que ser filtrado no cliente mesmo vindo do próprio banco),
+  zero HTML cru vazando pro `innerHTML`, estado vazio sem adolescente selecionado.
+- **Node estava disponível nesta sessão** (`v20.15.1`, `node --check` funcionou), ao contrário do que a nota
+  de 2026-08-19 registrou — reconferir sempre antes de assumir que não tem Node, como já dizia a seção Stack.
+
+**Envio automático pra essa galeria sem precisar de "Guardar" (mesmo dia, pedido em seguida pelo usuário):**
+combinado com o usuário — dispara **uma vez por desenho**, ao que vier primeiro entre passar de 1 minuto
+desenhando ou o adolescente fechar/trocar de aba/sair da página, e é **100% silencioso** (sem toast, sem
+baixar arquivo, sem entrar na galeria local do aparelho, sem XP — só a cópia no banco pro cuidador, igual ao
+"Guardar" manual manda). Um "Guardar" manual no meio do minuto também conta como enviado (não duplica depois).
+- Estado em `js/jogos/lousa.js`: `galeriaAuto = {enviado, timer}`. `armarEnvioGaleriaAuto()` dispara no
+  primeiro traço de um desenho novo (`comecar()`, quando a folha estava limpa antes desse traço) e arma um
+  `setTimeout` de 60s; se ainda estiver "suja" e não tiver sido enviada quando o timer vence, manda. Zerado
+  por `reiniciarEnvioGaleriaAuto()` nos dois pontos onde a folha volta a ficar limpa de verdade —
+  `folhaLimpa(true)` (botão Limpar) e o `desfazer()` que esvazia a pilha — pra um desenho novo poder disparar
+  de novo. `enviarGaleriaAoSairSeNecessario()` roda junto com o `capturarEEnviarSeMudou()` já existente (canal
+  de IA) nos mesmos listeners de `visibilitychange`/`pagehide`: envia na hora se ainda não foi, mesmo com
+  menos de 1 minuto — não perde o desenho de quem saiu cedo.
+- Verificado com uma simulação isolada da máquina de estados (mesma lógica de armar/disparar/reiniciar/sair
+  copiada num teste à parte, com timers falsos — não dá pra rodar o `lousa.js` real fora do navegador porque
+  ele depende de canvas/DOM): passa de 1 minuto sem clicar em nada → envia 1x e não repete; fecha a aba aos
+  10s → envia na hora, sem duplicar quando o timer original venceria depois; "Guardar" manual aos 20s → conta
+  como enviado, automático não duplica; limpa a folha depois do envio → um desenho novo pode disparar de
+  novo; folha em branco → nunca envia, nem ao "sair".
 
 ## 🛬 Landing pública (`index.html`) — redesign "Landing-A produto" (2026-08-13)
 Importada do projeto Claude Design **LumiTEA-TCC redesign** (`43c671f9-f91d-43d2-beaa-1b560669d04b`,

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Desenhos da Lousa</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="js/core/alerta-critico.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/cuidador-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-cui-pagina="desenhos" data-cui-teen="1">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta, sidebar e barra do adolescente vêm da casca:
+       js/core/cuidador-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-section-title"><i class="lt-i" data-lt-icon="image" aria-hidden="true"></i> Desenhos da Lousa</div>
+        <p class="dz-sub">Toda vez que o adolescente guarda um desenho na Lousa de pintar, uma cópia aparece
+          aqui automaticamente. Você só pode ver e baixar — os desenhos continuam sendo dele.</p>
+
+        <div class="dz-grid" id="dz-grid"><p class="cui-hint">Selecione um adolescente para ver os desenhos.</p></div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    var _desenhos = [];
+
+    function dzData(iso) {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' · ' +
+        d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function dzNomeArquivo(iso) {
+      return 'lumitea-desenho-' + String(iso).replace(/[:.]/g, '-').slice(0, 19) + '.png';
+    }
+
+    function dzBaixar(url, nome) {
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = nome;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    async function carregarDesenhos(teenId) {
+      var grid = document.getElementById('dz-grid');
+      if (!grid) return;
+
+      if (!teenId) {
+        _desenhos = [];
+        grid.innerHTML = '<p class="cui-hint">Selecione um adolescente para ver os desenhos.</p>';
+        return;
+      }
+
+      grid.innerHTML = '<p class="cui-hint">Carregando...</p>';
+
+      var res = await CUI.sb.from('desenhos_lousa').select('id, imagem, criado_em')
+        .eq('id_neurodivergente', teenId)
+        .order('criado_em', { ascending: false })
+        .limit(60);
+
+      if (res.error) {
+        grid.innerHTML = '<p class="cui-hint">Não foi possível carregar os desenhos agora. Tente recarregar a página.</p>';
+        console.error('[desenhos-cuidador] select falhou:', res.error.code, '|', res.error.message);
+        return;
+      }
+
+      /* nunca injetar no src algo que não seja imagem embutida */
+      _desenhos = (res.data || []).filter(function (d) {
+        return d && typeof d.imagem === 'string' && d.imagem.indexOf('data:image/') === 0;
+      });
+      renderDesenhos();
+    }
+
+    function renderDesenhos() {
+      var grid = document.getElementById('dz-grid');
+      if (!grid) return;
+      if (!_desenhos.length) {
+        grid.innerHTML = CUI.vazio('image', 'Nenhum desenho guardado ainda. Quando o adolescente guardar um desenho na Lousa de pintar, ele aparece aqui.');
+        return;
+      }
+      grid.innerHTML = _desenhos.map(function (d) {
+        return '<figure class="dz-item">' +
+          '<img src="' + CUI.esc(d.imagem) + '" alt="Desenho guardado em ' + CUI.esc(dzData(d.criado_em)) + '">' +
+          '<figcaption class="dz-item-pe">' +
+            '<span class="dz-item-data">' + CUI.esc(dzData(d.criado_em)) + '</span>' +
+            '<button type="button" class="dz-mini-btn" data-dz-baixar="' + CUI.esc(d.id) + '" ' +
+              'title="Baixar este desenho" aria-label="Baixar este desenho">' + CUI.ic('download') + '</button>' +
+          '</figcaption></figure>';
+      }).join('');
+      if (window.LUMI && window.LUMI.hydrateIcons) window.LUMI.hydrateIcons(grid);
+
+      grid.querySelectorAll('[data-dz-baixar]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var id = b.getAttribute('data-dz-baixar');
+          _desenhos.forEach(function (d) {
+            if (String(d.id) === id) dzBaixar(d.imagem, dzNomeArquivo(d.criado_em));
+          });
+        });
+      });
+    }
+
+    CUI.aoTrocarTeen(carregarDesenhos);
+  </script>
+</body>
+</html>

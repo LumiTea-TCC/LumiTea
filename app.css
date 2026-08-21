@@ -3780,6 +3780,39 @@ body.cui-page { overflow: hidden; }
 }
 .obs-form textarea:focus { border-color: var(--primary); }
 
+/* ── DESENHOS DA LOUSA (galeria do cuidador) ─────────────────── */
+.dz-sub { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin: -8px 0 var(--sp-4); max-width: 62ch; }
+.dz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-4);
+}
+.dz-item {
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.dz-item:hover { border-color: var(--accent2); }
+.dz-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #fffdf9;
+  border-bottom: 1px solid var(--border-faint);
+}
+.dz-item-pe { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: 8px 8px 8px 14px; }
+.dz-item-data { color: var(--text-muted); font-size: 12px; font-weight: 700; }
+.dz-mini-btn {
+  width: 40px; height: 40px; border-radius: var(--r-sm); background: transparent; border: none;
+  color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.dz-mini-btn:hover { background: var(--panel-1); color: var(--brand-dark); }
+.dz-mini-btn svg { width: 17px; height: 17px; }
+
 /* ── VÍNCULO ─────────────────────────────────────────────── */
 .vinculo-teen-card {
   display: flex; align-items: center; gap: 14px; padding: var(--sp-4);
@@ -4191,6 +4224,19 @@ a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
 /* ── RESPONSIVO ───────────────────────────────────────────── */
 @media (max-width: 900px) {
   body.cui-page { overflow: auto; }
+  /* `.cui-layout` PRECISA continuar `position:relative; z-index:1` (regra base,
+     acima) mesmo no mobile: é isso que garante que ela pinte por cima do
+     `.bg-layer` decorativo (`position:fixed; z-index:0`, os blobs desfocados
+     do fundo). Tirar essa posição (chegou a ser tentado aqui) faz `.cui-layout`
+     virar um bloco não-posicionado — e por regra de pintura do CSS, um
+     descendente POSICIONADO (mesmo com z-index:0, caso do `.bg-layer`) sempre
+     pinta por cima de um irmão não-posicionado, não importa a ordem no DOM.
+     Resultado visto e medido em pixel via screenshot: um "véu" cinza-azulado
+     sobre TODO o conteúdo — os blobs do bg-layer vazando por cima dos cards
+     brancos. A correção real do clique preso no menu (ver `cuidador-shell.js`,
+     `montarCasca`) foi mover `.cui-sidebar-overlay` pra DENTRO de `.cui-layout`
+     — ali ela compara direto com `.cui-sidebar` (29 vs 30) no MESMO stacking
+     context, sem precisar mexer no z-index de `.cui-layout`. */
   .cui-layout { grid-template-columns: 1fr; height: auto; }
   .cui-mobile-topbar { display: flex; }
   .app-burger { display: block; }

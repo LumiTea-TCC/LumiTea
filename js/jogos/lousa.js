@@ -146,7 +146,7 @@
     ctx.fillStyle = papel;
     ctx.fillRect(0, 0, largura(), altura());
     aplicarPincel();
-    if (marcarLimpo) estado.sujo = false;
+    if (marcarLimpo) { estado.sujo = false; reiniciarEnvioGaleriaAuto(); }
   }
 
   /* ============================================================
@@ -167,7 +167,7 @@
       ctx.drawImage(img, 0, 0, largura(), altura());
     };
     img.src = url;
-    if (!pilha.length) estado.sujo = false;
+    if (!pilha.length) { estado.sujo = false; reiniciarEnvioGaleriaAuto(); }
     pintarDesfazer();
     avisar('Último traço desfeito.');
   }
@@ -186,9 +186,11 @@
   function meio(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
 
   function comecar(p) {
+    var folhaEstavaLimpa = !estado.sujo;
     instantaneo();
     estado.sujo = true;
     estado.tracos++;
+    if (folhaEstavaLimpa) armarEnvioGaleriaAuto();
     traco.ativo = true;
     traco.ult = p;
     traco.meio = p;
@@ -635,6 +637,63 @@
   }
 
   /* ============================================================
+     ENVIO AO CUIDADOR (galeria) — silencioso, direto no banco, sem
+     depender da IA de visão (essa faz a análise de risco à parte,
+     ver analisarEEnviarDesenho acima). Roda em paralelo, nunca
+     trava o guardar(), e o adolescente não é avisado desse envio —
+     mesmo espírito "silencioso" do resto do app.
+     ============================================================ */
+  async function enviarDesenhoAoCuidador(imgMini) {
+    try {
+      if (!J.supabase || !J.usuario || !J.usuario.id) return;
+      var ins = await J.supabase.from('desenhos_lousa').insert({
+        id_neurodivergente: J.usuario.id,
+        imagem: imgMini
+      });
+      if (ins.error) {
+        console.warn('[Lousa] Não foi possível enviar o desenho ao cuidador:', ins.error.code, '|', ins.error.message);
+      }
+    } catch (e) {
+      console.warn('[Lousa] Falha ao enviar o desenho ao cuidador:', e);
+    }
+  }
+
+  /* Envio automático pra galeria do cuidador, SEM precisar de "Guardar":
+     dispara uma vez por desenho, ao que vier primeiro — passar de 1 minuto
+     desenhando, ou o adolescente fechar/sair da página com algo não
+     guardado. 100% silencioso (sem toast, sem baixar arquivo, sem entrar
+     na galeria local, sem XP — só a cópia no banco pro cuidador).
+     Só dispara de novo depois que a folha for limpa (novo desenho) — um
+     "Guardar" manual no meio também conta como enviado, pra não duplicar. */
+  var GALERIA_AUTO_LIMIAR_MS = 60000;
+  var galeriaAuto = { enviado: false, timer: null };
+
+  function armarEnvioGaleriaAuto() {
+    if (galeriaAuto.enviado || galeriaAuto.timer) return;
+    galeriaAuto.timer = setTimeout(function () {
+      galeriaAuto.timer = null;
+      if (galeriaAuto.enviado || !estado.sujo) return;
+      galeriaAuto.enviado = true;
+      enviarDesenhoAoCuidador(miniatura());
+    }, GALERIA_AUTO_LIMIAR_MS);
+  }
+
+  function reiniciarEnvioGaleriaAuto() {
+    if (galeriaAuto.timer) { clearTimeout(galeriaAuto.timer); galeriaAuto.timer = null; }
+    galeriaAuto.enviado = false;
+  }
+
+  /* Chamado ao esconder/fechar a aba: envia na hora se ainda não foi
+     enviado, mesmo que o minuto não tenha passado — não perder o desenho
+     de quem saiu cedo. */
+  function enviarGaleriaAoSairSeNecessario() {
+    if (galeriaAuto.timer) { clearTimeout(galeriaAuto.timer); galeriaAuto.timer = null; }
+    if (galeriaAuto.enviado || !estado.sujo) return;
+    galeriaAuto.enviado = true;
+    enviarDesenhoAoCuidador(miniatura());
+  }
+
+  /* ============================================================
      GUARDAR O DESENHO (download + galeria + XP)
      ============================================================ */
   function xpDoDia() {
@@ -672,6 +731,9 @@
       envioAuto.ultimoEnviado = completo;
       analisarEEnviarDesenho(completo, mini);
     }
+    if (galeriaAuto.timer) { clearTimeout(galeriaAuto.timer); galeriaAuto.timer = null; }
+    galeriaAuto.enviado = true;
+    enviarDesenhoAoCuidador(mini);
 
     var ganho = xpDoDia();
     J.salvarSessao({
@@ -772,9 +834,13 @@
     /* Sai da página (troca de aba ou navega pra outro lugar) com algo
        desenhado e ainda não enviado: captura e manda antes de ir embora
        (best-effort — a página pode fechar de vez no meio do envio). */
+    function aoEsconderOuSair() {
+      capturarEEnviarSeMudou();
+      enviarGaleriaAoSairSeNecessario();
+    }
     document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden') capturarEEnviarSeMudou();
+      if (document.visibilityState === 'hidden') aoEsconderOuSair();
     });
-    g.addEventListener('pagehide', capturarEEnviarSeMudou);
+    g.addEventListener('pagehide', aoEsconderOuSair);
   });
 })(window);
