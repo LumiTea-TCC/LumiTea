@@ -121,6 +121,84 @@
 }
 
 /* ============================================================
+   MODO ESCURO — html[data-tema="escuro"]
+   Redefine os MESMOS tokens de cor acima; qualquer componente que já
+   usa var(--bg)/var(--surface)/var(--text-*)/etc. (a norma do projeto,
+   ver CLAUDE.md "Zero estilo inline") se adapta sozinho, sem CSS extra.
+   A paleta clara acima continua sendo o padrão e é IMUTÁVEL — isto é
+   uma camada alternativa, opt-in via o switch de tema (ver enhance.css
+   e js/core/tema.js), nunca uma substituição.
+   Todos os pares texto/fundo abaixo foram conferidos ≥ 4.5:1 (WCAG AA).
+   ============================================================ */
+html[data-tema="escuro"] {
+  /* ── Cor: superfícies ─────────────────────────────────────── */
+  --bg:          #121826;
+  --bg-2:        #171f30;
+  --surface:     #1b2436;
+  --surface-glass:        rgba(27, 36, 54, 0.72);
+  --surface-glass-strong: rgba(22, 30, 46, 0.88);
+  --glass-border:         rgba(255, 255, 255, 0.08);
+
+  /* ── Cor: marca e ação ────────────────────────────────────── */
+  --brand:          #7fb0e0;
+  --brand-dark:     #5a8fc7;
+  --primary:        #6fb0f7;
+  --primary-action: #2569bb;  /* branco em cima: 5.5:1 */
+  --primary-dark:   #1d5296;
+  --primary-light:  #8ec2f7;
+  --primary-pale:   #1c2c42;
+  --accent:         #6fb0f7;
+
+  --violeta:      #b09be0;
+  --violeta-dark: #8f76cc;
+  --ambar:        #f2c37e;
+  --verde:        #5fcdc4;
+  --rosa:         #ea9bd8;
+  --rosa-dark:    #f0a0da;
+
+  /* ── Calor da marca — versões escurecidas dos mesmos tons ──── */
+  --cream:        #221c15;
+  --cream-2:      #251e15;
+  --peach:        #5b3a22;
+  --mint:         #16302a;
+  --sky:          #1a2c40;
+
+  /* ── Cor: texto (conferido ≥ 4.5:1 sobre --bg/--bg-2/--surface) ── */
+  --text-main:  #eef3fb;
+  --text-soft:  #b7c6dd;
+  --text-muted: #93a6c2;
+  --ink-faint:  #4c5b72;
+
+  /* ── Cor: estados semânticos (texto + fundo pareados) ─────── */
+  --success:     #8fe0a0;  --success-bg: #15301d;  --success-border: rgba(143,224,160,.28);
+  --warning:     #f2c37e;  --warning-bg: #332510;  --warning-border: rgba(242,195,126,.30);
+  --danger:      #f5978d;  --danger-bg:  #3a1815;  --danger-border:  rgba(245,151,141,.30);
+  --info:        #8ec2f7;  --info-bg:    #132540;  --info-border:    rgba(142,194,247,.30);
+
+  /* ── Bordas ───────────────────────────────────────────────── */
+  --border:        #2c3853;
+  --border-soft:   rgba(255,255,255,0.12);
+  --border-faint:  rgba(255,255,255,0.07);
+
+  /* ── Painéis tintados ──────────────────────────────────────── */
+  --panel-1:      #1a2438;
+  --panel-2:      #202c46;
+  --panel-3:      #19212f;
+  --tint-violet:  #241f38;
+  --tint-rose:    #2c1f2e;
+  --tint-green:   #142a20;
+  --tint-green-2: #132a1f;
+
+  /* ── Sombras (mais escuras/opacas, já que o fundo é escuro) ── */
+  --shadow-1: 0 3px 12px  rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 10px 26px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 18px 40px rgba(0, 0, 0, 0.55);
+  --shadow:   rgba(0, 0, 0, 0.35);
+
+  --focus-ring: 0 0 0 3px rgba(142, 194, 247, 0.55);
+}
+
+/* ============================================================
    ÍCONES — par do js/core/icons.js
    Uso estático:  <i class="lt-i" data-lt-icon="bell"></i>
    Uso em JS:     LUMI.icon('bell')  →  string SVG

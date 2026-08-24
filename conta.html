@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/tema.js" defer></script>
   <style>
     .conta-page{max-width:1080px;margin:0 auto;width:100%;padding:28px 24px 44px;position:relative;z-index:5;display:flex;flex-direction:column;gap:16px}
 
@@ -196,6 +197,7 @@
       <a href="calendario.html">Calendário</a>
       <a href="diario.html">Diário</a>
       <a href="conta.html" class="active">Conta</a>
+      <span class="lt-tema-slot"></span>
     </div>
     <div class="app-nav-right">
       <div class="user-badge">
@@ -217,6 +219,7 @@
     <a href="calendario.html">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html" class="active">Conta</a>
+    <span class="lt-tema-slot"></span>
     <div class="app-mobile-menu-sair">
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
@@ -716,6 +719,7 @@
       document.querySelectorAll('#grp-tema .ac-tema').forEach(function(b){b.setAttribute('aria-pressed', b.dataset.v===v?'true':'false')});
       document.documentElement.setAttribute('data-tema', v||'default');
       try{ localStorage.setItem('lt-tema', v||'default'); }catch(e){}
+      if (window.LUMITEA && window.LUMITEA.tema) window.LUMITEA.tema.sincronizarSwitches();
       salvarPrefs();
     }
     function aplicarFonteSilencioso(){
@@ -760,6 +764,7 @@
       document.querySelectorAll('#grp-tema .ac-tema').forEach(function(b){b.setAttribute('aria-pressed', b.dataset.v===_temaAtual?'true':'false')});
       document.documentElement.setAttribute('data-tema', _temaAtual||'default');
       try{ localStorage.setItem('lt-tema', _temaAtual||'default'); }catch(e){}
+      if (window.LUMITEA && window.LUMITEA.tema) window.LUMITEA.tema.sincronizarSwitches();
       aplicarFonteSilencioso();
       aplicarCalmo();
     }

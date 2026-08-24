@@ -4,6 +4,17 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <title>LumiTEA — Entrar</title>
+ <!-- Aplica o modo escuro salvo ANTES do CSS pintar a página (evita flash
+      claro→escuro). Mesma chave/atributo de js/core/config.js. -->
+ <script>
+ (function () {
+   try {
+     if (localStorage.getItem('lt-tema') === 'escuro') {
+       document.documentElement.setAttribute('data-tema', 'escuro');
+     }
+   } catch (e) {}
+ })();
+ </script>
  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
@@ -31,6 +42,7 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/tema.js" defer></script>
 </head>
 <body>
 
@@ -58,11 +70,14 @@
  LumiTEA
  </a>
 
+ <div class="nav-acoes">
  <!-- Link para voltar à página inicial -->
  <a class="nav-back" href="index.html">
  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
  Voltar ao início
  </a>
+ <span class="lt-tema-slot"></span>
+ </div>
  </nav>
 
 

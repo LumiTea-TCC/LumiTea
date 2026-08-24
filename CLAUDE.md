@@ -883,6 +883,107 @@ no Bash tool nem no PowerShell) — ao contrário do que a nota de 2026-08-05 di
 desta sessão foi substituído por conferência manual de chaves/parênteses + leitura cuidadosa. Reconferir
 antes de assumir Node disponível de novo.
 
+## 🌙 Modo escuro (2026-08-24)
+Pedido do usuário: um switch sol/lua (design próprio, fornecido pronto) nos "nav-links", ligando um modo
+escuro pro site inteiro. Ao investigar, **já existia infraestrutura pela metade**: `conta.html` tem um
+seletor "Tema de cores" (`default`/`calmo`/`escuro`/`alto-contraste`) que já gravava `data-tema` no
+`<html>` + `localStorage['lt-tema']` + `preferencias_usuario.tema` (sync entre aparelhos), e
+`js/core/config.js` já aplicava esse atributo bem cedo (linha "Aplica preferências de acessibilidade
+salvas") — mas **não existia NENHUM CSS pra `[data-tema="escuro"]` em lugar nenhum**, então o seletor não
+fazia visualmente nada. Também tinha um `.lt-theme-toggle`/`js/core/theme.js` em `enhance.css` referenciando
+um arquivo que nunca foi criado — **órfão, não usado por nenhuma página, deixado como está**. Reaproveitei
+a infra real (chave `lt-tema`, valores `default`/`escuro`, atributo `data-tema`) em vez de criar um sistema
+paralelo; só faltava o CSS e o switch em si.
+- **`css/tokens.css`**: bloco `html[data-tema="escuro"] { ... }` logo após o `:root`, redefinindo os MESMOS
+  tokens de cor (bg/surface/text/bordas/painéis/estados semânticos/sombras). Todo componente que já usa
+  `var(--bg)`/`var(--surface)`/`var(--text-*)` (norma do projeto) se adapta sozinho. Pares texto/fundo
+  conferidos ≥ 4.5:1 (WCAG AA) com um script Node ad-hoc — `--primary-action` precisou ficar mais escuro
+  (`#2569bb`, 5.5:1) porque o tom claro original não passava com texto branco em cima.
+- **`js/core/tema.js`** (novo): monta o switch (HTML/SVG do sol-lua, embutido só aqui, não duplicado em
+  30 arquivos) dentro de qualquer `<span class="lt-tema-slot"></span>` — mesmo espírito do
+  `data-lt-icon`/`icons.js`. Expõe `LUMITEA.tema.{atual,aplicar,alternar,sincronizarSwitches}`.
+  `alternar()` usa `window.setTema` (a função de `conta.html`) quando ela existe na página, pra não
+  desalinhar o switch do seletor de 4 opções; nas demais páginas é só `localStorage`+atributo, sem
+  sincronizar com a conta (o seletor completo continua sendo a única fonte de sync entre aparelhos).
+  `conta.html` foi ajustado pra chamar `sincronizarSwitches()` depois de mudar o tema pelo seletor.
+- **`css/enhance.css`**: CSS do switch (`.theme-switch*`) colado do design fornecido, quase sem alteração —
+  com DUAS correções de acessibilidade que o design original não tinha: (1) o checkbox usava
+  `display:none`, que tira o controle da ordem de tabulação inteira (foco por teclado impossível); virou
+  o padrão "escondido mas focável" (`position:absolute;width:1px;height:1px;clip:rect(0,0,0,0)`, igual ao
+  `.sr-only` do projeto) + `:focus-visible` no container-irmão. (2) `aria-label` no input, já que o design
+  é só ícone. Motion (nuvens/estrelas/lua deslizando) **não precisou de gating extra**: as regras globais
+  `html[data-modo-calmo="true"] *`/`prefers-reduced-motion` de `tokens.css` já pegam qualquer elemento
+  novo por `!important`. Classe `.theme-switch--nav` encolhe `--toggle-size` pra caber em nav/sidebar.
+- **Onde o switch aparece**: `index.html` (`.lp-nav-links` + `.lp-menu` mobile — como não carrega
+  `config.js`, ganhou um `<script>` inline próprio no `<head>`, antes dos `<link rel="stylesheet">`, só pra
+  não ter flash claro→escuro); as 15 páginas do teen (`.app-nav-links` desktop + `.app-mobile-menu` mobile,
+  inseridos com um script Node ad-hoc já que a marcação é idêntica nas 15 — `ferramentas-aba.html` tem
+  DOIS navs, o script tratou os dois); painel do cuidador — **rodapé da sidebar**, um `<span
+  class="lt-tema-slot">` a mais em `cuidador-shell.js` (`.cui-tema-linha`/`.cui-tema-label` novos em
+  `app.css`), propaga sozinho pras 14 páginas.
+- **`login.html`/`cadastro.html` entraram no modo escuro no mesmo dia, num pedido separado em seguida.**
+  Essas duas usam `conta.css` — um design system à parte, com seu PRÓPRIO `:root` (mesmos nomes de token
+  de `tokens.css`: `--bg`, `--surface`, `--text-*`, etc., mas definido de novo, não importado). O bloco
+  escuro (`html[data-tema="escuro"]`) foi replicado dentro do PRÓPRIO `conta.css`, não em `tokens.css` —
+  ambos os arquivos já carregam `css/tokens.css` também (por causa dos ícones), então os dois blocos
+  escuros coexistem; onde os nomes coincidem os valores foram propositalmente igualados, pra não importar
+  qual dos dois vence a cascata. De quebra, dois bugs pré-existentes (nada a ver com tema, encontrados só
+  por estarem bem na frente): `--text-muted: var(--text-muted)` era autorreferente (nunca resolvia) —
+  virou um valor de verdade; `.erro-geral-msg` duplicava em hex as mesmas cores que `--error`/`--error-pale`
+  já definiam — trocado por `var(...)`. Faltava só um `<span class="lt-tema-slot">` dentro de um
+  `.nav-acoes` novo (agrupando com o link "Voltar ao início", pra não quebrar o `justify-content:
+  space-between` do `<nav>` de 2 pra 3 itens) + o script inline de aplicar cedo (mesmo de `index.html`,
+  já que essas páginas também não carregam `config.js`) + `js/core/tema.js` deferred.
+- **A faixa clara/"suja" no topo do hero da landing em modo escuro (reportada pelo usuário com print) tinha
+  causa exatamente igual à do `calendario.html`: tokens locais de `landing.css` não cobertos pelo bloco
+  escuro de `tokens.css`.** `.lp-topo` usa `linear-gradient(180deg, var(--lp-white-soft) 0%, var(--bg) 46%,
+  var(--lp-blue-mist) 100%)` — `--lp-white-soft`/`--lp-blue-mist` são variáveis SÓ de `landing.css` (não
+  existem em `tokens.css`), ficavam claras fixas mesmo no escuro, e o meio (`--bg`, esse sim escuro)
+  formava uma mancha clara→escura→clara. Corrigido com um bloco `html[data-tema="escuro"]` dentro
+  do PRÓPRIO `landing.css` (mesmo padrão do `conta.css` acima) redefinindo `--lp-white-soft`/
+  `--lp-blue-mist`/`--lp-cream-2` (a mesma classe de bug existia na faixa de CTA) com tons PRÓXIMOS entre
+  si — de propósito, pra ficar "discreto" (pedido explícito do usuário) em vez de um degradê escuro com 3
+  tons bem diferentes entre os stops. `--lp-navy-1/2`/`--lp-sky-ink`/`--lp-chat-1/2`/`--lp-video-bg` NÃO
+  mudam no escuro — já são escuros de propósito nas duas versões (faixas navy do design), mesmo raciocínio
+  da sidebar do cuidador que também não muda.
+- Conferido com Playwright: `login.html`/`cadastro.html` em escuro (card/inputs/switch legíveis, fundo azul
+  da `.account-page` mantido de propósito) e `index.html` em escuro de novo (mancha clara do hero sumiu,
+  faixa de CTA também ficou marrom-escura coerente em vez de clara).
+- **🐛 Bug real, só apareceu no teste com Playwright, não na leitura do código: o switch nascia invisível
+  no rodapé da sidebar do cuidador.** `tema.js` carrega com `defer`; por spec, script deferred roda quando
+  `document.readyState` JÁ é `"interactive"` (não mais `"loading"`) — ou seja, ANTES do `DOMContentLoaded`,
+  não depois. A checagem ingênua `readyState==='loading' ? esperar : rodar já` caía direto no `rodar já`,
+  cedo demais pro painel do cuidador: a sidebar (com o `.lt-tema-slot` dela) só é injetada dentro do
+  PRÓPRIO listener de `DOMContentLoaded` de `cuidador-shell.js`, que ainda nem tinha rodado nesse ponto.
+  Corrigido pra só rodar na hora se `readyState==='complete'`; caso contrário sempre espera
+  `DOMContentLoaded` (que ainda vai disparar depois de scripts deferred, então funciona certo tanto pra
+  slot estático quanto injetado por JS). Nas páginas do teen o bug não aparecia porque lá o slot já existe
+  no HTML estático desde o parse — só o cuidador (slot montado por JS) expunha a diferença.
+- **Verificado com Playwright + Chrome real** (não só leitura de código): `index.html` claro/escuro,
+  `home-autista.html`/`diario.html`/`games.html`/`jogo-memoria.html`/`comunidade.html`/`calendario.html`/
+  `home-cuidador.html` em escuro (sessão Supabase forjada via `localStorage` — mesmo formato de
+  `sb-<ref>-auth-token` do supabase-js — pra passar da guarda de login sem precisar de conta real; chamadas
+  reais a `*.supabase.co` abortadas). Clique de verdade no switch da sidebar do cuidador testado (não só
+  `localStorage` forjado) — `data-tema` e `localStorage` mudam corretamente.
+- **Bugs de contraste achados e corrigidos SÓ no screenshot** (a norma do projeto — "só apareceu no
+  render" — se repetiu aqui): vários painéis "vidro" tinham `rgba(255,255,255,X)`/`#fff` fixo em vez de
+  `var(--surface*)`, então ficavam brancos mesmo no escuro enquanto o texto (`var(--text-*)`) virava claro
+  em cima — texto claro em fundo branco, ilegível. Corrigidos: `.app-nav` (nav de TODAS as páginas do
+  teen), `.app-mobile-menu`, `.diario-sidebar`, `.ds-header`, todo o bloco `.ai-conversation-page` (tela de
+  conversa: nav, cards de humor/chat, bolhas do Theo, textarea), `.jg-card` (cards padrão do hub de jogos —
+  só os 4 sem tema de cor próprio; Roleplay/Lousa já usam `--jg-cor` e estavam OK), `.jg-btn-claro`,
+  `.jg-progresso-stat`, focus states de `chat.css`/`aba.css`, e o `calendario.html` do teen inteiro
+  (`.mini-cal`, `.form-card`, `.eventos-box`, bloco "Preparar com Roleplay" — esse último também trocou
+  `#5a3d8f`/`#7c5cbf` fixos por `var(--violeta-dark)`/`var(--violeta)`).
+- **⚠️ Lacuna conhecida, não fechada nesta sessão:** `calendario-cuidador.html` (e provavelmente outras
+  páginas do painel com estilo próprio grande no `<head>`, não confirmado quais) usa cor **100% em hex
+  fixo** (`#1a2e4a`, `#f4f8fd`, `#d6eaf8` etc. — os MESMOS valores da paleta clara de `tokens.css`, só que
+  literais em vez de `var(...)`), então o conteúdo dessas páginas não muda no escuro (só o nav/sidebar
+  compartilhados mudam, via `cuidador-shell.js`, que É tokenizado). Achar e converter isso exigiria auditar
+  as 14 páginas do painel uma a uma — não feito ainda, escopo grande o bastante pra ser uma sessão à parte.
+  Antes de mexer, `grep` por `background:\s*(#fff|white|rgba(255,\s*255,\s*255)` em cada `.html` do
+  cuidador pra achar os pontos, mesmo padrão usado aqui.
+
 ## 🔐 Segurança (estado atual e regras)
 - **Chaves de IA/voz são gated por origem** (`js/core/config.js` + `js/core/secrets.js`): só carregam em DEV
   (localhost / `file://` / IP privado). Em domínio público ficam vazias → IA/voz passam pelos **proxies**.
@@ -972,12 +1073,24 @@ antes de assumir Node disponível de novo.
 7. Confirmar se `chat_bloqueios`/`registrar_bloqueio_chat`/`db/CHAT_SEGURANCA.sql` ainda existem no banco
    de produção (provável órfãos, substituídos por `js/core/moderacao.js`/`MODERACAO_SCHEMA.sql`, ver seção
    acima) — só documentar/limpar depois de confirmar via Management API, não mexer sem combinar.
+8. **Modo escuro (2026-08-24):** converter as cores 100% em hex fixo de `calendario-cuidador.html` (e
+   conferir as outras 13 páginas do painel) pra `var(--surface)`/`var(--text-*)`/etc., mesmo padrão já
+   aplicado no `calendario.html` do teen. Ver seção "🌙 Modo escuro" pro grep que acha os pontos.
 
 ## Subagents/skills úteis
 `frontend-reviewer`, `accessibility-auditor`, `supabase-security-reviewer` (só rodar se o usuário pedir).
-MCP `playwright` disponível, mas as páginas internas exigem sessão Supabase real (redirecionam p/ login sem auth) —
-verificação aqui é majoritariamente estática. **`node --check`/parse com `vm` exigem Node, que não está instalado
-nesta máquina** (ver seção Stack) — na falta dele, revisar a sintaxe lendo o trecho editado com atenção.
+MCP `playwright` disponível; as páginas internas exigem sessão Supabase real (redirecionam pro login sem
+auth), mas **dá pra passar disso sem conta de verdade** (usado e funcionando em 2026-08-24, ver seção "🌙
+Modo escuro"): antes de navegar, grava em `localStorage` uma chave `sb-<project-ref>-auth-token` com um
+objeto `{access_token,refresh_token,expires_at,user:{id,...}}` — `access_token` só precisa TER formato de
+JWT (3 partes base64url separadas por `.`, não precisa assinatura válida, o cliente não verifica) — e
+aborta requisições reais a `*.supabase.co` (`page.route('**://*.supabase.co/**', r => r.abort())`) pra
+`getSession()` resolver local sem rede e a chamada seguinte (que buscaria dados de verdade) falhar em vez
+de "sem sessão" → sem isso o guard de login (`if (!session) location.href='login.html'`) dispara antes de
+qualquer screenshot útil. **`node --check`/parse com `vm` exigem Node — reconferir se está instalado antes
+de assumir (mudou de sessão pra sessão nesta máquina, ver seção Stack); em 2026-08-24 estava disponível
+(`v24.16.0`) e Playwright + Chromium foram instalados via `npm i playwright && npx playwright install
+chromium` sem problema (rede disponível).**
 
 ## Convenções de trabalho
 - Validar JS com `node --check` **se o Node estiver disponível na máquina** (conferir antes de assumir — nem

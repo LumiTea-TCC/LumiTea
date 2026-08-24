@@ -179,7 +179,7 @@
 .jg-card {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #fff, #fbfdff);
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
   border: 1.5px solid var(--border-soft);
   border-radius: var(--r-xl);
   padding: var(--sp-6);
@@ -213,7 +213,7 @@
 .jg-card-rodape .jg-icone-btn { flex-shrink: 0; }
 
 /* Botão claro (fundo branco) — usado sobre cards com fundo colorido cheio */
-.jg-btn-claro { background: #fff; color: var(--jg-cor-ink, var(--brand-dark)); }
+.jg-btn-claro { background: var(--surface); color: var(--jg-cor-ink, var(--brand-dark)); }
 .jg-btn-claro:hover { background: var(--jg-cor-bg, var(--panel-1)); color: var(--jg-cor-ink, var(--brand-dark)); }
 
 /* Card especial (cheio de cor, com padrão de pontinhos) — usado pela lousa
@@ -255,7 +255,7 @@
 }
 .jg-progresso-titulo .lt-i { color: var(--ambar); }
 .jg-progresso-nums { display: flex; gap: 10px; margin-bottom: var(--sp-4); }
-.jg-progresso-stat { flex: 1; background: #fff; border: 1px solid var(--border-soft); border-radius: 14px; padding: 12px 14px; }
+.jg-progresso-stat { flex: 1; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 14px; padding: 12px 14px; }
 .jg-progresso-valor { display: block; font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; line-height: 1; color: var(--text-main); }
 .jg-progresso-rotulo { font-size: .66rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
 .jg-card--progresso .jg-progresso-texto { font-size: .84rem; line-height: 1.6; color: var(--text-soft); margin: 0; }

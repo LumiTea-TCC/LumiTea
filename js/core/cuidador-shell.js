@@ -308,10 +308,19 @@
       '</nav>' +
       '<div class="cui-sidebar-footer">' +
         '<div id="cui-nome-area" class="cui-nome-area">Carregando...</div>' +
+        '<div class="cui-tema-linha">' +
+          '<span class="cui-tema-label">Modo escuro</span>' +
+          '<span class="lt-tema-slot"></span>' +
+        '</div>' +
         '<button type="button" class="cui-sair" id="cui-btn-sair"><span class="cui-nav-icon" data-lt-icon="log-out"></span> Sair da conta</button>' +
       '</div>';
 
     aside.innerHTML = html;
+    // A sidebar é montada aqui via innerHTML; js/core/tema.js (também deferred,
+    // registrado em TODAS as páginas do cuidador) monta o switch de verdade
+    // dentro do .lt-tema-slot acima quando o DOMContentLoaded disparar — como
+    // este listener já foi registrado ANTES (script síncrono, ver cabeçalho
+    // do arquivo), ele roda primeiro e o slot já existe a tempo.
     layout.insertBefore(aside, layout.firstChild);
 
     aside.querySelectorAll('[data-cui-ir]').forEach(function (btn) {

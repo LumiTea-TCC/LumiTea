@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/tema.js" defer></script>
   <style>
     /* ── LAYOUT ───────────────────────────────────────────── */
     .cal-page{display:grid;grid-template-columns:300px 1fr;gap:20px;padding:22px 28px;min-height:calc(100vh - 64px);position:relative;z-index:1;max-width:1180px;margin:0 auto;width:100%}
@@ -25,7 +26,7 @@
     .cal-left{display:flex;flex-direction:column;gap:16px}
 
     /* MINI CALENDÁRIO */
-    .mini-cal{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px;overflow:hidden}
+    .mini-cal{background:var(--surface);border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px;overflow:hidden}
     .mini-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     .mini-month{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--text-main)}
     .mini-nav{display:flex;gap:5px}
@@ -44,14 +45,14 @@
     .md{width:4px;height:4px;border-radius:50%}
 
     /* FORM ADICIONAR */
-    .form-card{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px}
+    .form-card{background:var(--surface);border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px}
     .fc-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:var(--text-main);margin-bottom:14px;display:flex;align-items:center;gap:8px}
     .fc-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
     .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
     .fg:last-child{margin-bottom:0}
     .fl{font-size:.65rem;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
     .fi{background:var(--bg);border:1.5px solid rgba(74,126,181,0.18);border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-main);outline:none;transition:border-color .2s;width:100%}
-    .fi:focus{border-color:var(--primary);background:white}
+    .fi:focus{border-color:var(--primary);background:var(--surface)}
     .fi::placeholder{color:var(--text-muted)}
     .fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .colors{display:flex;gap:6px;flex-wrap:wrap}
@@ -75,11 +76,11 @@
     .cuid-strip.show{display:flex}
     @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
     .cs-icon{font-size:1.4rem}
-    .cs-txt{font-size:.8rem;font-weight:800;color:#7a4f1a}
-    .cs-sub{font-size:.72rem;color:#9a6730;font-weight:600;margin-top:1px}
+    .cs-txt{font-size:.8rem;font-weight:800;color:var(--warning)}
+    .cs-sub{font-size:.72rem;color:var(--warning);font-weight:600;margin-top:1px;opacity:.85}
 
     /* Lista de eventos */
-    .eventos-box{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 20px;flex:1}
+    .eventos-box{background:var(--surface);border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 20px;flex:1}
     .eb-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:var(--text-main);margin-bottom:14px;display:flex;align-items:center;gap:8px}
     .ev-item{display:flex;gap:10px;padding:11px 13px;border-radius:13px;background:var(--bg);border:1.5px solid rgba(74,126,181,0.10);margin-bottom:8px;cursor:pointer;transition:all .17s;align-items:flex-start}
     .ev-item:last-child{margin-bottom:0}
@@ -107,32 +108,32 @@
     .mtb-sub{font-size:.7rem;color:var(--text-muted);font-weight:600}
 
     /* Roleplay prep */
-    .rp-prep{background:linear-gradient(135deg,#f3eeff,#edf4ff);border:1.5px solid rgba(124,92,191,0.18);border-radius:20px;padding:18px 20px}
-    .rp-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:#5a3d8f;margin-bottom:4px;display:flex;align-items:center;gap:7px}
-    .rp-sub{font-size:.72rem;color:#7c5cbf;font-weight:600;margin-bottom:12px}
+    .rp-prep{background:linear-gradient(135deg,var(--tint-violet),var(--surface));border:1.5px solid rgba(124,92,191,0.18);border-radius:20px;padding:18px 20px}
+    .rp-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:var(--violeta-dark);margin-bottom:4px;display:flex;align-items:center;gap:7px}
+    .rp-sub{font-size:.72rem;color:var(--violeta);font-weight:600;margin-bottom:12px}
     .rp-list{display:flex;flex-direction:column;gap:7px}
-    .rp-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border:1.5px solid rgba(124,92,191,0.18);border-radius:12px;cursor:pointer;transition:all .17s}
+    .rp-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1.5px solid rgba(124,92,191,0.18);border-radius:12px;cursor:pointer;transition:all .17s}
     .rp-card:hover{border-color:#7c5cbf;background:#f9f3ff}
     .rp-card.active{border-color:#7c5cbf;background:rgba(124,92,191,0.08)}
     .rp-info{flex:1}
     .rp-name{font-size:.8rem;font-weight:800;color:var(--text-main)}
     .rp-date{font-size:.66rem;color:var(--text-muted);font-weight:600;margin-top:1px}
-    .rp-days{font-size:.68rem;font-weight:900;padding:2px 8px;border-radius:99px;background:rgba(124,92,191,0.12);color:#5a3d8f;flex-shrink:0}
+    .rp-days{font-size:.68rem;font-weight:900;padding:2px 8px;border-radius:99px;background:rgba(124,92,191,0.12);color:var(--violeta-dark);flex-shrink:0}
     /* Mini chat RP */
     .rp-chat{display:none;flex-direction:column;margin-top:12px}
     .rp-chat.show{display:flex}
-    .rp-msgs{height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,0.7);border-radius:12px;border:1.5px solid rgba(124,92,191,0.15);padding:10px;margin-bottom:8px}
+    .rp-msgs{height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;background:var(--surface-glass);border-radius:12px;border:1.5px solid rgba(124,92,191,0.15);padding:10px;margin-bottom:8px}
     .rp-msgs::-webkit-scrollbar{width:3px}.rp-msgs::-webkit-scrollbar-thumb{background:rgba(124,92,191,0.3);border-radius:4px}
     .rp-m{max-width:88%;padding:8px 12px;border-radius:13px;font-size:.78rem;line-height:1.55;font-weight:600}
-    .rp-m.lumi{background:white;border:1.5px solid rgba(124,92,191,0.18);color:var(--text-main);align-self:flex-start;border-bottom-left-radius:4px}
+    .rp-m.lumi{background:var(--surface);border:1.5px solid rgba(124,92,191,0.18);color:var(--text-main);align-self:flex-start;border-bottom-left-radius:4px}
     .rp-m.user{background:#7c5cbf;color:white;align-self:flex-end;border-bottom-right-radius:4px}
     .rp-input-row{display:flex;gap:7px}
-    .rp-ta{flex:1;background:white;border:1.5px solid rgba(124,92,191,0.25);border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:600;color:var(--text-main);outline:none;resize:none;transition:border-color .2s}
+    .rp-ta{flex:1;background:var(--surface);border:1.5px solid rgba(124,92,191,0.25);border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:600;color:var(--text-main);outline:none;resize:none;transition:border-color .2s}
     .rp-ta:focus{border-color:#7c5cbf}
     .rp-send{width:36px;height:36px;background:#7c5cbf;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .17s;flex-shrink:0}
     .rp-send:hover{background:#5a3d8f}
     .rp-send svg{width:14px;height:14px;fill:white}
-    .rp-typ{display:flex;gap:4px;padding:8px 12px;background:white;border:1.5px solid rgba(124,92,191,0.18);border-radius:13px;border-bottom-left-radius:4px;width:fit-content}
+    .rp-typ{display:flex;gap:4px;padding:8px 12px;background:var(--surface);border:1.5px solid rgba(124,92,191,0.18);border-radius:13px;border-bottom-left-radius:4px;width:fit-content}
     .rp-td{width:5px;height:5px;border-radius:50%;background:#7c5cbf;animation:rtd 1.2s ease-in-out infinite}
     .rp-td:nth-child(2){animation-delay:.2s}.rp-td:nth-child(3){animation-delay:.4s}
     @keyframes rtd{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
@@ -161,6 +162,7 @@
       <a href="calendario.html" class="active">Calendário</a>
       <a href="diario.html">Diário</a>
       <a href="conta.html">Conta</a>
+      <span class="lt-tema-slot"></span>
     </div>
     <div class="app-nav-right">
       <div class="user-badge">
@@ -182,6 +184,7 @@
     <a href="calendario.html" class="active">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html">Conta</a>
+    <span class="lt-tema-slot"></span>
     <div class="app-mobile-menu-sair">
       <button class="btn-logout" onclick="sair()">Sair</button>
     </div>

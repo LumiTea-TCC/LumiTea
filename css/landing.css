@@ -47,6 +47,19 @@
   --lp-shadow-cta-h:  0 14px 32px rgba(25, 118, 210, .38), inset 0 1px 0 rgba(255, 255, 255, .24);
 }
 
+/* Modo escuro: só os tokens locais acima (--lp-white-soft/--lp-blue-mist/
+   --lp-cream-2 eram claros fixos, não cobertos pelo bloco de tokens.css).
+   --lp-navy-1/2, --lp-sky-ink, --lp-chat-1/2 e --lp-video-bg já são escuros
+   de propósito (faixas navy do design) e continuam os mesmos nos dois temas.
+   Valores próximos entre si de caso — degradê discreto, sem "mancha" clara
+   no meio do hero (era o efeito de --bg escuro entre dois stops que
+   continuavam claros; reportado pelo usuário, ver CLAUDE.md). */
+html[data-tema="escuro"] {
+  --lp-white-soft: #161f30;
+  --lp-blue-mist:  #10151f;
+  --lp-cream-2:    #241d14;
+}
+
 /* ============================================================
    1. BASE
    Reset enxuto: sem lumitea.css, esta página não herda nenhum.
