@@ -446,7 +446,11 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
    fluxo) por uma regra da app.css. Sem a exclusão, esta regra — que vem depois,
    na enhance.css — a tornava `relative`, ela virava item de flex, comia ~420px
    de largura e empurrava o título do hero para o meio da faixa. */
-.cap-hero > div:not(.hb-camada) { position: relative; flex: 1; min-width: 240px; }
+/* min-width em min(240px,100%): em telas bem estreitas (~320px), 240px fixo
+   não cabia ao lado da imagem/selo mesmo com flex-wrap, e o card estourava a
+   largura da viewport (texto cortado). min() trava o mínimo ao espaço real
+   disponível sem precisar de um breakpoint específico pra isso. */
+.cap-hero > div:not(.hb-camada) { position: relative; flex: 1; min-width: min(240px, 100%); }
 /* `color:#fff` explícito, e não herdado do .cap-hero: a lumitea.css declara
    `h1 { color: var(--text-main) }` como regra de ELEMENTO, e uma regra de
    elemento vence a herança do pai independentemente da especificidade. Sem

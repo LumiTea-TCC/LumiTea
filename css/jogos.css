@@ -106,7 +106,9 @@
   background-size: 20px 20px;
   pointer-events: none;
 }
-.jg-hero-texto { position: relative; flex: 1; min-width: 260px; }
+/* min(260px,100%): fixo em 260px estourava a largura em telas ~320px
+   (mesmo caso do .cap-hero em enhance.css) — min() trava ao espaço real. */
+.jg-hero-texto { position: relative; flex: 1; min-width: min(260px, 100%); }
 .jg-hero-tag {
   display: inline-block;
   font-size: .64rem;
@@ -1064,8 +1066,8 @@ html[data-modo-calmo="true"] .jg-carta { perspective: none; }
   .lo-estudio { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
   .lo-cores { flex-direction: row; flex-wrap: wrap; justify-content: center; border-radius: var(--r-lg); }
   .lo-tela-cx { aspect-ratio: 1 / 1; }
-  .lo-acoes { margin-left: 0; width: 100%; }
-  .lo-acoes .jg-btn { flex: 1; }
+  .lo-acoes { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  .lo-acoes .jg-btn { flex: 1; min-width: 140px; }
 }
 
 /* ============================================================
