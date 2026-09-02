@@ -106,7 +106,9 @@
   background-size: 20px 20px;
   pointer-events: none;
 }
-.jg-hero-texto { position: relative; flex: 1; min-width: 260px; }
+/* min(260px,100%): fixo em 260px estourava a largura em telas ~320px
+   (mesmo caso do .cap-hero em enhance.css) — min() trava ao espaço real. */
+.jg-hero-texto { position: relative; flex: 1; min-width: min(260px, 100%); }
 .jg-hero-tag {
   display: inline-block;
   font-size: .64rem;
@@ -179,7 +181,7 @@
 .jg-card {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #fff, #fbfdff);
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
   border: 1.5px solid var(--border-soft);
   border-radius: var(--r-xl);
   padding: var(--sp-6);
@@ -213,7 +215,7 @@
 .jg-card-rodape .jg-icone-btn { flex-shrink: 0; }
 
 /* Botão claro (fundo branco) — usado sobre cards com fundo colorido cheio */
-.jg-btn-claro { background: #fff; color: var(--jg-cor-ink, var(--brand-dark)); }
+.jg-btn-claro { background: var(--surface); color: var(--jg-cor-ink, var(--brand-dark)); }
 .jg-btn-claro:hover { background: var(--jg-cor-bg, var(--panel-1)); color: var(--jg-cor-ink, var(--brand-dark)); }
 
 /* Card especial (cheio de cor, com padrão de pontinhos) — usado pela lousa
@@ -255,7 +257,7 @@
 }
 .jg-progresso-titulo .lt-i { color: var(--ambar); }
 .jg-progresso-nums { display: flex; gap: 10px; margin-bottom: var(--sp-4); }
-.jg-progresso-stat { flex: 1; background: #fff; border: 1px solid var(--border-soft); border-radius: 14px; padding: 12px 14px; }
+.jg-progresso-stat { flex: 1; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 14px; padding: 12px 14px; }
 .jg-progresso-valor { display: block; font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; line-height: 1; color: var(--text-main); }
 .jg-progresso-rotulo { font-size: .66rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
 .jg-card--progresso .jg-progresso-texto { font-size: .84rem; line-height: 1.6; color: var(--text-soft); margin: 0; }
@@ -1064,8 +1066,8 @@ html[data-modo-calmo="true"] .jg-carta { perspective: none; }
   .lo-estudio { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
   .lo-cores { flex-direction: row; flex-wrap: wrap; justify-content: center; border-radius: var(--r-lg); }
   .lo-tela-cx { aspect-ratio: 1 / 1; }
-  .lo-acoes { margin-left: 0; width: 100%; }
-  .lo-acoes .jg-btn { flex: 1; }
+  .lo-acoes { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  .lo-acoes .jg-btn { flex: 1; min-width: 140px; }
 }
 
 /* ============================================================
@@ -1256,6 +1258,23 @@ html[data-modo-calmo="true"] .jg-carta { perspective: none; }
 }
 .rp-msg--dica svg { width: 16px; height: 16px; color: var(--primary-dark); flex-shrink: 0; margin-top: 2px; }
 .rp-msg--dica span { font-size: .8rem; color: var(--primary-dark); line-height: 1.5; }
+
+/* Quebra acolhedora quando a mensagem do adolescente indicou risco e a IA
+   está fora do ar — deliberadamente diferente da "dica" (não é uma dica de
+   comunicação, é um cuidado). */
+.rp-msg--cuidado {
+  align-self: center;
+  max-width: 92%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--tint-rose);
+  border: 1px solid var(--rosa);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+}
+.rp-msg--cuidado svg { width: 16px; height: 16px; color: var(--rosa-dark); flex-shrink: 0; margin-top: 2px; }
+.rp-msg--cuidado span { font-size: .82rem; color: var(--rosa-dark); line-height: 1.5; font-weight: 600; }
 
 /* "Digitando": três pontinhos pulsando dentro de um balão normal do
    personagem, enquanto a IA (Groq) ainda não respondeu. */

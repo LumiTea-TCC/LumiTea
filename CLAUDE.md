@@ -225,14 +225,14 @@ existia como stub de redirect** (mundo aberto antigo, removido em 2026-08-04) �
      de GoTrueClient em paralelo é documentado pela própria supabase-js como não suportado — corrigido pra
      `var sb = g.supabaseClient || (LT.criarSupabase ? ... )`, afeta os 6 jogos que usam `base.js`.
 
-## 🖥️ Painel do cuidador = 13 páginas .html + uma casca comum (2026-08-07)
+## 🖥️ Painel do cuidador = 14 páginas .html + uma casca comum (2026-08-07, +1 em 2026-08-21)
 Antes, quase tudo do painel eram **abas escondidas** dentro de `home-cuidador.html` (`<div class="cui-tela">`
 trocadas por `irTela()`). Um erro de JS em qualquer ponto daquele arquivo de 875 linhas derrubava **todas** as
 abas juntas — era essa a causa de "as páginas não abrem". O sistema de abas **foi removido**; cada área virou
 uma página de verdade. **Não recriar abas.**
 - Páginas: `home-cuidador.html` (só o painel geral), `alertas-`, `live-`, `humor-`, `relatorios-`,
-  `observacoes-`, `progresso-`, `estatisticas-`, `consultoria-` (chat com a Lumi), `vinculos-`,
-  `calendario-`, `comunidade-`, `conta-cuidador.html`.
+  `observacoes-`, `desenhos-` (galeria da Lousa, ver seção própria abaixo), `progresso-`, `estatisticas-`,
+  `consultoria-` (chat com a Lumi), `vinculos-`, `calendario-`, `comunidade-`, `conta-cuidador.html`.
 - **`js/core/cuidador-shell.js` (`window.CUI`)** é a casca comum: injeta topo mobile, gaveta, faixa de alerta
   urgente, **sidebar (menu num lugar só — a const `MENU` no topo do arquivo)** e a barra "Adolescente:".
   Também faz sessão + guarda de tipo de conta, `window.sairCui()`, e os helpers `esc/ic/vazio/cuiStat/
@@ -281,10 +281,12 @@ fim de rodada. Não existe estado de erro porque não há como fazer errado — 
   **teclado** (setas movem, espaço encosta/levanta). O canvas é `role="application"` + `tabindex="0"` para as
   setas chegarem nele. `pointermove`/`pointerup` ficam no **document**, não no canvas: sair da folha no meio
   do traço e voltar não corta o traço, e soltar o dedo fora não deixa o traço preso.
-- **Nada vai para o servidor além de `sessoes_jogo` + XP.** "Guardar desenho" baixa o PNG em tamanho cheio e
-  guarda uma **miniatura de 560px** em `localStorage['lt-lousa-galeria']` (máx. 8; `guardarNaGaleria` trata
-  `QuotaExceededError` sacrificando o mais antigo e tentando de novo). Ao ler a galeria, só entra no `src`
-  string que começa com `data:image/`.
+- ⚠️ **Desde 2026-08-19, isto NÃO é mais verdade** (decisão explícita do usuário, ver seção abaixo): **todo
+  desenho é analisado e uma cópia + resumo da IA vai pro cuidador**, tenha ou não sinal preocupante e mesmo
+  sem o adolescente guardar. Só a **galeria de miniaturas** continua local. "Guardar desenho" baixa o PNG em
+  tamanho cheio e guarda uma **miniatura de 560px** em `localStorage['lt-lousa-galeria']` (máx. 8;
+  `guardarNaGaleria` trata `QuotaExceededError` sacrificando o mais antigo e tentando de novo). Ao ler a
+  galeria, só entra no `src` string que começa com `data:image/`.
 - XP: 20 por desenho guardado, **teto de 3 por dia** (`localStorage['lt-lousa-xp']`), pela mesma
   `J.ganharXP` dos outros jogos — não criar segunda fonte de XP. `jogo_id` = `lousa` (a coluna é TEXT puro,
   sem CHECK — conferido em `db/LUMITEA_SCHEMA.sql`).
@@ -292,6 +294,112 @@ fim de rodada. Não existe estado de erro porque não há como fazer errado — 
   (regra da landing, linha ~422). Qualquer `<section>` novo numa tela interna nasce com um buraco de 72px em
   cima e desalinhado das outras caixas. As seções da lousa zeram isso explicitamente; os outros jogos
   escapavam por acaso, porque `.jg-palco`/`.jg-ajustes`/`.jg-fim` já declaram o próprio `padding`.
+
+## 🚨 Lousa: TODO desenho vai pro cuidador + correções de segurança do Roleplay (2026-08-19)
+Retomado após o usuário testar a Lousa (desenhou uma forca) e o Roleplay (mensagem com "vou me matar msm")
+logo depois de puxar o commit "comit brennin" — achou que os dois tinham falhado em avisar o cuidador.
+Investigação direta no banco (`select * from alertas order by timestamp desc`) mostrou que o alerta do
+**Roleplay tinha sido criado normalmente** (dois alertas `tipo:'crise'` com o trecho certo) — o problema era
+outro (ver abaixo). Já a **Lousa realmente não tinha gerado nada**: o primeiro desenho foi feito antes do
+redeploy do `groq-proxy` com `qwen/qwen3.6-27b` (pendência que já estava anotada acima), o segundo foi feito
+depois do redeploy e mesmo assim não gerou alerta — causa exata não confirmada (a função engolia erro HTTP
+em silêncio, sem log nenhum; corrigido).
+
+**1. Mudança de política da Lousa, decisão explícita do usuário (`AskUserQuestion`, escolheu a opção mais
+ampla depois de eu apontar que ela contradiz o texto que já estava na tela "nem o seu cuidador vê"):**
+agora **TODO desenho é analisado e uma cópia (miniatura) + um resumo curto da IA vão pro cuidador**, tenha
+ou não sinal preocupante, e **mesmo que o adolescente nunca clique em "Guardar desenho"**. Antes, só desenho
+guardado E com `nivel` diferente de `'ok'` gerava algo pro cuidador; a galeria (miniaturas locais) e o
+princípio de "espaço privado" continuam existindo só pra a **galeria em si** — a análise+envio agora é
+sempre-ligado. O texto de `lousa-pintar.html` ("Seus desenhos") foi reescrito pra não prometer mais
+privacidade que não existe.
+- `js/jogos/lousa.js`: `analisarDesenhoRisco` virou **`analisarEEnviarDesenho`** — insere em `alertas` pra
+  QUALQUER `nivel` (`'risco'`→`tipo:'crise'`, `'atencao'`→`'aviso'`, `'ok'`→**`'info'`**, valor novo pra esse
+  fluxo mas já é `CHECK`-válido e é o `DEFAULT` da coluna; `alertaIcone()` de `cuidador-shell.js` já trata
+  `'info'` como default, nenhuma mudança de UI do cuidador precisou). `metadata.imagem` (miniatura) agora vai
+  em TODO envio, não só nos de risco. O prompt da IA foi ajustado pra pedir um `motivo` que funcione como
+  resumo de rotina em `nivel:'ok'`, não só como justificativa de alerta.
+- **Disparo independente de "Guardar"**: `terminar()` (fim de traço — mesmo ponto usado pelo ponteiro E pelo
+  teclado) chama `agendarEnvioAutomatico()`, um debounce de 6s que captura e envia o canvas se ele mudou
+  desde o último envio (dedupe comparando o PNG em si, `envioAuto.ultimoEnviado` — nunca reenvia o mesmo
+  desenho parado). Reforçado por `visibilitychange`/`pagehide` (sair da aba/página com algo não enviado
+  ainda) — best-effort, like todo handler de saída de página, pode não completar se a aba fechar de vez no
+  meio do envio. `guardar()` cancela o timer pendente e usa o mesmo dedupe, pra não mandar o mesmo desenho
+  duas vezes seguidas quando o adolescente clica em guardar logo depois de parar de desenhar.
+- Erros de rede/parse da IA agora são **logados** (`console.warn` com status HTTP + corpo, e com o texto cru
+  se o JSON não parsear) — antes `if (!res.ok) return` engolia tudo em silêncio, o que impediu diagnosticar
+  por que o segundo desenho de teste (feito depois do redeploy) ainda assim não gerou nada. Parsing agora
+  tolera cerca de código/texto solto ao redor do JSON, mesma defesa do roleplay.
+
+**2. Roleplay: o alerta funcionava, a CONVERSA que ignorava a crise é que era o problema.** A resposta
+"Mostra onde você travou..." que apareceu depois de "vou me matar" era **o roteiro fixo de reserva**
+(bate palavra por palavra com `respostas[0]` do cenário) — ou seja, a chamada à Groq falhou (provável: o
+modelo quebra o formato JSON exigido ao lidar com autolesão/xingamento juntos) e caiu no script cíclico, que
+é cego a qualquer conteúdo por definição. Três correções em `js/jogos/roleplay.js`:
+- `chamarGroq` ganhou `response_format:{type:'json_object'}` (não tinha — tinha sido tirado antes numa
+  investigação anterior porque não era a causa raiz *daquela vez*, mas não tem por que não ajudar agora).
+- `montarPromptSistema` ganhou uma regra de prioridade máxima: sinal real de sofrimento grave na mensagem do
+  adolescente faz o personagem **quebrar o script da cena** pra acolher de verdade (sem sair do papel de um
+  jeito estranho) em vez de conduzir pro objetivo do roleplay — `concluido` fica `false` nesse turno.
+- Se a IA falhar MESMO ASSIM e a mensagem tiver sinal de autolesão (`categoriaRiscoRoleplay`, calculado uma
+  vez em `enviarMensagem` e reusado), o fallback deixa de ser o roteiro cíclico alheio: aparece uma bolha
+  nova, tipo `'cuidado'` (ícone coração, cor rosa — `.rp-msg--cuidado` em `css/jogos.css`, distinta da
+  `.rp-msg--dica` azul de comunicação), com uma mensagem acolhedora fixa que reconhece o que foi dito. O
+  alerta pro cuidador (`avisarCuidadorSeNecessario`) já disparava certo antes e continua disparando igual,
+  só passou a reusar a detecção já calculada em vez de rodar duas vezes.
+
+## 🖼️ Galeria de desenhos da Lousa no painel do cuidador (2026-08-21)
+Pedido do usuário: uma página no painel do cuidador mostrando os desenhos que o adolescente guarda na Lousa
+de pintar, sem avisar o adolescente. Ao investigar, o "sistema de segurança" que o usuário tinha tentado
+fazer sozinho **já existia no código** (`analisarEEnviarDesenho` em `js/jogos/lousa.js`, ver seção "Checkup
+de IA + Monitoramento" acima) mas não resolvia o pedido: ele só manda um alerta de texto pro cuidador quando
+a IA de visão (`qwen/qwen3.6-27b`) julga o desenho preocupante — não existia nenhuma galeria de verdade, e
+o caminho inteiro depende do `groq-proxy` estar redeployado com esse modelo (não confirmado em produção).
+Combinado com o usuário: manter esse pipeline de IA/risco do jeito que está (é um recurso de segurança à
+parte, não mexido aqui) e criar um **segundo canal, direto e sem IA**, só para a galeria.
+- **Tabela nova `desenhos_lousa`** (migration aplicada em produção via Management API em 2026-08-21):
+  `id`, `id_neurodivergente` (FK `profiles(id)`), `imagem` (TEXT, data URL PNG), `criado_em`. RLS
+  copiada do mesmo molde de `alertas`/`neurodivergente`: policy `desenhos_lousa_self` (`FOR ALL`, o
+  adolescente é dono) + `desenhos_lousa_resp` (`FOR SELECT` apenas — **o cuidador só pode ver e baixar,
+  nunca apagar ou alterar**, de propósito, é o próprio RLS que impede).
+- **`js/jogos/lousa.js`**: `guardar()` agora também chama `enviarDesenhoAoCuidador(mini)` — insert direto e
+  silencioso na tabela nova, reusando a mesma miniatura de 560px que já ia para a galeria local e para a
+  análise de risco. Roda em paralelo, nunca bloqueia, **nenhum toast/aviso na tela do adolescente** (mesmo
+  padrão "silencioso" do resto do app). Só dispara no clique de "Guardar desenho" — ao contrário do canal de
+  IA (que também roda no envio automático por pausa/saída de página), esta cópia é só do que o adolescente
+  escolheu guardar.
+- **`desenhos-cuidador.html`**: página nova, 14ª do painel, segue o contrato de `cuidador-shell.js`
+  (`data-cui-pagina="desenhos" data-cui-teen="1"`, carrega via `CUI.aoTrocarTeen`). Grade de cartões
+  (`.dz-*` em `app.css`, molde do `.lo-item` da própria Lousa mas com `object-fit:contain` — a arte não
+  pode ser cortada como um recorte de galeria comum) com data e botão de baixar; sem botão de apagar (o RLS
+  já impede). Adicionado item "Desenhos da Lousa" ao `MENU` de `cuidador-shell.js` (ícone `image`, novo em
+  `js/core/icons.js`) e à seção "Acompanhamento", logo depois de Observações.
+- Verificado com **jsdom**: casca/menu com o item novo e ativo, teens carregados, grade renderizando só as
+  linhas com `imagem` começando em `data:image/` (mesma defesa de `lerGaleria()` na própria Lousa — a coluna
+  é `TEXT` livre, então um valor malicioso teria que ser filtrado no cliente mesmo vindo do próprio banco),
+  zero HTML cru vazando pro `innerHTML`, estado vazio sem adolescente selecionado.
+- **Node estava disponível nesta sessão** (`v20.15.1`, `node --check` funcionou), ao contrário do que a nota
+  de 2026-08-19 registrou — reconferir sempre antes de assumir que não tem Node, como já dizia a seção Stack.
+
+**Envio automático pra essa galeria sem precisar de "Guardar" (mesmo dia, pedido em seguida pelo usuário):**
+combinado com o usuário — dispara **uma vez por desenho**, ao que vier primeiro entre passar de 1 minuto
+desenhando ou o adolescente fechar/trocar de aba/sair da página, e é **100% silencioso** (sem toast, sem
+baixar arquivo, sem entrar na galeria local do aparelho, sem XP — só a cópia no banco pro cuidador, igual ao
+"Guardar" manual manda). Um "Guardar" manual no meio do minuto também conta como enviado (não duplica depois).
+- Estado em `js/jogos/lousa.js`: `galeriaAuto = {enviado, timer}`. `armarEnvioGaleriaAuto()` dispara no
+  primeiro traço de um desenho novo (`comecar()`, quando a folha estava limpa antes desse traço) e arma um
+  `setTimeout` de 60s; se ainda estiver "suja" e não tiver sido enviada quando o timer vence, manda. Zerado
+  por `reiniciarEnvioGaleriaAuto()` nos dois pontos onde a folha volta a ficar limpa de verdade —
+  `folhaLimpa(true)` (botão Limpar) e o `desfazer()` que esvazia a pilha — pra um desenho novo poder disparar
+  de novo. `enviarGaleriaAoSairSeNecessario()` roda junto com o `capturarEEnviarSeMudou()` já existente (canal
+  de IA) nos mesmos listeners de `visibilitychange`/`pagehide`: envia na hora se ainda não foi, mesmo com
+  menos de 1 minuto — não perde o desenho de quem saiu cedo.
+- Verificado com uma simulação isolada da máquina de estados (mesma lógica de armar/disparar/reiniciar/sair
+  copiada num teste à parte, com timers falsos — não dá pra rodar o `lousa.js` real fora do navegador porque
+  ele depende de canvas/DOM): passa de 1 minuto sem clicar em nada → envia 1x e não repete; fecha a aba aos
+  10s → envia na hora, sem duplicar quando o timer original venceria depois; "Guardar" manual aos 20s → conta
+  como enviado, automático não duplica; limpa a folha depois do envio → um desenho novo pode disparar de
+  novo; folha em branco → nunca envia, nem ao "sair".
 
 ## 🛬 Landing pública (`index.html`) — redesign "Landing-A produto" (2026-08-13)
 Importada do projeto Claude Design **LumiTEA-TCC redesign** (`43c671f9-f91d-43d2-beaa-1b560669d04b`,
@@ -884,6 +992,107 @@ cuidador nunca teve.
   (`.cal-box`, `.cal-grid`, `#cal-month-title`, `#eventos-do-dia`, `.sel-teen-box`, `.color-btns`) sobrava
   em outro arquivo do projeto.
 
+## 🌙 Modo escuro (2026-08-24)
+Pedido do usuário: um switch sol/lua (design próprio, fornecido pronto) nos "nav-links", ligando um modo
+escuro pro site inteiro. Ao investigar, **já existia infraestrutura pela metade**: `conta.html` tem um
+seletor "Tema de cores" (`default`/`calmo`/`escuro`/`alto-contraste`) que já gravava `data-tema` no
+`<html>` + `localStorage['lt-tema']` + `preferencias_usuario.tema` (sync entre aparelhos), e
+`js/core/config.js` já aplicava esse atributo bem cedo (linha "Aplica preferências de acessibilidade
+salvas") — mas **não existia NENHUM CSS pra `[data-tema="escuro"]` em lugar nenhum**, então o seletor não
+fazia visualmente nada. Também tinha um `.lt-theme-toggle`/`js/core/theme.js` em `enhance.css` referenciando
+um arquivo que nunca foi criado — **órfão, não usado por nenhuma página, deixado como está**. Reaproveitei
+a infra real (chave `lt-tema`, valores `default`/`escuro`, atributo `data-tema`) em vez de criar um sistema
+paralelo; só faltava o CSS e o switch em si.
+- **`css/tokens.css`**: bloco `html[data-tema="escuro"] { ... }` logo após o `:root`, redefinindo os MESMOS
+  tokens de cor (bg/surface/text/bordas/painéis/estados semânticos/sombras). Todo componente que já usa
+  `var(--bg)`/`var(--surface)`/`var(--text-*)` (norma do projeto) se adapta sozinho. Pares texto/fundo
+  conferidos ≥ 4.5:1 (WCAG AA) com um script Node ad-hoc — `--primary-action` precisou ficar mais escuro
+  (`#2569bb`, 5.5:1) porque o tom claro original não passava com texto branco em cima.
+- **`js/core/tema.js`** (novo): monta o switch (HTML/SVG do sol-lua, embutido só aqui, não duplicado em
+  30 arquivos) dentro de qualquer `<span class="lt-tema-slot"></span>` — mesmo espírito do
+  `data-lt-icon`/`icons.js`. Expõe `LUMITEA.tema.{atual,aplicar,alternar,sincronizarSwitches}`.
+  `alternar()` usa `window.setTema` (a função de `conta.html`) quando ela existe na página, pra não
+  desalinhar o switch do seletor de 4 opções; nas demais páginas é só `localStorage`+atributo, sem
+  sincronizar com a conta (o seletor completo continua sendo a única fonte de sync entre aparelhos).
+  `conta.html` foi ajustado pra chamar `sincronizarSwitches()` depois de mudar o tema pelo seletor.
+- **`css/enhance.css`**: CSS do switch (`.theme-switch*`) colado do design fornecido, quase sem alteração —
+  com DUAS correções de acessibilidade que o design original não tinha: (1) o checkbox usava
+  `display:none`, que tira o controle da ordem de tabulação inteira (foco por teclado impossível); virou
+  o padrão "escondido mas focável" (`position:absolute;width:1px;height:1px;clip:rect(0,0,0,0)`, igual ao
+  `.sr-only` do projeto) + `:focus-visible` no container-irmão. (2) `aria-label` no input, já que o design
+  é só ícone. Motion (nuvens/estrelas/lua deslizando) **não precisou de gating extra**: as regras globais
+  `html[data-modo-calmo="true"] *`/`prefers-reduced-motion` de `tokens.css` já pegam qualquer elemento
+  novo por `!important`. Classe `.theme-switch--nav` encolhe `--toggle-size` pra caber em nav/sidebar.
+- **Onde o switch aparece**: `index.html` (`.lp-nav-links` + `.lp-menu` mobile — como não carrega
+  `config.js`, ganhou um `<script>` inline próprio no `<head>`, antes dos `<link rel="stylesheet">`, só pra
+  não ter flash claro→escuro); as 15 páginas do teen (`.app-nav-links` desktop + `.app-mobile-menu` mobile,
+  inseridos com um script Node ad-hoc já que a marcação é idêntica nas 15 — `ferramentas-aba.html` tem
+  DOIS navs, o script tratou os dois); painel do cuidador — **rodapé da sidebar**, um `<span
+  class="lt-tema-slot">` a mais em `cuidador-shell.js` (`.cui-tema-linha`/`.cui-tema-label` novos em
+  `app.css`), propaga sozinho pras 14 páginas.
+- **`login.html`/`cadastro.html` entraram no modo escuro no mesmo dia, num pedido separado em seguida.**
+  Essas duas usam `conta.css` — um design system à parte, com seu PRÓPRIO `:root` (mesmos nomes de token
+  de `tokens.css`: `--bg`, `--surface`, `--text-*`, etc., mas definido de novo, não importado). O bloco
+  escuro (`html[data-tema="escuro"]`) foi replicado dentro do PRÓPRIO `conta.css`, não em `tokens.css` —
+  ambos os arquivos já carregam `css/tokens.css` também (por causa dos ícones), então os dois blocos
+  escuros coexistem; onde os nomes coincidem os valores foram propositalmente igualados, pra não importar
+  qual dos dois vence a cascata. De quebra, dois bugs pré-existentes (nada a ver com tema, encontrados só
+  por estarem bem na frente): `--text-muted: var(--text-muted)` era autorreferente (nunca resolvia) —
+  virou um valor de verdade; `.erro-geral-msg` duplicava em hex as mesmas cores que `--error`/`--error-pale`
+  já definiam — trocado por `var(...)`. Faltava só um `<span class="lt-tema-slot">` dentro de um
+  `.nav-acoes` novo (agrupando com o link "Voltar ao início", pra não quebrar o `justify-content:
+  space-between` do `<nav>` de 2 pra 3 itens) + o script inline de aplicar cedo (mesmo de `index.html`,
+  já que essas páginas também não carregam `config.js`) + `js/core/tema.js` deferred.
+- **A faixa clara/"suja" no topo do hero da landing em modo escuro (reportada pelo usuário com print) tinha
+  causa exatamente igual à do `calendario.html`: tokens locais de `landing.css` não cobertos pelo bloco
+  escuro de `tokens.css`.** `.lp-topo` usa `linear-gradient(180deg, var(--lp-white-soft) 0%, var(--bg) 46%,
+  var(--lp-blue-mist) 100%)` — `--lp-white-soft`/`--lp-blue-mist` são variáveis SÓ de `landing.css` (não
+  existem em `tokens.css`), ficavam claras fixas mesmo no escuro, e o meio (`--bg`, esse sim escuro)
+  formava uma mancha clara→escura→clara. Corrigido com um bloco `html[data-tema="escuro"]` dentro
+  do PRÓPRIO `landing.css` (mesmo padrão do `conta.css` acima) redefinindo `--lp-white-soft`/
+  `--lp-blue-mist`/`--lp-cream-2` (a mesma classe de bug existia na faixa de CTA) com tons PRÓXIMOS entre
+  si — de propósito, pra ficar "discreto" (pedido explícito do usuário) em vez de um degradê escuro com 3
+  tons bem diferentes entre os stops. `--lp-navy-1/2`/`--lp-sky-ink`/`--lp-chat-1/2`/`--lp-video-bg` NÃO
+  mudam no escuro — já são escuros de propósito nas duas versões (faixas navy do design), mesmo raciocínio
+  da sidebar do cuidador que também não muda.
+- Conferido com Playwright: `login.html`/`cadastro.html` em escuro (card/inputs/switch legíveis, fundo azul
+  da `.account-page` mantido de propósito) e `index.html` em escuro de novo (mancha clara do hero sumiu,
+  faixa de CTA também ficou marrom-escura coerente em vez de clara).
+- **🐛 Bug real, só apareceu no teste com Playwright, não na leitura do código: o switch nascia invisível
+  no rodapé da sidebar do cuidador.** `tema.js` carrega com `defer`; por spec, script deferred roda quando
+  `document.readyState` JÁ é `"interactive"` (não mais `"loading"`) — ou seja, ANTES do `DOMContentLoaded`,
+  não depois. A checagem ingênua `readyState==='loading' ? esperar : rodar já` caía direto no `rodar já`,
+  cedo demais pro painel do cuidador: a sidebar (com o `.lt-tema-slot` dela) só é injetada dentro do
+  PRÓPRIO listener de `DOMContentLoaded` de `cuidador-shell.js`, que ainda nem tinha rodado nesse ponto.
+  Corrigido pra só rodar na hora se `readyState==='complete'`; caso contrário sempre espera
+  `DOMContentLoaded` (que ainda vai disparar depois de scripts deferred, então funciona certo tanto pra
+  slot estático quanto injetado por JS). Nas páginas do teen o bug não aparecia porque lá o slot já existe
+  no HTML estático desde o parse — só o cuidador (slot montado por JS) expunha a diferença.
+- **Verificado com Playwright + Chrome real** (não só leitura de código): `index.html` claro/escuro,
+  `home-autista.html`/`diario.html`/`games.html`/`jogo-memoria.html`/`comunidade.html`/`calendario.html`/
+  `home-cuidador.html` em escuro (sessão Supabase forjada via `localStorage` — mesmo formato de
+  `sb-<ref>-auth-token` do supabase-js — pra passar da guarda de login sem precisar de conta real; chamadas
+  reais a `*.supabase.co` abortadas). Clique de verdade no switch da sidebar do cuidador testado (não só
+  `localStorage` forjado) — `data-tema` e `localStorage` mudam corretamente.
+- **Bugs de contraste achados e corrigidos SÓ no screenshot** (a norma do projeto — "só apareceu no
+  render" — se repetiu aqui): vários painéis "vidro" tinham `rgba(255,255,255,X)`/`#fff` fixo em vez de
+  `var(--surface*)`, então ficavam brancos mesmo no escuro enquanto o texto (`var(--text-*)`) virava claro
+  em cima — texto claro em fundo branco, ilegível. Corrigidos: `.app-nav` (nav de TODAS as páginas do
+  teen), `.app-mobile-menu`, `.diario-sidebar`, `.ds-header`, todo o bloco `.ai-conversation-page` (tela de
+  conversa: nav, cards de humor/chat, bolhas do Theo, textarea), `.jg-card` (cards padrão do hub de jogos —
+  só os 4 sem tema de cor próprio; Roleplay/Lousa já usam `--jg-cor` e estavam OK), `.jg-btn-claro`,
+  `.jg-progresso-stat`, focus states de `chat.css`/`aba.css`, e o `calendario.html` do teen inteiro
+  (`.mini-cal`, `.form-card`, `.eventos-box`, bloco "Preparar com Roleplay" — esse último também trocou
+  `#5a3d8f`/`#7c5cbf` fixos por `var(--violeta-dark)`/`var(--violeta)`).
+- **⚠️ Lacuna conhecida, não fechada nesta sessão:** `calendario-cuidador.html` (e provavelmente outras
+  páginas do painel com estilo próprio grande no `<head>`, não confirmado quais) usa cor **100% em hex
+  fixo** (`#1a2e4a`, `#f4f8fd`, `#d6eaf8` etc. — os MESMOS valores da paleta clara de `tokens.css`, só que
+  literais em vez de `var(...)`), então o conteúdo dessas páginas não muda no escuro (só o nav/sidebar
+  compartilhados mudam, via `cuidador-shell.js`, que É tokenizado). Achar e converter isso exigiria auditar
+  as 14 páginas do painel uma a uma — não feito ainda, escopo grande o bastante pra ser uma sessão à parte.
+  Antes de mexer, `grep` por `background:\s*(#fff|white|rgba(255,\s*255,\s*255)` em cada `.html` do
+  cuidador pra achar os pontos, mesmo padrão usado aqui.
+
 ## 🔐 Segurança (estado atual e regras)
 - **Chaves de IA/voz são gated por origem** (`js/core/config.js` + `js/core/secrets.js`): só carregam em DEV
   (localhost / `file://` / IP privado). Em domínio público ficam vazias → IA/voz passam pelos **proxies**.
@@ -1061,12 +1270,24 @@ primeiro (verificado via Management API antes de aplicar, truque do PGRST204, li
 7. Confirmar se `chat_bloqueios`/`registrar_bloqueio_chat`/`db/CHAT_SEGURANCA.sql` ainda existem no banco
    de produção (provável órfãos, substituídos por `js/core/moderacao.js`/`MODERACAO_SCHEMA.sql`, ver seção
    acima) — só documentar/limpar depois de confirmar via Management API, não mexer sem combinar.
+8. **Modo escuro (2026-08-24):** converter as cores 100% em hex fixo de `calendario-cuidador.html` (e
+   conferir as outras 13 páginas do painel) pra `var(--surface)`/`var(--text-*)`/etc., mesmo padrão já
+   aplicado no `calendario.html` do teen. Ver seção "🌙 Modo escuro" pro grep que acha os pontos.
 
 ## Subagents/skills úteis
 `frontend-reviewer`, `accessibility-auditor`, `supabase-security-reviewer` (só rodar se o usuário pedir).
-MCP `playwright` disponível, mas as páginas internas exigem sessão Supabase real (redirecionam p/ login sem auth) —
-verificação aqui é majoritariamente estática. **`node --check`/parse com `vm` exigem Node, que não está instalado
-nesta máquina** (ver seção Stack) — na falta dele, revisar a sintaxe lendo o trecho editado com atenção.
+MCP `playwright` disponível; as páginas internas exigem sessão Supabase real (redirecionam pro login sem
+auth), mas **dá pra passar disso sem conta de verdade** (usado e funcionando em 2026-08-24, ver seção "🌙
+Modo escuro"): antes de navegar, grava em `localStorage` uma chave `sb-<project-ref>-auth-token` com um
+objeto `{access_token,refresh_token,expires_at,user:{id,...}}` — `access_token` só precisa TER formato de
+JWT (3 partes base64url separadas por `.`, não precisa assinatura válida, o cliente não verifica) — e
+aborta requisições reais a `*.supabase.co` (`page.route('**://*.supabase.co/**', r => r.abort())`) pra
+`getSession()` resolver local sem rede e a chamada seguinte (que buscaria dados de verdade) falhar em vez
+de "sem sessão" → sem isso o guard de login (`if (!session) location.href='login.html'`) dispara antes de
+qualquer screenshot útil. **`node --check`/parse com `vm` exigem Node — reconferir se está instalado antes
+de assumir (mudou de sessão pra sessão nesta máquina, ver seção Stack); em 2026-08-24 estava disponível
+(`v24.16.0`) e Playwright + Chromium foram instalados via `npm i playwright && npx playwright install
+chromium` sem problema (rede disponível).**
 
 ## Convenções de trabalho
 - Validar JS com `node --check` **se o Node estiver disponível na máquina** (conferir antes de assumir — nem

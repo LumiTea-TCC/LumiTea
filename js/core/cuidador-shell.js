@@ -54,6 +54,7 @@
     { id: 'calendario',   label: 'Calendário',             icone: 'calendar',       href: 'calendario-cuidador.html' },
     { id: 'relatorios',   label: 'Relatórios',             icone: 'file-text',      href: 'relatorios-cuidador.html' },
     { id: 'observacoes',  label: 'Observações',            icone: 'edit',           href: 'observacoes-cuidador.html' },
+    { id: 'desenhos',     label: 'Desenhos da Lousa',      icone: 'image',          href: 'desenhos-cuidador.html' },
     { id: 'progresso',    label: 'Progresso',              icone: 'star',           href: 'progresso-cuidador.html' },
     { id: 'estatisticas', label: 'Estatísticas',           icone: 'bar-chart',      href: 'estatisticas-cuidador.html' },
     { secao: 'Conta' },
@@ -241,10 +242,19 @@
       '</label>';
     pai.insertBefore(topo, layout);
 
+    /* Filho de `.cui-layout` (não irmão) DE PROPÓSITO: `.cui-layout` é
+       `position:relative; z-index:1` (precisa disso pra pintar por cima do
+       `.bg-layer` decorativo — ver comentário no CSS). Se o overlay ficasse
+       fora, como irmão de `.cui-layout`, ele compararia seu z-index:29 com o
+       1 de `.cui-layout` INTEIRO (não com o z-index:30 da sidebar, que mora
+       DENTRO de `.cui-layout` e fica presa naquele stacking context) — e o
+       overlay pintava por cima da gaveta inteira, roubando todo clique nos
+       itens do menu. Como filho, ele compara direto com `.cui-sidebar` (29
+       vs 30) no mesmo contexto, e a gaveta volta a ficar por cima de verdade. */
     var overlay = document.createElement('div');
     overlay.className = 'cui-sidebar-overlay';
     overlay.id = 'cui-sidebar-overlay';
-    pai.insertBefore(overlay, layout);
+    layout.appendChild(overlay);
 
     /* FAIXA DE ALERTA URGENTE (aparece só quando há alerta de crise) */
     var strip = document.createElement('div');
@@ -298,10 +308,19 @@
       '</nav>' +
       '<div class="cui-sidebar-footer">' +
         '<div id="cui-nome-area" class="cui-nome-area">Carregando...</div>' +
+        '<div class="cui-tema-linha">' +
+          '<span class="cui-tema-label">Modo escuro</span>' +
+          '<span class="lt-tema-slot"></span>' +
+        '</div>' +
         '<button type="button" class="cui-sair" id="cui-btn-sair"><span class="cui-nav-icon" data-lt-icon="log-out"></span> Sair da conta</button>' +
       '</div>';
 
     aside.innerHTML = html;
+    // A sidebar é montada aqui via innerHTML; js/core/tema.js (também deferred,
+    // registrado em TODAS as páginas do cuidador) monta o switch de verdade
+    // dentro do .lt-tema-slot acima quando o DOMContentLoaded disparar — como
+    // este listener já foi registrado ANTES (script síncrono, ver cabeçalho
+    // do arquivo), ele roda primeiro e o slot já existe a tempo.
     layout.insertBefore(aside, layout.firstChild);
 
     aside.querySelectorAll('[data-cui-ir]').forEach(function (btn) {

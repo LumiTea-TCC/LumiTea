@@ -18,6 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/tema.js" defer></script>
   <script src="js/core/analise-critica.js"></script>
   <script src="js/core/icons.js" defer></script>
 </head>
@@ -42,6 +43,7 @@
       <a href="calendario.html">Calendário</a>
       <a href="diario.html">Diário</a>
       <a href="conta.html">Conta</a>
+      <span class="lt-tema-slot"></span>
     </div>
     <div class="app-nav-right">
       <div class="user-badge">
@@ -64,6 +66,7 @@
     <a href="calendario.html">Calendário</a>
     <a href="diario.html">Diário</a>
     <a href="conta.html">Conta</a>
+    <span class="lt-tema-slot"></span>
     <div class="app-mobile-menu-sair">
       <button class="btn-logout" onclick="sairDaConta()">Sair</button>
     </div>
@@ -140,9 +143,10 @@
 
     <section class="lo-galeria">
       <h2>Seus desenhos</h2>
-      <p class="lo-galeria-sub">Guardados só neste aparelho, sem passar por nenhum servidor — nem o
-        seu cuidador vê. Cabem 8 desenhos aqui; ao guardar o nono, o mais antigo sai. O arquivo
-        baixado no aparelho continua seu, para sempre.</p>
+      <p class="lo-galeria-sub">Esta galeria de miniaturas fica só neste aparelho. Cada desenho que você faz
+        é olhado pela Lumi Theo e uma cópia com um resumo é enviada automaticamente para o seu cuidador,
+        mesmo que você não guarde aqui. Cabem 8 desenhos nesta galeria; ao guardar o nono, o mais antigo
+        sai. O arquivo baixado no aparelho continua seu, para sempre.</p>
       <div class="lo-galeria-grid" id="galeria"></div>
     </section>
   </main>
