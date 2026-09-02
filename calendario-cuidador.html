@@ -20,70 +20,97 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/guia.js"></script>
   <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
        durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
   <script src="js/core/cuidador-shell.js"></script>
   <style>
-    .cal-page { display: grid; grid-template-columns: 1fr 380px; gap: 24px; padding: 24px 32px; position: relative; z-index: 1; }
-    @media (max-width: 1100px) { .cal-page { grid-template-columns: 1fr; } }
+    /* ── LAYOUT ───────────────────────────────────────────── */
+    /* Mesma receita visual de calendario.html (o calendário do adolescente) —
+       pedido do usuário: o calendário do cuidador precisa parecer o mesmo,
+       só trocando o que é função de cuidador (escolher o adolescente, mandar
+       evento pra ele, ver quem escreveu cada evento). Vive dentro de
+       .cui-main (sidebar do cuidador), por isso sem o max-width/margin:auto
+       de centralização que a versão do adolescente tem sozinha na página. */
+    .cal-page{display:grid;grid-template-columns:300px 1fr;gap:20px;position:relative;z-index:1;width:100%}
+    @media(max-width:860px){.cal-page{grid-template-columns:1fr}}
 
-    .cal-box { background: white; border-radius: 22px; border: 1.5px solid #d6eaf8; padding: 24px; }
-    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .cal-month { font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; font-weight: 800; color: #1a2e4a; }
-    .cal-nav { display: flex; gap: 8px; }
-    .cal-nav button { width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid #d6eaf8; background: #f4f8fd; color: #3d6080; font-size: 1rem; cursor: pointer; transition: all .2s; }
-    .cal-nav button:hover { background: #e08e30; color: white; border-color: #e08e30; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .cal-day-hdr { text-align: center; font-size: 11px; font-weight: 900; color: #6b9ab8; padding: 8px 0; text-transform: uppercase; letter-spacing: .06em; }
-    .cal-day { aspect-ratio: 1; border-radius: 12px; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 1.5px solid transparent; transition: all .18s; font-size: 14px; font-weight: 700; color: #3d6080; background: #f4f8fd; min-height: 52px; }
-    .cal-day:hover { border-color: #90caf9; background: #eaf1fb; }
-    .cal-day.today { background: rgba(224,142,48,0.10); border-color: #e08e30; color: #7a4f1a; font-weight: 900; }
-    .cal-day.other-month { opacity: .35; }
-    .cal-day.selected { background: #e08e30; color: white; border-color: #e08e30; }
-    .cal-dots { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; }
-    .cal-dots span { width: 5px; height: 5px; border-radius: 50%; }
+    /* ── COLUNA ESQUERDA: mini calendário + form ─────────── */
+    .cal-left{display:flex;flex-direction:column;gap:16px}
 
-    .side-box { display: flex; flex-direction: column; gap: 18px; }
-    .event-box { background: white; border-radius: 20px; border: 1.5px solid #d6eaf8; padding: 20px; }
-    .event-box-title { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: #1a2e4a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .mini-today-box{background:linear-gradient(135deg,rgba(74,126,181,0.07),rgba(74,126,181,0.03));border:1.5px solid rgba(74,126,181,0.14);border-radius:13px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+    .mtb-date{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--primary-dark)}
+    .mtb-sub{font-size:.7rem;color:var(--text-muted);font-weight:600}
 
-    .event-item { display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: #f4f8fd; border: 1.5px solid #d6eaf8; margin-bottom: 8px; transition: all .18s; }
-    .event-item:hover { border-color: #90caf9; }
-    .event-item.from-teen { border-color: rgba(124,92,191,0.30); background: rgba(124,92,191,0.04); }
-    .ev-color { width: 4px; border-radius: 4px; flex-shrink: 0; }
-    .ev-info { flex: 1; }
-    .ev-title { font-size: 13px; font-weight: 800; color: #1a2e4a; }
-    .ev-time { font-size: 11px; color: #6b9ab8; font-weight: 700; margin-top: 2px; }
-    .ev-desc { font-size: 12px; color: #5a7fa8; margin-top: 4px; }
-    .ev-del { background: none; border: none; color: #b3d9f8; cursor: pointer; font-size: 14px; transition: color .2s; padding: 2px; }
-    .ev-del:hover { color: #f44336; }
-    .teen-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(124,92,191,0.10); border: 1px solid rgba(124,92,191,0.20); border-radius: 99px; font-size: 10px; font-weight: 900; color: #5a3d8f; margin-top: 4px; }
+    .mini-cal{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px;overflow:hidden}
+    .mini-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .mini-month{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:var(--text-main)}
+    .mini-nav{display:flex;gap:5px}
+    .mini-nav button{width:30px;height:30px;border-radius:8px;border:1.5px solid rgba(74,126,181,0.15);background:var(--bg);color:var(--text-soft);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .17s}
+    .mini-nav button:hover{background:var(--primary);color:white;border-color:var(--primary)}
+    .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+    .mini-hdr{text-align:center;font-size:.58rem;font-weight:900;color:var(--text-muted);padding:5px 0;text-transform:uppercase;letter-spacing:.05em}
+    .mini-day{aspect-ratio:1;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid transparent;transition:all .16s;font-size:.72rem;font-weight:700;color:var(--text-soft);background:transparent;position:relative;min-height:34px}
+    .mini-day:hover{background:rgba(74,126,181,0.08);color:var(--primary-dark)}
+    .mini-day.today{background:rgba(33,150,243,0.10);border-color:var(--primary);color:var(--primary-dark);font-weight:900}
+    .mini-day.other{opacity:.32}
+    .mini-day.sel{background:var(--primary);color:white;border-color:var(--primary);font-weight:900}
+    .mini-day.has-ev{font-weight:900}
+    .md-dots{display:flex;gap:2px;justify-content:center;position:absolute;bottom:3px}
+    .md{width:4px;height:4px;border-radius:50%}
 
-    .form-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-    .form-field label { font-size: 11px; font-weight: 800; color: #6b9ab8; text-transform: uppercase; letter-spacing: .06em; }
-    .form-field input, .form-field textarea, .form-field select { background: #f4f8fd; border: 1.5px solid #b3d9f8; border-radius: 10px; padding: 9px 13px; color: #1a2e4a; font-family: 'Nunito', sans-serif; font-size: 13px; outline: none; transition: border-color .2s; }
-    .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: #e08e30; }
-    .form-row { display: flex; gap: 10px; }
-    .form-row .form-field { flex: 1; }
+    /* FORM ADICIONAR */
+    .form-card{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 16px}
+    .fc-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:var(--text-main);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .fc-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;background:#e3f2fd;color:#1565c0}
+    .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+    .fg:last-child{margin-bottom:0}
+    .fl{font-size:.65rem;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
+    .fi{background:var(--bg);border:1.5px solid rgba(74,126,181,0.18);border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-main);outline:none;transition:border-color .2s;width:100%;appearance:none}
+    .fi:focus{border-color:var(--primary);background:white}
+    .fi::placeholder{color:var(--text-muted)}
+    .fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .colors{display:flex;gap:6px;flex-wrap:wrap}
+    .clr{width:24px;height:24px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:all .16s}
+    .clr.sel{border-color:var(--text-main);transform:scale(1.18)}
+    .btn-add{background:var(--primary);color:white;border:none;border-radius:11px;padding:10px 18px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px;box-shadow:0 3px 12px rgba(33,150,243,0.25);width:100%;justify-content:center;margin-top:12px}
+    .btn-add:hover{background:var(--primary-dark)}
+    .btn-add:disabled{background:var(--border);box-shadow:none;cursor:not-allowed}
+    .form-feedback{display:none;margin-top:10px;text-align:center;font-size:.78rem;font-weight:700;color:#2e7d32;align-items:center;justify-content:center;gap:6px}
+    .form-feedback.show{display:flex}
 
-    .color-btns { display: flex; gap: 8px; }
-    .color-btn { width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid transparent; cursor: pointer; transition: all .18s; }
-    .color-btn.sel { border-color: #1a2e4a; transform: scale(1.15); }
+    /* ── COLUNA DIREITA: agenda ───────────────────────────── */
+    .cal-right{display:flex;flex-direction:column;gap:16px}
 
-    .btn-add-ev { background: #e08e30; color: white; border: none; border-radius: 12px; padding: 10px 18px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
-    .btn-add-ev:hover { background: #b8721f; }
+    .agenda-header{background:linear-gradient(135deg,#4a7eb5,#2e5fa3);border-radius:20px;padding:20px 24px;color:white;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(46,95,163,0.22)}
+    .ah-date{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:2px}
+    .ah-sub{font-size:.76rem;font-weight:600;opacity:.82}
+    .ah-count{background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.25);border-radius:99px;padding:5px 14px;font-size:.75rem;font-weight:800}
 
-    .sel-teen-box { background: rgba(224,142,48,0.06); border: 1.5px solid rgba(224,142,48,0.25); border-radius: 14px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #7a4f1a; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-    .sel-teen-box select { flex: 1; background: white; border: 1.5px solid rgba(224,142,48,0.30); border-radius: 8px; padding: 6px 10px; font-family: 'Nunito', sans-serif; font-size: 13px; color: #1a2e4a; outline: none; }
-
-    .empty-ev { text-align: center; padding: 24px; color: #6b9ab8; font-size: 13px; font-weight: 700; }
-    .empty-ev .em-icon { font-size: 2rem; margin-bottom: 8px; }
-
-    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
-    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #6b9ab8; }
-    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .eventos-box{background:white;border-radius:20px;border:1.5px solid rgba(74,126,181,0.12);box-shadow:0 3px 16px rgba(74,126,181,0.08);padding:18px 20px}
+    .eb-title{font-family:'Baloo 2',sans-serif;font-size:.9rem;font-weight:800;color:var(--text-main);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .ev-item{display:flex;gap:10px;padding:11px 13px;border-radius:13px;background:var(--bg);border:1.5px solid rgba(74,126,181,0.10);margin-bottom:8px;transition:all .17s;align-items:flex-start}
+    .ev-item:last-child{margin-bottom:0}
+    .ev-item:hover{border-color:rgba(74,126,181,0.25);background:#eaf1fb}
+    .ev-item.mine{border-color:rgba(224,142,48,0.28);background:rgba(224,142,48,0.04)}
+    .ev-stripe{width:3px;border-radius:99px;flex-shrink:0;align-self:stretch;min-height:36px}
+    .ev-body{flex:1}
+    .ev-tit{font-size:.84rem;font-weight:800;color:var(--text-main);margin-bottom:3px}
+    .ev-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .ev-time{font-size:.68rem;font-weight:700;color:var(--text-muted)}
+    .ev-tag{font-size:.6rem;font-weight:900;padding:1px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+    .ev-tag.mine-tag{background:rgba(224,142,48,0.14);color:#7a4f1a}
+    .ev-tag.teen-tag{background:rgba(124,92,191,0.14);color:#5a3d8f}
+    .ev-desc{font-size:.73rem;color:var(--text-muted);font-weight:600;margin-top:4px}
+    .ev-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:.9rem;padding:2px 4px;border-radius:6px;transition:all .16s;flex-shrink:0;margin-left:auto}
+    .ev-del:hover{color:#ef4444;background:rgba(239,68,68,0.08)}
+    .empty-state{text-align:center;padding:32px 20px;color:var(--text-muted)}
+    .empty-state .es-icon{font-size:2.4rem;margin-bottom:8px}
+    .empty-state .es-txt{font-size:.82rem;font-weight:700}
+    .empty-state .es-sub{font-size:.74rem;font-weight:600;margin-top:4px;opacity:.75}
   </style>
   <script src="js/core/icons.js" defer></script>
+  <script src="js/core/hero-bolhas.js" defer></script>
 </head>
 <!-- data-cui-shell="nav": a casca só desenha o menu/topo/gaveta e o sairCui().
      Esta página já tem a própria checagem de sessão, então a casca não repete
@@ -99,83 +126,120 @@
   <!-- Topo mobile, gaveta e sidebar vêm da casca:
        js/core/cuidador-shell.js (o menu vive num arquivo só). -->
   <div class="cui-layout">
+    <div class="cui-main">
 
-  <div class="cui-main">
-  <div class="cal-page">
-    <div>
-      <div class="cal-box">
-        <div class="cal-header">
-          <div>
-            <div class="cal-month" id="cal-month-title">Abril 2026</div>
-            <div class="legend">
-              <div class="legend-item"><div class="legend-dot" style="background:#e08e30"></div> Você adicionou</div>
-              <div class="legend-item"><div class="legend-dot" style="background:#7c5cbf"></div> Adolescente</div>
+      <div class="cal-page">
+        <!-- ESQUERDA -->
+        <div class="cal-left">
+
+          <div class="mini-today-box">
+            <i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i>
+            <div>
+              <div class="mtb-date" id="hoje-label">Hoje</div>
+              <div class="mtb-sub">Selecione um dia para ver a agenda</div>
             </div>
           </div>
-          <div class="cal-nav">
-            <button onclick="navMes(-1)">‹</button>
-            <button onclick="navMes(1)">›</button>
+
+          <div class="mini-cal">
+            <div class="mini-cal-header">
+              <div class="mini-month" id="mini-month">Abril 2026</div>
+              <div class="mini-nav">
+                <button type="button" onclick="navMes(-1)">‹</button>
+                <button type="button" onclick="navMes(1)">›</button>
+              </div>
+            </div>
+            <div class="mini-grid" id="mini-grid"></div>
+          </div>
+
+          <div class="form-card" data-tour="cal-cuidador-form">
+            <div class="fc-title">
+              <div class="fc-icon"><i class="lt-i" data-lt-icon="plus" aria-hidden="true"></i></div>
+              Adicionar evento pro adolescente
+            </div>
+
+            <div class="fg">
+              <label class="fl">Adolescente</label>
+              <select class="fi" id="sel-teen">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+
+            <div class="fg">
+              <label class="fl">Título</label>
+              <input type="text" class="fi" id="ev-titulo" placeholder="Ex: Consulta, Terapia, Passeio..." maxlength="60">
+            </div>
+
+            <div class="fr">
+              <div class="fg">
+                <label class="fl">Data</label>
+                <input type="date" class="fi" id="ev-data">
+              </div>
+              <div class="fg">
+                <label class="fl">Hora</label>
+                <input type="time" class="fi" id="ev-hora">
+              </div>
+            </div>
+
+            <div class="fg">
+              <label class="fl">Mensagem pro adolescente</label>
+              <input type="text" class="fi" id="ev-desc" placeholder="Opcional...">
+            </div>
+
+            <div class="fg">
+              <label class="fl">Cor</label>
+              <div class="colors">
+                <div class="clr sel" data-c="#7c5cbf" style="background:#7c5cbf" onclick="selCor(this)"></div>
+                <div class="clr" data-c="#2196f3" style="background:#2196f3" onclick="selCor(this)"></div>
+                <div class="clr" data-c="#4ade80" style="background:#4ade80" onclick="selCor(this)"></div>
+                <div class="clr" data-c="#f59e0b" style="background:#f59e0b" onclick="selCor(this)"></div>
+                <div class="clr" data-c="#ef4444" style="background:#ef4444" onclick="selCor(this)"></div>
+                <div class="clr" data-c="#e08e30" style="background:#e08e30" onclick="selCor(this)"></div>
+                <div class="clr" data-c="#06b6d4" style="background:#06b6d4" onclick="selCor(this)"></div>
+              </div>
+            </div>
+
+            <button class="btn-add" id="btn-add" onclick="adicionarEventoCuidador()"><i class="lt-i" data-lt-icon="send" aria-hidden="true"></i> Enviar para a agenda</button>
+            <div class="form-feedback" id="ev-feedback"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Evento adicionado com sucesso!</div>
           </div>
         </div>
-        <div class="cal-grid" id="cal-grid"></div>
-      </div>
 
-      <div class="event-box" style="margin-top:18px;">
-        <div class="event-box-title"><i class="lt-i" data-lt-icon="calendar" aria-hidden="true"></i> <span id="dia-sel-label">Selecione um dia</span></div>
-        <div id="eventos-do-dia"><div class="empty-ev"><div class="em-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>Selecione um dia para ver os eventos</div></div>
-      </div>
-    </div>
+        <!-- DIREITA -->
+        <div class="cal-right">
 
-    <div class="side-box">
-      <div class="event-box">
-        <div class="event-box-title"><i class="lt-i" data-lt-icon="plus" aria-hidden="true"></i> Adicionar evento para o adolescente</div>
-
-        <div class="sel-teen-box">
-          <i class="lt-i" data-lt-icon="user" aria-hidden="true"></i>
-          <select id="sel-teen">
-            <option value="">Selecione o adolescente...</option>
-          </select>
-        </div>
-
-        <div class="form-field">
-          <label>Título do Evento</label>
-          <input type="text" id="ev-titulo" placeholder="Ex: Consulta médica, Terapia..." maxlength="60">
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Data</label>
-            <input type="date" id="ev-data">
+          <div class="agenda-header lt-hero-bolhas">
+            <div>
+              <div class="ah-date" id="ah-date">Selecione um dia</div>
+              <div class="ah-sub">Agenda dos adolescentes vinculados</div>
+            </div>
+            <div class="ah-count" id="ah-count">0 eventos</div>
           </div>
-          <div class="form-field">
-            <label>Hora</label>
-            <input type="time" id="ev-hora">
+
+          <div class="eventos-box">
+            <div class="eb-title">
+              <i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i>
+              <span id="eb-day-label">Eventos de hoje</span>
+            </div>
+            <div id="ev-lista">
+              <div class="empty-state">
+                <div class="es-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>
+                <div class="es-txt">Selecione um dia</div>
+                <div class="es-sub">Clique no mini calendário para ver os eventos</div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="form-field">
-          <label>Mensagem para o adolescente</label>
-          <textarea id="ev-desc" rows="2" placeholder="Escreva uma mensagem carinhosa explicando o evento..."></textarea>
-        </div>
-        <div class="form-field">
-          <label>Cor</label>
-          <div class="color-btns" id="color-btns">
-            <div class="color-btn sel" data-color="#e08e30" style="background:#e08e30" onclick="selColor(this)"></div>
-            <div class="color-btn" data-color="#2196f3" style="background:#2196f3" onclick="selColor(this)"></div>
-            <div class="color-btn" data-color="#4ade80" style="background:#4ade80" onclick="selColor(this)"></div>
-            <div class="color-btn" data-color="#ef4444" style="background:#ef4444" onclick="selColor(this)"></div>
-            <div class="color-btn" data-color="#7c5cbf" style="background:#7c5cbf" onclick="selColor(this)"></div>
+
+          <div class="eventos-box">
+            <div class="eb-title">
+              <i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i>
+              Eventos desta semana
+            </div>
+            <div id="semana-evs"></div>
           </div>
+
         </div>
-        <button class="btn-add-ev" onclick="adicionarEventoCuidador()"><i class="lt-i" data-lt-icon="send" aria-hidden="true"></i> Enviar para a agenda do adolescente</button>
-        <div id="ev-feedback" style="display:none;margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:#2e7d32;"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Evento adicionado com sucesso!</div>
       </div>
 
-      <div class="event-box">
-        <div class="event-box-title"><i class="lt-i" data-lt-icon="bar-chart" aria-hidden="true"></i> Eventos desta semana</div>
-        <div id="semana-evs"></div>
-      </div>
-    </div>
-  </div>
-  </div><!-- /cui-main -->
+    </div><!-- /cui-main -->
   </div><!-- /cui-layout -->
 
   <script>
@@ -194,15 +258,10 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    var _uid = null;
-    var _teens = [];
-    var _eventos = [];
-    var _corSel = '#e08e30';
-    var _currentYear = new Date().getFullYear();
-    var _currentMonth = new Date().getMonth();
-    var _selectedDate = null;
+    var _uid = null, _teens = [], _evs = [], _cor = '#7c5cbf';
+    var _Y = new Date().getFullYear(), _M = new Date().getMonth(), _sel = null;
     var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    var DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var DS = ['D','S','T','Q','Q','S','S'];
 
     async function init() {
       const { data: { session } } = await sb.auth.getSession();
@@ -214,20 +273,20 @@
       CUI.definirNome(perfil.nome); // a casca aplica quando a sidebar montar
 
       await carregarTeens();
-      await carregarEventos();
-      renderCalendario();
+      await carregarEvs();
+      render();
+      var hoje = new Date();
+      document.getElementById('ev-data').value = hoje.toISOString().slice(0,10);
+      document.getElementById('hoje-label').textContent = hoje.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      selDia(hoje.toISOString().slice(0,10));
       renderSemana();
-      selecionarDia(new Date().toISOString().slice(0,10));
-
-      var hoje = new Date().toISOString().slice(0,10);
-      document.getElementById('ev-data').value = hoje;
     }
 
     async function carregarTeens() {
       const { data: teens } = await sb.from('neurodivergente').select('id').eq('id_responsavel', _uid);
       var sel = document.getElementById('sel-teen');
       _teens = [];
-      for (var t of (teens||[])) {
+      for (var t of (teens || [])) {
         const { data: p } = await sb.from('profiles').select('nome').eq('id', t.id).single();
         _teens.push({ id: t.id, nome: p ? p.nome : 'Adolescente' });
         var opt = document.createElement('option');
@@ -237,126 +296,113 @@
       if (_teens.length === 1) sel.value = _teens[0].id;
     }
 
-    async function carregarEventos() {
-      // Carrega eventos de todos os teens vinculados
-      var teenIds = _teens.map(function(t){ return t.id; });
-      if (!teenIds.length) { _eventos = []; return; }
+    async function carregarEvs() {
+      var teenIds = _teens.map(function (t) { return t.id; });
+      if (!teenIds.length) { _evs = []; return; }
       const { data } = await sb.from('eventos_calendario').select('*').in('id_neurodivergente', teenIds).order('data_evento', { ascending: true });
-      _eventos = data || [];
+      _evs = data || [];
     }
 
-    function renderCalendario() {
-      document.getElementById('cal-month-title').textContent = MESES[_currentMonth] + ' ' + _currentYear;
-      var primeirodia = new Date(_currentYear, _currentMonth, 1).getDay();
-      var totalDias = new Date(_currentYear, _currentMonth + 1, 0).getDate();
-      var mesPrev = new Date(_currentYear, _currentMonth, 0).getDate();
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+    function render() {
+      document.getElementById('mini-month').textContent = MESES[_M] + ' ' + _Y;
+      var prim = new Date(_Y, _M, 1).getDay();
+      var tot = new Date(_Y, _M + 1, 0).getDate();
+      var prevTot = new Date(_Y, _M, 0).getDate();
       var hoje = new Date().toISOString().slice(0,10);
-
-      var grid = document.getElementById('cal-grid');
-      grid.innerHTML = DIAS_SEMANA.map(function(d){ return '<div class="cal-day-hdr">'+d+'</div>'; }).join('');
-
-      for (var i = primeirodia - 1; i >= 0; i--) {
-        var dia = mesPrev - i;
-        var ds = (_currentMonth-1<0?_currentYear-1:_currentYear)+'-'+pad(_currentMonth<1?12:_currentMonth)+'-'+pad(dia);
-        grid.innerHTML += '<div class="cal-day other-month" onclick="selecionarDia(\''+ds+'\')">'+dia+'</div>';
+      var g = document.getElementById('mini-grid');
+      g.innerHTML = DS.map(function (d) { return '<div class="mini-hdr">' + d + '</div>'; }).join('');
+      for (var i = prim - 1; i >= 0; i--) { var d = prevTot - i; var m = _M - 1 < 0 ? 11 : _M - 1; var a = _M - 1 < 0 ? _Y - 1 : _Y; var ds = a + '-' + pad(m + 1) + '-' + pad(d); g.innerHTML += '<div class="mini-day other" onclick="selDia(\'' + ds + '\')" data-d="' + ds + '">' + d + '</div>'; }
+      for (var d = 1; d <= tot; d++) {
+        var ds = _Y + '-' + pad(_M + 1) + '-' + pad(d);
+        var evsDia = _evs.filter(function (e) { return (e.data_evento || '').slice(0,10) === ds; });
+        var cls = 'mini-day' + (ds === hoje ? ' today' : '') + (ds === _sel ? ' sel' : '') + (evsDia.length ? ' has-ev' : '');
+        var dots = evsDia.slice(0,3).map(function (e) { return '<span class="md" style="background:' + (e.cor || '#7c5cbf') + '"></span>'; }).join('');
+        g.innerHTML += '<div class="' + cls + '" onclick="selDia(\'' + ds + '\')" data-d="' + ds + '">' + d + (dots ? '<div class="md-dots">' + dots + '</div>' : '') + '</div>';
       }
-      for (var d = 1; d <= totalDias; d++) {
-        var dateStr = _currentYear+'-'+pad(_currentMonth+1)+'-'+pad(d);
-        var cls = 'cal-day';
-        if (dateStr === hoje) cls += ' today';
-        if (dateStr === _selectedDate) cls += ' selected';
-        var evs = _eventos.filter(function(e){ return (e.data_evento||'').slice(0,10) === dateStr; });
-        var dots = evs.map(function(e){ return '<span style="background:'+(e.cor||'#7c5cbf')+'"></span>'; }).join('');
-        grid.innerHTML += '<div class="'+cls+'" onclick="selecionarDia(\''+dateStr+'\')" data-date="'+dateStr+'">'+d+(dots?'<div class="cal-dots">'+dots+'</div>':'')+'</div>';
-      }
-      var total = primeirodia + totalDias;
-      var prox = 7 - (total % 7 === 0 ? 7 : total % 7);
-      for (var p = 1; p <= prox; p++) {
-        var mes = _currentMonth+1>11?0:_currentMonth+1;
-        var ano = _currentMonth+1>11?_currentYear+1:_currentYear;
-        var ds = ano+'-'+pad(mes+1)+'-'+pad(p);
-        grid.innerHTML += '<div class="cal-day other-month" onclick="selecionarDia(\''+ds+'\')" data-date="'+ds+'">'+p+'</div>';
-      }
+      var resto = prim + tot; var prox = 7 - (resto % 7 === 0 ? 7 : resto % 7);
+      for (var d = 1; d <= prox; d++) { var m = _M + 1 > 11 ? 0 : _M + 1; var a = _M + 1 > 11 ? _Y + 1 : _Y; var ds = a + '-' + pad(m + 1) + '-' + pad(d); g.innerHTML += '<div class="mini-day other" onclick="selDia(\'' + ds + '\')" data-d="' + ds + '">' + d + '</div>'; }
+      if (window.LUMI && LUMI.hydrateIcons) LUMI.hydrateIcons(g);
     }
 
-    function pad(n){ return n<10?'0'+n:''+n; }
-    function navMes(dir) {
-      _currentMonth+=dir;
-      if(_currentMonth>11){_currentMonth=0;_currentYear++;}
-      if(_currentMonth<0){_currentMonth=11;_currentYear--;}
-      renderCalendario();
+    function navMes(dir) { _M += dir; if (_M > 11) { _M = 0; _Y++; } if (_M < 0) { _M = 11; _Y--; } render(); }
+
+    function nomeTeen(id) {
+      var t = _teens.find(function (x) { return x.id === id; });
+      return t ? t.nome : 'Adolescente';
     }
 
-    function selecionarDia(dateStr) {
-      _selectedDate = dateStr;
-      document.getElementById('ev-data').value = dateStr;
-      document.querySelectorAll('.cal-day').forEach(function(el){ el.classList.remove('selected'); if(el.getAttribute('data-date')===dateStr) el.classList.add('selected'); });
-      var d = new Date(dateStr+'T12:00:00');
-      document.getElementById('dia-sel-label').textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-      var evs = _eventos.filter(function(e){ return (e.data_evento||'').slice(0,10) === dateStr; });
-      var cont = document.getElementById('eventos-do-dia');
-      if (!evs.length) {
-        // <i data-lt-icon> injetado depois do load não é hidratado sozinho —
-        // sem o hydrateIcons o ícone do estado vazio ficava em branco.
-        cont.innerHTML = '<div class="empty-ev"><div class="em-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div>Nenhum evento neste dia.</div>';
-        if (window.LUMI && LUMI.hydrateIcons) LUMI.hydrateIcons(cont);
+    function selDia(ds) {
+      _sel = ds;
+      document.getElementById('ev-data').value = ds;
+      document.querySelectorAll('.mini-day').forEach(function (el) { el.classList.remove('sel'); if (el.getAttribute('data-d') === ds) el.classList.add('sel'); });
+      var d = new Date(ds + 'T12:00:00');
+      var lbl = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('ah-date').textContent = lbl.charAt(0).toUpperCase() + lbl.slice(1);
+      document.getElementById('eb-day-label').textContent = 'Eventos de ' + d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+      var evsDia = _evs.filter(function (e) { return (e.data_evento || '').slice(0,10) === ds; });
+      document.getElementById('ah-count').textContent = evsDia.length + ' evento' + (evsDia.length !== 1 ? 's' : '');
+      var lista = document.getElementById('ev-lista');
+      if (!evsDia.length) {
+        lista.innerHTML = '<div class="empty-state"><div class="es-icon"><i class="lt-i lt-i--lg" data-lt-icon="calendar" aria-hidden="true"></i></div><div class="es-txt">Nenhum evento aqui</div><div class="es-sub">Adicione algo no formulário ao lado</div></div>';
+        if (window.LUMI && LUMI.hydrateIcons) LUMI.hydrateIcons(lista);
         return;
       }
-      cont.innerHTML = evs.map(function(ev) {
+      lista.innerHTML = evsDia.map(function (ev) {
         var hora = ev.hora_evento ? ev.hora_evento.slice(0,5) : 'Sem hora';
-        var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });
-        var origemTag = ev.origem === 'responsavel' ? 'Você adicionou' : (teen?teen.nome:'Adolescente');
-        return '<div class="event-item '+(ev.origem!=='responsavel'?'from-teen':'')+'">'
-          +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
-          +'<div class="ev-info">'
-          +'<div class="ev-title">'+esc(ev.titulo||'Evento')+'</div>'
-          +'<div class="ev-time">'+(window.LUMI?LUMI.icon('clock'):'')+' '+hora+'</div>'
-          +(ev.descricao?'<div class="ev-desc">'+esc(ev.descricao)+'</div>':'')
-          +'<div class="teen-tag">'+esc(origemTag)+'</div>'
-          +'</div>'
-          +(ev.origem==='responsavel'?'<button class="ev-del" onclick="deletarEvento(\''+ev.id+'\')">'+(window.LUMI?LUMI.icon('trash'):'')+'</button>':'')
-          +'</div>';
+        var mine = ev.origem === 'responsavel';
+        return '<div class="ev-item' + (mine ? ' mine' : '') + '">' +
+          '<div class="ev-stripe" style="background:' + (ev.cor || '#7c5cbf') + '"></div>' +
+          '<div class="ev-body">' +
+            '<div class="ev-tit">' + esc(ev.titulo || 'Evento') + '</div>' +
+            '<div class="ev-meta">' +
+              '<span class="ev-time">' + (window.LUMI ? LUMI.icon('clock') : '') + ' ' + hora + '</span>' +
+              '<span class="ev-tag ' + (mine ? 'mine-tag' : 'teen-tag') + '">' + (window.LUMI ? LUMI.icon(mine ? 'user' : 'users') : '') + ' ' + (mine ? 'Você' : esc(nomeTeen(ev.id_neurodivergente))) + '</span>' +
+            '</div>' +
+            (ev.descricao ? '<div class="ev-desc">' + esc(ev.descricao) + '</div>' : '') +
+          '</div>' +
+          (mine ? '<button class="ev-del" onclick="delEv(\'' + ev.id + '\')">' + (window.LUMI ? LUMI.icon('trash') : '') + '</button>' : '') +
+        '</div>';
       }).join('');
     }
 
-    function selColor(btn) {
-      document.querySelectorAll('.color-btn').forEach(function(b){ b.classList.remove('sel'); });
-      btn.classList.add('sel'); _corSel = btn.getAttribute('data-color');
-    }
+    function selCor(el) { document.querySelectorAll('.clr').forEach(function (c) { c.classList.remove('sel'); }); el.classList.add('sel'); _cor = el.getAttribute('data-c'); }
 
     async function adicionarEventoCuidador() {
       var teenId = document.getElementById('sel-teen').value;
-      var titulo = document.getElementById('ev-titulo').value.trim();
-      var data = document.getElementById('ev-data').value;
-      var hora = document.getElementById('ev-hora').value;
+      var tit = document.getElementById('ev-titulo').value.trim();
+      var dt = document.getElementById('ev-data').value;
+      var hr = document.getElementById('ev-hora').value;
       var desc = document.getElementById('ev-desc').value.trim();
       if (!teenId) { alert('Selecione o adolescente!'); return; }
-      if (!titulo || !data) { alert('Preencha título e data!'); return; }
+      if (!tit || !dt) { alert('Preencha o título e a data!'); return; }
+
+      var btn = document.getElementById('btn-add'); btn.disabled = true; btn.textContent = 'Enviando...';
 
       var { error: erroInsert } = await sb.from('eventos_calendario').insert({
         id_neurodivergente: teenId,
-        titulo: titulo,
-        data_evento: data,
-        hora_evento: hora || null,
+        titulo: tit,
+        data_evento: dt,
+        hora_evento: hr || null,
         descricao: desc || null,
-        cor: _corSel,
+        cor: _cor,
         roleplay_prep: false,
         origem: 'responsavel',
         id_cuidador: _uid,
         timestamp: new Date().toISOString()
       });
 
-      if (erroInsert) {
-        alert('Não foi possível salvar o evento. Tente novamente.');
-        return;
-      }
+      btn.disabled = false; btn.innerHTML = (window.LUMI ? LUMI.icon('send') : '') + ' Enviar para a agenda';
+
+      if (erroInsert) { alert('Não foi possível salvar o evento. Tente novamente.'); return; }
 
       // Aviso pro adolescente (best-effort — nenhuma tela do teen lê esta tabela hoje)
       sb.from('alertas').insert({
         id_neurodivergente: teenId,
         tipo: 'info',
-        titulo: 'Novo evento: ' + titulo,
-        descricao: 'Seu cuidador adicionou um evento para ' + new Date(data+'T12:00:00').toLocaleDateString('pt-BR'),
+        titulo: 'Novo evento: ' + tit,
+        descricao: 'Seu cuidador adicionou um evento para ' + new Date(dt + 'T12:00:00').toLocaleDateString('pt-BR'),
         lido: false,
         timestamp: new Date().toISOString()
       });
@@ -365,22 +411,22 @@
       document.getElementById('ev-hora').value = '';
       document.getElementById('ev-desc').value = '';
       var fb = document.getElementById('ev-feedback');
-      fb.style.display = 'block';
-      setTimeout(function(){ fb.style.display = 'none'; }, 3000);
+      fb.classList.add('show');
+      setTimeout(function () { fb.classList.remove('show'); }, 3000);
 
-      await carregarEventos();
-      renderCalendario();
+      await carregarEvs();
+      render();
+      if (_sel) selDia(_sel);
       renderSemana();
-      if (_selectedDate) selecionarDia(_selectedDate);
     }
 
-    async function deletarEvento(id) {
+    async function delEv(id) {
       if (!confirm('Remover este evento?')) return;
       await sb.from('eventos_calendario').delete().eq('id', id);
-      await carregarEventos();
-      renderCalendario();
+      await carregarEvs();
+      render();
+      if (_sel) selDia(_sel);
       renderSemana();
-      if (_selectedDate) selecionarDia(_selectedDate);
     }
 
     function renderSemana() {
@@ -390,16 +436,20 @@
       var fimSemana = new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate() + 6);
       var ini = inicioSemana.toISOString().slice(0,10);
       var fim = fimSemana.toISOString().slice(0,10);
-      var evs = _eventos.filter(function(e){ var d=(e.data_evento||'').slice(0,10); return d>=ini && d<=fim; });
-      if (!evs.length) { cont.innerHTML = '<div class="empty-ev" style="padding:16px 0">Nenhum evento esta semana.</div>'; return; }
-      cont.innerHTML = evs.map(function(ev) {
-        var teen = _teens.find(function(t){ return t.id === ev.id_neurodivergente; });
-        return '<div class="event-item" style="margin-bottom:8px;">'
-          +'<div class="ev-color" style="background:'+(ev.cor||'#e08e30')+'"></div>'
-          +'<div class="ev-info"><div class="ev-title">'+esc(ev.titulo||'Evento')+'</div>'
-          +'<div class="ev-time">'+new Date((ev.data_evento||'')+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})+'</div>'
-          +'<div class="teen-tag">'+esc(ev.origem==='responsavel'?'Você':(teen?teen.nome:'Adolescente'))+'</div>'
-          +'</div></div>';
+      var evs = _evs.filter(function (e) { var d = (e.data_evento || '').slice(0,10); return d >= ini && d <= fim; });
+      if (!evs.length) { cont.innerHTML = '<div class="empty-state"><div class="es-txt">Nenhum evento esta semana</div></div>'; return; }
+      cont.innerHTML = evs.map(function (ev) {
+        var mine = ev.origem === 'responsavel';
+        return '<div class="ev-item' + (mine ? ' mine' : '') + '">' +
+          '<div class="ev-stripe" style="background:' + (ev.cor || '#7c5cbf') + '"></div>' +
+          '<div class="ev-body">' +
+            '<div class="ev-tit">' + esc(ev.titulo || 'Evento') + '</div>' +
+            '<div class="ev-meta">' +
+              '<span class="ev-time">' + new Date((ev.data_evento || '') + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' }) + '</span>' +
+              '<span class="ev-tag ' + (mine ? 'mine-tag' : 'teen-tag') + '">' + (mine ? 'Você' : esc(nomeTeen(ev.id_neurodivergente))) + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
       }).join('');
     }
 

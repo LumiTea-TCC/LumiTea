@@ -21,6 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/guia.js"></script>
   <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
        durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
   <script src="js/core/cuidador-shell.js"></script>
@@ -46,7 +47,7 @@
             <!-- Ação principal da página: fica SEMPRE visível. Antes nascia com
                  `hidden` e só aparecia se o carregamento da lista desse certo —
                  qualquer falha no caminho deixava o cuidador sem como gerar nada. -->
-            <button class="btn-primary" id="btn-gerar-relatorio" disabled><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar relatório</button>
+            <button class="btn-primary" id="btn-gerar-relatorio" data-tour="cui-btn-gerar-relatorio" disabled><i class="lt-i" data-lt-icon="sparkles" aria-hidden="true"></i> Gerar relatório</button>
           </div>
         </div>
         <p class="cui-hint cui-rel-explica">O Lumi Theo lê as conversas recentes do adolescente e monta um resumo com pontos de atenção e orientações para você.</p>

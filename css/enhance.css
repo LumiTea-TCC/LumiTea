@@ -654,6 +654,40 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
 .lt-dialog-box--critico .lt-dialog-acoes { justify-content: stretch; }
 .lt-dialog-box--critico .lt-dialog-btn--primary { width: 100%; background: linear-gradient(135deg, var(--danger), #a02020); }
 
+/* ── GUIA DO LUMI THEO (js/core/guia.js) — tour guiado entre páginas ── */
+.lt-guia-bolha {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1050;
+  max-width: 420px; margin: 0 auto;
+  background: var(--surface); border: 1.5px solid var(--border-soft); border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3); padding: 16px; display: flex; gap: 12px; align-items: flex-start;
+  opacity: 0;
+}
+.lt-guia-bolha.is-in { opacity: 1; }
+.lt-guia-av { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.lt-guia-corpo { flex: 1; min-width: 0; }
+.lt-guia-titulo { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: .8rem; color: var(--primary-dark); margin: 0 0 4px; }
+.lt-guia-texto { font-size: .9rem; line-height: 1.5; color: var(--text-soft); margin: 0 0 12px; }
+.lt-guia-acoes { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.lt-guia-pular, .lt-guia-prox {
+  border-radius: var(--r-md); padding: 9px 16px; min-height: 40px; cursor: pointer; border: none;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .82rem;
+}
+.lt-guia-pular { background: var(--bg-2); border: 1px solid var(--border-soft); color: var(--text-soft); }
+.lt-guia-prox { background: linear-gradient(135deg, var(--primary-action, var(--primary)), var(--primary-dark)); color: #fff; }
+.lt-guia-pular:focus-visible, .lt-guia-prox:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Destaque estático (sem pulso/brilho animado) do elemento do passo atual. */
+.lt-guia-destaque { outline: 3px solid var(--primary); outline-offset: 3px; border-radius: var(--r-md); }
+
+/* Botão "Começar tour" embaixo da fala da Lumi (conversa.html e consultoria-cuidador.html). */
+.lt-guia-comecar {
+  align-self: flex-start; width: fit-content;
+  margin-top: 8px; border-radius: var(--r-md); padding: 8px 16px; min-height: 38px; border: none; cursor: pointer;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .82rem; color: #fff;
+  background: linear-gradient(135deg, var(--primary-action, var(--primary)), var(--primary-dark));
+}
+.lt-guia-comecar:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
 /* Entrada/saída animada SÓ quando o movimento é permitido. */
 @media (prefers-reduced-motion: no-preference) {
   html:not([data-modo-calmo="true"]) {
@@ -661,5 +695,7 @@ html[data-modo-calmo="true"] .cui-tela.ativa { animation: none !important; }
     .lt-dialog-ov.lt-anim { transition: opacity var(--dur-base) var(--ease-out); }
     .lt-dialog-ov.lt-anim .lt-dialog-box { transform: translateY(10px) scale(.98); transition: transform var(--dur-base) var(--ease-out-expo); }
     .lt-dialog-ov.lt-anim.is-in .lt-dialog-box { transform: none; }
+    .lt-guia-bolha.lt-anim { transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out); transform: translateY(10px); }
+    .lt-guia-bolha.lt-anim.is-in { transform: none; }
   }
 }

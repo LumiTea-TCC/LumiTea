@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/guia.js"></script>
   <style>
     /* ── LAYOUT ───────────────────────────────────────────── */
     .cal-page{display:grid;grid-template-columns:300px 1fr;gap:20px;padding:22px 28px;min-height:calc(100vh - 64px);position:relative;z-index:1;max-width:1180px;margin:0 auto;width:100%}
@@ -214,7 +215,7 @@
       </div>
 
       <!-- Form adicionar -->
-      <div class="form-card">
+      <div class="form-card" data-tour="calendario-form">
         <div class="fc-title">
           <div class="fc-icon" style="background:#e3f2fd;color:#1565c0"><i class="lt-i" data-lt-icon="plus" aria-hidden="true"></i></div>
           Adicionar Evento

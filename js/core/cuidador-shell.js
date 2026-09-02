@@ -288,7 +288,7 @@
       if (item.secao) { html += '<div class="cui-nav-section">' + item.secao + '</div>'; return; }
       var ativo = (item.id === paginaAtual);
       html += '<button type="button" class="cui-nav-btn' + (ativo ? ' ativo' : '') + '"' +
-              ' data-cui-ir="' + item.href + '"' + (ativo ? ' aria-current="page"' : '') + '>' +
+              ' data-cui-ir="' + item.href + '" data-tour="cui-menu-' + item.id + '"' + (ativo ? ' aria-current="page"' : '') + '>' +
               '<span class="cui-nav-icon" data-lt-icon="' + item.icone + '"></span> ' + item.label +
               (item.contador ? '<span class="cui-nav-cnt" id="nav-alerta-cnt" hidden></span>' : '') +
               '</button>';

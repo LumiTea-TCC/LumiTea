@@ -21,6 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/guia.js"></script>
   <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
        durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
   <script src="js/core/cuidador-shell.js"></script>
@@ -77,7 +78,7 @@
 
     function renderMsg(role, texto) {
       var msgs = document.getElementById('chat-msgs-cuidador');
-      if (!msgs) return;
+      if (!msgs) return null;
       var wrap = document.createElement('div');
       wrap.className = 'cui-msg-wrap ' + role;
       var bbl = document.createElement('div');
@@ -91,6 +92,42 @@
       wrap.appendChild(bbl); wrap.appendChild(hora);
       msgs.appendChild(wrap);
       msgs.scrollTop = msgs.scrollHeight;
+      return wrap;
+    }
+
+    /* Guia do Lumi Theo pro cuidador (js/core/guia.js), mesma mecânica já usada
+       na conversa do adolescente: quando o catálogo de tours do cuidador existe,
+       a pergunta vai em modo JSON e a IA pode devolver um "tour" pra sugerir.
+       Cópia local do parser tolerante (js/lumi-ia.js tem o mesmo, de propósito —
+       são catálogos e prompts diferentes, um por público). */
+    function interpretarRespostaCui(bruto) {
+      if (!bruto) return null;
+      var limpo = String(bruto).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+      var m = limpo.match(/\{[\s\S]*\}/);
+      if (!m) return null;
+      try { return JSON.parse(m[0]); } catch (e) { return null; }
+    }
+
+    function montarSystemPromptCui(catalogoTour) {
+      var base = 'Você é o Lumi Theo, consultor especializado em TEA que orienta cuidadores e familiares de ' +
+        'adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias ' +
+        'práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem ' +
+        'julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos ' +
+        'profissionais quando necessário.';
+      if (!catalogoTour || !catalogoTour.length) return base;
+      var partes = [base, '', 'GUIA DO PAINEL (prioridade alta):',
+        'Se o cuidador disser que está com dificuldade, perdido, ou não sabe encontrar ou usar alguma função ' +
+        'do painel, e essa função estiver na lista abaixo, você DEVE escolher o "id" correspondente no campo ' +
+        '"tour" — nunca tente descrever de cabeça onde fica um botão ou menu, você não vê a tela real dele e ' +
+        'pode errar. O tour mostra o caminho de verdade. Tours disponíveis:'];
+      catalogoTour.forEach(function (t) { partes.push('- ' + t.id + ': ' + t.descricao); });
+      partes.push('Se nada combinar de verdade, ou ele não pediu ajuda de navegação, deixe tour como null e ' +
+        'responda normalmente. Ao oferecer um tour, a "resposta" deve ser curta (1-2 frases) e não deve ' +
+        'descrever os passos você mesmo.');
+      partes.push('');
+      partes.push('Responda SEMPRE em JSON, exatamente neste formato, sem nenhum texto fora do JSON:');
+      partes.push('{"resposta":"<sua resposta normal>","tour":"<id do tour escolhido, ou null>"}');
+      return partes.join('\n');
     }
 
     function mostrarTyping() {
@@ -126,13 +163,45 @@
       mostrarTyping();
 
       try {
-        var msgs = [{ role: 'system', content: 'Você é o Lumi Theo, consultor especializado em TEA que orienta cuidadores e familiares de adolescentes autistas. Seja profissional mas acessível, empática com o cuidador. Forneça estratégias práticas e baseadas em evidências. Reconheça o esforço e o cansaço do cuidador. Oriente sem julgamentos. Responda SEMPRE em português brasileiro. Máximo 4 parágrafos. Sugira recursos profissionais quando necessário.' }].concat(_hist);
-        var res = await window.LUMITEA.groqFetch({ model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 });
+        var catalogo = (window.LUMITEA && window.LUMITEA.TOUR_CATALOGO_CUI_IA) || [];
+        var usarGuia = catalogo.length > 0;
+        var msgs = [{ role: 'system', content: montarSystemPromptCui(usarGuia ? catalogo : null) }].concat(_hist);
+        var body = { model: GROQ_MODEL, messages: msgs, max_tokens: 700, temperature: 0.82 };
+        if (usarGuia) body.response_format = { type: 'json_object' };
+        var res = await window.LUMITEA.groqFetch(body);
         var data = await res.json();
-        var resposta = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+        var bruto = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+
+        var resposta = bruto;
+        var tourSugerido = null;
+        if (usarGuia) {
+          var obj = interpretarRespostaCui(bruto);
+          if (obj && typeof obj.resposta === 'string' && obj.resposta.trim()) {
+            resposta = obj.resposta.trim();
+            tourSugerido = obj.tour && catalogo.some(function (t) { return t.id === obj.tour; }) ? obj.tour : null;
+          } else {
+            resposta = 'Não consegui pensar numa resposta agora. Pode perguntar de outro jeito?';
+          }
+        }
+
         esconderTyping();
         _hist.push({ role: 'assistant', content: resposta });
-        renderMsg('assistant', resposta);
+        var linha = renderMsg('assistant', resposta);
+
+        if (tourSugerido && linha) {
+          var info = catalogo.find(function (t) { return t.id === tourSugerido; });
+          var bbl = linha.querySelector('.cui-msg-bbl');
+          if (info && bbl) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'lt-guia-comecar';
+            btn.textContent = 'Começar tour: ' + info.descricao;
+            btn.addEventListener('click', function () {
+              if (window.LUMITEA && window.LUMITEA.iniciarTour) window.LUMITEA.iniciarTour(tourSugerido);
+            });
+            bbl.insertAdjacentElement('afterend', btn);
+          }
+        }
       } catch (e) {
         esconderTyping();
         renderMsg('assistant', 'Houve um problema de conexão. Tente novamente.');
