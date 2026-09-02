@@ -3701,11 +3701,11 @@ body.cui-page { overflow: hidden; }
 .cui-welcome-badges span .lt-i { width: 1em; height: 1em; }
 
 /* ── CARDS DE CONTEÚDO ───────────────────────────────────── */
-.cui-alertas-card, .cui-humor-chart, .cui-rel-card, .cui-vinculo-box, .prog-card {
+.cui-alertas-card, .cui-humor-chart, .cui-rel-card, .cui-vinculo-box, .prog-card, .psi-secao {
   background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-lg);
   padding: var(--sp-5); margin-bottom: var(--sp-5);
 }
-.cui-alertas-card h3, .cui-humor-chart h3, .cui-rel-card h3, .prog-card h4 {
+.cui-alertas-card h3, .cui-humor-chart h3, .cui-rel-card h3, .prog-card h4, .psi-secao h3 {
   font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; color: var(--text-main);
   margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
 }
@@ -3854,6 +3854,93 @@ body.cui-page { overflow: hidden; }
 .vinculo-input-row input:focus { border-color: var(--primary); }
 .err-msg { color: var(--danger); font-size: 12px; font-weight: 700; margin-top: 8px; display: none; }
 .err-msg.on { display: block; }
+
+/* ── PAINEL DO PSICÓLOGO ─────────────────────────────────────
+   Reusa a casca do cuidador (.cui-sidebar, .cui-nav-btn, .cui-layout,
+   .cui-main) via js/core/psicologo-shell.js — aqui só a identidade
+   visual (cor da sidebar) e os componentes específicos (grade de
+   pacientes, anotações clínicas). Luminosidade dos 3 tons calibrada
+   pra ficar no mesmo patamar de contraste já validado da sidebar navy
+   do cuidador (texto branco e rótulos 72% translúcidos, ambos ≥4.5:1). */
+.cui-sidebar--psi {
+  background-color: #0b3d36;
+  background-image:
+    radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+    linear-gradient(180deg, #0b3d36 0%, #125048 55%, #186257 100%);
+  background-size: 20px 20px, auto;
+}
+.cui-sidebar--psi .cui-nav-btn.ativo {
+  background: rgba(94,224,196,0.20);
+  border-left-color: #5fe0c4;
+}
+.cui-sidebar--psi .cui-nav-btn.ativo:hover { background: rgba(94,224,196,0.26); }
+.cui-sidebar--psi .cui-nav-btn:focus-visible,
+.cui-sidebar--psi .cui-sair:focus-visible { box-shadow: 0 0 0 3px rgba(94,224,196,0.65); }
+.cui-sidebar--psi .ui-switch input:focus-visible + .slider { box-shadow: 0 0 0 3px rgba(94,224,196,0.65); }
+
+.psi-voltar {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800;
+  color: var(--text-muted); text-decoration: none; margin-bottom: 10px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.psi-voltar .lt-i { width: 15px; height: 15px; }
+.psi-voltar:hover, .psi-voltar:focus-visible { color: #1a9b82; }
+
+.psi-banner-pendente {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--warning-bg); border: 1px solid var(--warning-border); border-left: 4px solid var(--ambar);
+  border-radius: var(--r-md); padding: var(--sp-4); margin-bottom: var(--sp-5);
+}
+.psi-banner-pendente .lt-i { color: var(--warning); width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; }
+.psi-banner-pendente-tit { font-weight: 900; font-size: 13.5px; color: var(--text-main); margin-bottom: 2px; }
+.psi-banner-pendente-txt { font-size: 13px; color: var(--text-soft); line-height: 1.55; }
+
+/* Grade de pacientes (home-psicologo.html) */
+.psi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-4); }
+.psi-card {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-lg);
+  padding: var(--sp-4); font-family: 'Nunito', sans-serif;
+  transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.psi-card:hover, .psi-card:focus-visible { border-color: #5fe0c4; box-shadow: 0 4px 14px rgba(11,61,54,0.14); }
+.psi-card-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.psi-card-av {
+  width: 44px; height: 44px; border-radius: var(--r-md); flex-shrink: 0;
+  background: rgba(94,224,196,0.16); color: #0b3d36;
+  border: 1px solid rgba(94,224,196,0.30); display: flex; align-items: center; justify-content: center;
+}
+.psi-card-av svg { width: 20px; height: 20px; }
+.psi-card-nome { font-weight: 900; font-size: 15px; color: var(--text-main); }
+.psi-card-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.psi-card-chips { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.psi-badge-alerta {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 900;
+  padding: 4px 10px; border-radius: 99px; background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border);
+}
+.psi-badge-alerta .lt-i { width: 1em; height: 1em; }
+
+/* Anotações clínicas (paciente-psicologo.html) */
+.psi-nota-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: var(--sp-4); }
+.psi-nota-form textarea {
+  background: var(--bg-2); border: 1.5px solid var(--border); border-radius: var(--r-md);
+  padding: 12px 14px; min-height: 90px; color: var(--text-main); font-family: 'Nunito', sans-serif;
+  font-size: 14px; resize: vertical; outline: none; transition: border-color var(--dur-fast) var(--ease-out);
+}
+.psi-nota-form textarea:focus { border-color: #1a9b82; }
+.psi-nota-form .btn-primary { align-self: flex-end; }
+.psi-nota { padding: var(--sp-3) 0; border-top: 1px solid var(--border-faint); }
+.psi-nota:first-child { border-top: none; padding-top: 0; }
+.psi-nota-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.psi-nota-data { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+.psi-nota-texto { font-size: 13.5px; line-height: 1.6; color: var(--text-soft); white-space: pre-wrap; }
+.psi-nota-apagar {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  display: inline-flex; align-items: center; padding: 2px; border-radius: 6px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.psi-nota-apagar .lt-i { width: 15px; height: 15px; }
+.psi-nota-apagar:hover, .psi-nota-apagar:focus-visible { color: var(--danger); }
 
 /* ── CHAT CUIDADOR ────────────────────────────────────────── */
 .cui-chat-wrapper { flex: 1; overflow: hidden; display: flex; flex-direction: column; margin: var(--sp-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-lg); }
@@ -4311,6 +4398,7 @@ a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
   border-radius: 99px; padding: 4px 12px; font-size: .7rem; font-weight: 800;
 }
 .set-hero-badges .lt-i { width: 1em; height: 1em; }
+.set-hero-badges span.pendente { background: rgba(224,142,48,0.28); border-color: rgba(224,142,48,0.45); }
 
 .set-card {
   background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-lg);
@@ -4338,6 +4426,7 @@ a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
 .f-select { cursor: pointer; }
 .f-full { grid-column: 1 / -1; }
 .f-hint { font-size: .68rem; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+.f-largura-fonte { margin-bottom: 12px; max-width: 300px; }
 
 .btn-salvar {
   background: linear-gradient(135deg, #3f6fa3, var(--brand-dark)); color: white; border: none; border-radius: var(--r-md);
@@ -4353,6 +4442,7 @@ a.btn-primary, a.btn-secondary, a.btn-pdf { text-decoration: none; }
 .save-ok.show { display: inline-flex; }
 .save-err { display: none; color: var(--danger); font-size: .8rem; font-weight: 800; align-items: center; gap: 5px; }
 .save-err.show { display: inline-flex; }
+.set-card-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
 
 /* Toggle */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--border-faint); }

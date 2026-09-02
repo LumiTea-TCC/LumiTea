@@ -314,7 +314,8 @@
 
       const { data: perfil, error } = await sb.from('profiles').select('nome, sobrenome, tipo').eq('id', _userId).single();
       if (error || !perfil) { window.location.href = 'login.html'; return; }
-      if (perfil.tipo === 'responsavel') { window.location.href = 'home-cuidador.html'; return; }
+      if (perfil.tipo === 'responsavel' || perfil.tipo === 'terapeuta') { window.location.href = 'home-cuidador.html'; return; }
+      if (perfil.tipo === 'psicologo') { window.location.href = 'home-psicologo.html'; return; }
 
       const nome = perfil.nome || 'amigo';
       document.getElementById('nav-user-name').textContent = nome;

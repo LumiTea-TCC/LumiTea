@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Configurações da Conta</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/tema.js" defer></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa PSI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/psicologo-shell.js"></script>
+</head>
+<!-- data-psi-shell="nav": a casca só desenha o menu/topo/gaveta e o sairPsi().
+     Esta página já tem a própria checagem de sessão, então a casca não repete
+     o getSession(). -->
+<body class="app-body lt-pro cui-page" data-psi-pagina="conta" data-psi-shell="nav">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta e sidebar vêm da casca:
+       js/core/psicologo-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+
+  <div class="cui-main">
+  <!-- CONTEÚDO -->
+  <main class="set-page">
+
+    <!-- HERO PERFIL -->
+    <div class="set-hero">
+      <div class="set-hero-av" id="hero-avatar"><img src="img/urso67.png" alt=""></div>
+      <div class="set-hero-info">
+        <div class="set-hero-nome" id="hero-nome">Carregando...</div>
+        <div class="set-hero-email" id="hero-email">—</div>
+        <div class="set-hero-badges">
+          <span><i class="lt-i" data-lt-icon="briefcase" aria-hidden="true"></i> Psicólogo(a)</span>
+          <span id="hero-crp" hidden><i class="lt-i" data-lt-icon="clipboard" aria-hidden="true"></i> —</span>
+          <span id="hero-verificado"><i class="lt-i" data-lt-icon="clock" aria-hidden="true"></i> Em análise</span>
+          <span id="hero-membro"><i class="lt-i" data-lt-icon="calendar" aria-hidden="true"></i> Membro</span>
+          <span id="hero-pacientes"><i class="lt-i" data-lt-icon="users" aria-hidden="true"></i> —</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DADOS DO PERFIL -->
+    <section class="set-card" aria-labelledby="t-perfil">
+      <div class="set-card-title" id="t-perfil"><i class="lt-i" data-lt-icon="user" aria-hidden="true"></i> Dados do perfil</div>
+      <div class="form-grid">
+        <div class="f-group">
+          <label class="f-label" for="f-nome">Nome</label>
+          <input type="text" class="f-input" id="f-nome" placeholder="Seu nome" autocomplete="given-name">
+        </div>
+        <div class="f-group">
+          <label class="f-label" for="f-sobrenome">Sobrenome</label>
+          <input type="text" class="f-input" id="f-sobrenome" placeholder="Seu sobrenome" autocomplete="family-name">
+        </div>
+        <div class="f-group f-full">
+          <label class="f-label" for="f-email">E-mail (somente leitura)</label>
+          <input type="email" class="f-input" id="f-email" disabled>
+          <span class="f-hint">Para alterar o e-mail de acesso, entre em contato com o suporte.</span>
+        </div>
+      </div>
+      <div class="set-card-actions">
+        <button class="btn-salvar" id="btn-salvar" onclick="salvarPerfil()">Salvar alterações</button>
+        <span class="save-ok" id="save-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Salvo com sucesso</span>
+        <span class="save-err" id="save-err">Não foi possível salvar. Tente novamente.</span>
+      </div>
+    </section>
+
+    <!-- SEGURANÇA -->
+    <section class="set-card" aria-labelledby="t-senha">
+      <div class="set-card-title" id="t-senha"><i class="lt-i" data-lt-icon="key" aria-hidden="true"></i> Segurança — alterar senha</div>
+      <div class="form-grid">
+        <div class="f-group">
+          <label class="f-label" for="f-nova-senha">Nova senha</label>
+          <input type="password" class="f-input" id="f-nova-senha" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        </div>
+        <div class="f-group">
+          <label class="f-label" for="f-conf-senha">Confirmar nova senha</label>
+          <input type="password" class="f-input" id="f-conf-senha" placeholder="Repita a senha" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="set-card-actions">
+        <button class="btn-salvar" onclick="alterarSenha()">Alterar senha</button>
+        <span class="save-ok" id="senha-ok"><i class="lt-i" data-lt-icon="check-circle" aria-hidden="true"></i> Senha alterada</span>
+        <span class="save-err" id="senha-err">As senhas não coincidem ou têm menos de 8 caracteres.</span>
+      </div>
+    </section>
+
+    <!-- PREFERÊNCIAS -->
+    <section class="set-card" aria-labelledby="t-prefs">
+      <div class="set-card-title" id="t-prefs"><i class="lt-i" data-lt-icon="sliders" aria-hidden="true"></i> Preferências</div>
+
+      <div class="f-group f-largura-fonte">
+        <label class="f-label" for="pref-fonte">Tamanho do texto</label>
+        <select class="f-select" id="pref-fonte" onchange="aplicarFonte()">
+          <option value="normal">Normal</option>
+          <option value="grande">Grande</option>
+          <option value="muito-grande">Muito grande</option>
+        </select>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="tg-title">Reduzir animações</div>
+          <div class="tg-sub">Minimiza transições e movimentos na interface</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="pref-reduz-anim" onchange="salvarPrefs()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- ZONA DE RISCO -->
+    <section class="danger-card" aria-labelledby="t-danger">
+      <div class="danger-title" id="t-danger"><i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i> Zona de risco</div>
+      <div class="danger-sub">Estas ações afetam o acesso à sua conta. Tenha certeza antes de continuar.</div>
+      <div class="set-card-actions">
+        <button class="btn-danger-ghost" onclick="sairPsi()"><i class="lt-i" data-lt-icon="log-out" aria-hidden="true"></i> Sair da conta</button>
+        <button class="btn-danger-ghost" onclick="excluirConta()"><i class="lt-i" data-lt-icon="trash" aria-hidden="true"></i> Excluir minha conta</button>
+      </div>
+    </section>
+
+  </main>
+  </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    /* Reusa o cliente único que config.js já criou (window.supabaseClient) — um
+       segundo GoTrueClient aqui disputaria o mesmo navigator.lock e podia travar
+       getSession()/signOut(), mesmo cuidado de conta-cuidador.html. */
+    const sb = window.supabaseClient ||
+      (window.supabase && window.supabase.createClient
+        ? window.supabase.createClient('https://yuwdckenzpfdlyawkibn.supabase.co', 'sb_publishable_JtP1wsTu2QQ1xFjlrDBu9g_ZKYkW59N')
+        : null);
+    window.supabaseClient = sb;
+
+    var _uid = null, _perfil = null, _email = null;
+
+    function _ic(nome) { return (window.LUMI && window.LUMI.icon) ? window.LUMI.icon(nome) : ''; }
+
+    function _flash(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('show');
+      setTimeout(function(){ el.classList.remove('show'); }, 3200);
+    }
+
+    /* INIT */
+    (async function(){
+      try {
+        var { data: { session } } = await sb.auth.getSession();
+        if (!session) { window.location.href = 'login.html'; return; }
+        _uid = session.user.id;
+        _email = session.user.email;
+
+        var { data: p, error } = await sb.from('profiles').select('nome,sobrenome,tipo,criado_em,crp,verificado').eq('id', _uid).single();
+        if (error || !p) {
+          alert('Não foi possível carregar seu perfil. Faça login novamente.');
+          window.location.href = 'login.html';
+          return;
+        }
+        /* Esta página é exclusiva do psicólogo */
+        if (p.tipo !== 'psicologo') {
+          window.location.href = (p.tipo === 'neurodivergente') ? 'conta.html' : 'conta-cuidador.html';
+          return;
+        }
+
+        _perfil = { nome: p.nome || '', sobrenome: p.sobrenome || '', criado_em: p.criado_em, crp: p.crp || '', verificado: p.verificado !== false };
+
+        renderPerfil();
+        preencherForm();
+        await carregarPacientesResumo();
+        await carregarPrefs();
+      } catch(e) {
+        console.error('[Conta Psicólogo] Erro inesperado:', e);
+      }
+    })();
+
+    function renderPerfil() {
+      document.getElementById('hero-nome').textContent = (_perfil.nome + ' ' + (_perfil.sobrenome || '')).trim() || 'Psicólogo(a)';
+      document.getElementById('hero-email').textContent = _email || '';
+      PSI.definirNome(_perfil.nome); // a casca aplica quando a sidebar montar
+      if (_perfil.crp) {
+        var crpEl = document.getElementById('hero-crp');
+        crpEl.innerHTML = _ic('clipboard') + ' ' + window.LUMITEA.esc(_perfil.crp);
+        crpEl.hidden = false;
+      }
+      var verEl = document.getElementById('hero-verificado');
+      verEl.innerHTML = _perfil.verificado
+        ? (_ic('check-circle') + ' Verificado')
+        : (_ic('clock') + ' Em análise');
+      verEl.classList.toggle('pendente', !_perfil.verificado);
+      if (_perfil.criado_em) {
+        var dt = new Date(_perfil.criado_em);
+        document.getElementById('hero-membro').innerHTML = _ic('calendar') + ' Membro desde ' + dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+      }
+    }
+
+    function preencherForm() {
+      document.getElementById('f-nome').value = _perfil.nome || '';
+      document.getElementById('f-sobrenome').value = _perfil.sobrenome || '';
+      document.getElementById('f-email').value = _email || '';
+    }
+
+    async function salvarPerfil() {
+      var btn = document.getElementById('btn-salvar');
+      btn.disabled = true; btn.textContent = 'Salvando…';
+      var nome = document.getElementById('f-nome').value.trim();
+      var sob  = document.getElementById('f-sobrenome').value.trim();
+      try {
+        var { error } = await sb.from('profiles').update({ nome: nome, sobrenome: sob }).eq('id', _uid);
+        if (error) throw error;
+        _perfil.nome = nome; _perfil.sobrenome = sob;
+        renderPerfil();
+        _flash('save-ok');
+      } catch(e) {
+        console.error('[Conta Psicólogo] salvarPerfil:', e.message);
+        _flash('save-err');
+      }
+      btn.disabled = false; btn.textContent = 'Salvar alterações';
+    }
+
+    async function alterarSenha() {
+      var s1 = document.getElementById('f-nova-senha').value;
+      var s2 = document.getElementById('f-conf-senha').value;
+      var err = document.getElementById('senha-err');
+      err.classList.remove('show');
+      if (!s1 || s1.length < 8 || s1 !== s2) { err.textContent = 'As senhas não coincidem ou têm menos de 8 caracteres.'; _flash('senha-err'); return; }
+      try {
+        var { error } = await sb.auth.updateUser({ password: s1 });
+        if (error) throw error;
+        document.getElementById('f-nova-senha').value = '';
+        document.getElementById('f-conf-senha').value = '';
+        _flash('senha-ok');
+      } catch(e) {
+        err.textContent = 'Erro ao alterar a senha: ' + e.message;
+        _flash('senha-err');
+      }
+    }
+
+    /* Só o contador do hero — a lista/gerenciamento de pacientes vive no
+       painel (home-psicologo.html), não duplicada aqui. */
+    async function carregarPacientesResumo() {
+      try {
+        var { data: vinc } = await sb.from('vinculos_psicologo').select('id_neurodivergente').eq('id_psicologo', _uid);
+        var n = (vinc || []).length;
+        document.getElementById('hero-pacientes').innerHTML = _ic('users') + ' ' + n + ' paciente' + (n === 1 ? '' : 's');
+      } catch(e) { /* tabela ainda não migrada em produção: mantém o traço */ }
+    }
+
+    /* PREFERÊNCIAS — Supabase (tabela preferencias_usuario, chave = uid;
+       mesmo nome de coluna id_neurodivergente usado por qualquer tipo de
+       conta, ver conta-cuidador.html) */
+    async function salvarPrefs() {
+      var prefs = {
+        fonte: document.getElementById('pref-fonte').value,
+        reduzAnim: document.getElementById('pref-reduz-anim').checked,
+        updated_at: new Date().toISOString()
+      };
+      try {
+        await sb.from('preferencias_usuario').upsert(
+          Object.assign({ id_neurodivergente: _uid }, prefs),
+          { onConflict: 'id_neurodivergente' }
+        );
+      } catch(e) { console.warn('[Prefs] Erro ao salvar:', e.message); }
+    }
+
+    async function carregarPrefs() {
+      try {
+        var { data: p } = await sb.from('preferencias_usuario').select('*').eq('id_neurodivergente', _uid).single();
+        if (!p) return;
+        if (p.fonte) document.getElementById('pref-fonte').value = p.fonte;
+        if (p.reduzAnim !== undefined && p.reduzAnim !== null) document.getElementById('pref-reduz-anim').checked = p.reduzAnim;
+        aplicarFonteLocal();
+      } catch(e) { /* primeira visita: ainda sem registro */ }
+    }
+
+    function aplicarFonteLocal() {
+      var v = document.getElementById('pref-fonte').value;
+      document.documentElement.style.fontSize = v === 'grande' ? '108%' : v === 'muito-grande' ? '116%' : '100%';
+    }
+    function aplicarFonte() { aplicarFonteLocal(); salvarPrefs(); }
+
+    function excluirConta() {
+      if (confirm('Você tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.')) {
+        if (confirm('Última confirmação: excluir a conta permanentemente?')) {
+          alert('Para excluir sua conta definitivamente, entre em contato com o suporte do LumiTEA.');
+        }
+      }
+    }
+
+  </script>
+</body>
+</html>

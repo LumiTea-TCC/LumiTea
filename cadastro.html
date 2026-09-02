@@ -304,9 +304,21 @@
                 <option value="neurodivergente">Sou a criança / adolescente</option>
                 <option value="responsavel">Sou pai, mãe ou responsável</option>
                 <option value="terapeuta">Sou terapeuta ou educador</option>
+                <option value="psicologo">Sou psicólogo(a)</option>
               </select>
             </div>
             <span class="field-error" id="tipo-error" role="alert">Selecione uma opção.</span>
+          </div>
+
+          <!-- CRP: só aparece pra quem escolhe "psicólogo(a)" (js/cadastro.js) -->
+          <div class="field-group" id="grupo-crp" hidden>
+            <label for="crp">Número do CRP</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              <input type="text" id="crp" name="crp" placeholder="Ex.: CRP 06/123456" aria-describedby="crp-error crp-hint" />
+            </div>
+            <span class="field-error" id="crp-error" role="alert">Informe o número do seu CRP.</span>
+            <span class="field-hint" id="crp-hint">Sua conta poderá vincular pacientes assim que o registro for conferido.</span>
           </div>
 
           <div class="step-nav">

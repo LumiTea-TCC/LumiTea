@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Paciente</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/tema.js" defer></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa PSI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/psicologo-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-psi-pagina="pacientes">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta e sidebar vêm da casca:
+       js/core/psicologo-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <a class="psi-voltar" href="home-psicologo.html"><i class="lt-i" data-lt-icon="chevron-left" aria-hidden="true"></i> Pacientes</a>
+
+        <div id="pp-nao-encontrado" class="empty-state" hidden>
+          <i class="lt-i" data-lt-icon="alert-triangle" aria-hidden="true"></i>
+          <p>Paciente não encontrado, ou o vínculo já foi encerrado.</p>
+        </div>
+
+        <div id="pp-conteudo">
+          <div class="cui-tela-topo">
+            <div class="cui-section-title"><i class="lt-i" data-lt-icon="user" aria-hidden="true"></i> <span id="pp-nome">Carregando...</span></div>
+            <button type="button" class="vinculo-teen-suspender" id="pp-btn-encerrar"><i class="lt-i" data-lt-icon="x" aria-hidden="true"></i> Encerrar vínculo</button>
+          </div>
+          <p class="cui-hint" id="pp-meta"></p>
+
+          <section class="cui-humor-chart" aria-labelledby="t-humor">
+            <h3 id="t-humor"><i class="lt-i" data-lt-icon="heart" aria-hidden="true"></i> Histórico de humor (7 dias)</h3>
+            <div id="pp-humor-bars" class="humor-bars"></div>
+          </section>
+
+          <section class="cui-alertas-card" aria-labelledby="t-alertas">
+            <h3 id="t-alertas"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Alertas recentes</h3>
+            <div id="pp-alertas-list"><div class="empty-state"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i><p>Carregando...</p></div></div>
+          </section>
+
+          <section class="cui-rel-card" aria-labelledby="t-relatorios">
+            <h3 id="t-relatorios"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i> Últimos relatórios de IA</h3>
+            <div id="pp-relatorios-list"><div class="empty-state"><i class="lt-i" data-lt-icon="file-text" aria-hidden="true"></i><p>Carregando...</p></div></div>
+          </section>
+
+          <section class="psi-secao" aria-labelledby="t-notas">
+            <h3 id="t-notas"><i class="lt-i" data-lt-icon="clipboard" aria-hidden="true"></i> Anotações clínicas</h3>
+            <p class="cui-hint">Só você vê estas anotações — nem o cuidador, nem o adolescente têm acesso a elas.</p>
+            <div class="psi-nota-form">
+              <textarea id="pp-nota-texto" placeholder="Registre uma observação da sessão..." aria-label="Nova anotação clínica"></textarea>
+              <button type="button" class="btn-primary" id="pp-btn-nota-salvar">Salvar anotação</button>
+            </div>
+            <div id="pp-notas-list"></div>
+          </section>
+        </div>
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    var _params = new URLSearchParams(window.location.search);
+    var _teenId = _params.get('id');
+
+    /* Cópia local do mapa de humor de relatorios-cuidador.html — mesma razão
+       de sempre no projeto: não importar de outro arquivo pra não arriscar
+       aquele sistema por uma mudança feita aqui. */
+    var HUMOR_UI = {
+      'muito-bem': { classe: 'otimo',   texto: 'Ótimo' },
+      'bem':       { classe: 'bom',     texto: 'Bom' },
+      'neutro':    { classe: 'neutro',  texto: 'Neutro' },
+      'mal':       { classe: 'dificil', texto: 'Difícil' },
+      'muito-mal': { classe: 'crise',   texto: 'Crise' }
+    };
+    function normalizarHumor(v) {
+      var s = String(v == null ? '' : v).toLowerCase().trim()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[\s_]+/g, '-');
+      return HUMOR_UI[s] ? s : 'neutro';
+    }
+
+    function mostrarNaoEncontrado() {
+      document.getElementById('pp-conteudo').hidden = true;
+      document.getElementById('pp-nao-encontrado').hidden = false;
+    }
+
+    function renderCabecalho(pac) {
+      var nome = (pac.nome + ' ' + (pac.sobrenome || '')).trim();
+      document.getElementById('pp-nome').textContent = nome;
+      document.title = 'LumiTEA — ' + nome;
+      var meta = 'Nível ' + pac.nivel + (pac.idade === null ? '' : ' · ' + pac.idade + ' anos');
+      document.getElementById('pp-meta').textContent = meta;
+    }
+
+    async function carregarHumor(teenId) {
+      var seteDias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      var res = await PSI.sb.from('humores').select('nivel, timestamp')
+        .eq('id_neurodivergente', teenId).gte('timestamp', seteDias)
+        .order('timestamp', { ascending: false });
+      if (res.error) { console.error('[paciente-psicologo] humor:', res.error.message); return; }
+      PSI.renderHumorBars(res.data || [], 'pp-humor-bars');
+    }
+
+    async function carregarAlertas(teenId) {
+      var lista = document.getElementById('pp-alertas-list');
+      var res = await PSI.sb.from('alertas').select('tipo, titulo, descricao, timestamp, lido')
+        .eq('id_neurodivergente', teenId).order('timestamp', { ascending: false }).limit(10);
+      if (res.error) {
+        lista.innerHTML = PSI.vazio('alert-triangle', 'Não foi possível carregar os alertas agora.');
+        return;
+      }
+      var alertas = res.data || [];
+      if (!alertas.length) {
+        lista.innerHTML = PSI.vazio('check-circle', 'Nenhum alerta registrado. Tudo em ordem.');
+        return;
+      }
+      lista.innerHTML = alertas.map(function (a) {
+        var data = a.timestamp ? new Date(a.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        var tipo = a.tipo || 'info';
+        var detalhe = a.descricao ? '<br><span class="cui-hint">' + PSI.esc(a.descricao) + '</span>' : '';
+        return '<div class="alerta-item ' + tipo + (a.lido ? ' lido' : '') + '">' +
+                 '<div class="alerta-icon">' + PSI.alertaIcone(tipo) + '</div>' +
+                 '<div class="alerta-info"><label>' + data + '</label><p>' + PSI.esc(a.titulo || '') + detalhe + '</p></div>' +
+                 '<span class="alerta-badge b-' + tipo + '">' + tipo.toUpperCase() + '</span>' +
+               '</div>';
+      }).join('');
+    }
+
+    async function carregarRelatorios(teenId) {
+      var lista = document.getElementById('pp-relatorios-list');
+      var res = await PSI.sb.from('relatorios').select('resumo, humor_geral, timestamp')
+        .eq('id_neurodivergente', teenId).order('timestamp', { ascending: false }).limit(3);
+      if (res.error) {
+        lista.innerHTML = PSI.vazio('alert-triangle', 'Não foi possível carregar os relatórios agora.');
+        return;
+      }
+      var rels = res.data || [];
+      if (!rels.length) {
+        lista.innerHTML = PSI.vazio('file-text', 'Nenhum relatório de IA ainda.');
+        return;
+      }
+      lista.innerHTML = rels.map(function (rel) {
+        var data = rel.timestamp ? new Date(rel.timestamp).toLocaleDateString('pt-BR', { dateStyle: 'long' }) : 'Sem data';
+        var hum = HUMOR_UI[normalizarHumor(rel.humor_geral)];
+        var h = '<div class="relatorio-card">';
+        h += '<div class="relatorio-header"><div class="relatorio-date">' + PSI.ic('calendar') + ' ' + data + '</div>';
+        h += '<span class="humor-badge humor-' + hum.classe + '">' + hum.texto + '</span></div>';
+        if (rel.resumo) h += '<div class="relatorio-resumo">' + PSI.esc(rel.resumo) + '</div>';
+        h += '</div>';
+        return h;
+      }).join('');
+    }
+
+    async function carregarNotas(teenId) {
+      var lista = document.getElementById('pp-notas-list');
+      var res = await PSI.sb.from('notas_clinicas').select('id, texto, criado_em')
+        .eq('id_neurodivergente', teenId).order('criado_em', { ascending: false });
+      if (res.error) {
+        lista.innerHTML = PSI.vazio('alert-triangle', 'Não foi possível carregar as anotações agora.');
+        return;
+      }
+      var notas = res.data || [];
+      if (!notas.length) {
+        lista.innerHTML = PSI.vazio('clipboard', 'Nenhuma anotação ainda. Use o campo acima para registrar a primeira.');
+        return;
+      }
+      lista.innerHTML = notas.map(function (n) {
+        var data = n.criado_em ? new Date(n.criado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        return '<div class="psi-nota">' +
+                 '<div class="psi-nota-topo"><span class="psi-nota-data">' + data + '</span>' +
+                 '<button type="button" class="psi-nota-apagar" data-id="' + PSI.esc(n.id) + '" aria-label="Apagar anotação">' + PSI.ic('trash') + '</button></div>' +
+                 '<div class="psi-nota-texto">' + PSI.esc(n.texto) + '</div>' +
+               '</div>';
+      }).join('');
+      lista.querySelectorAll('.psi-nota-apagar').forEach(function (btn) {
+        btn.addEventListener('click', function () { apagarNota(btn.getAttribute('data-id'), teenId); });
+      });
+    }
+
+    async function salvarNota(teenId) {
+      var ta = document.getElementById('pp-nota-texto');
+      var btn = document.getElementById('pp-btn-nota-salvar');
+      var texto = (ta.value || '').trim();
+      if (!texto) return;
+      btn.disabled = true;
+      var r = await PSI.sb.from('notas_clinicas').insert({ id_neurodivergente: teenId, id_psicologo: PSI.uid, texto: texto });
+      btn.disabled = false;
+      if (r.error) {
+        console.error('[paciente-psicologo] salvarNota:', r.error.message);
+        LumiUI.toast('Não foi possível salvar a anotação. Tente novamente.', { type: 'error' });
+        return;
+      }
+      ta.value = '';
+      await carregarNotas(teenId);
+    }
+
+    async function apagarNota(notaId, teenId) {
+      var ok = await LumiUI.confirm('Apagar esta anotação? Essa ação não pode ser desfeita.',
+        { titulo: 'Apagar anotação?', ok: 'Apagar', cancelar: 'Cancelar' });
+      if (!ok) return;
+      var r = await PSI.sb.from('notas_clinicas').delete().eq('id', notaId);
+      if (r.error) { LumiUI.toast('Não foi possível apagar a anotação.', { type: 'error' }); return; }
+      await carregarNotas(teenId);
+    }
+
+    async function encerrarVinculo(teenId) {
+      var pac = PSI.paciente(teenId);
+      var ok = await LumiUI.confirm(
+        'Isso vai encerrar o acompanhamento de ' + (pac ? pac.nome : 'este paciente') + ' pela sua conta. ' +
+        'Você pode voltar a acompanhar depois usando o mesmo código de vínculo.',
+        { titulo: 'Encerrar vínculo?', ok: 'Encerrar vínculo', cancelar: 'Cancelar' }
+      );
+      if (!ok) return;
+      var r = await PSI.sb.rpc('suspender_vinculo_psicologo', { p_teen_id: teenId });
+      if (r.error || r.data !== 'ok') {
+        LumiUI.toast('Não foi possível encerrar o vínculo. Tente novamente.', { type: 'error' });
+        return;
+      }
+      LumiUI.toast('Vínculo encerrado.', { type: 'success' });
+      window.location.href = 'home-psicologo.html';
+    }
+
+    function iniciarPaciente(pacientes) {
+      if (!_teenId) { mostrarNaoEncontrado(); return; }
+      var pac = PSI.paciente(_teenId);
+      if (!pac) { mostrarNaoEncontrado(); return; }
+
+      renderCabecalho(pac);
+      carregarHumor(_teenId);
+      carregarAlertas(_teenId);
+      carregarRelatorios(_teenId);
+      carregarNotas(_teenId);
+    }
+
+    PSI.aoTrocarLista(iniciarPaciente);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('pp-btn-encerrar').addEventListener('click', function () { encerrarVinculo(_teenId); });
+      document.getElementById('pp-btn-nota-salvar').addEventListener('click', function () { salvarNota(_teenId); });
+    });
+  </script>
+</body>
+</html>
