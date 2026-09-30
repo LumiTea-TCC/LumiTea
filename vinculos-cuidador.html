@@ -21,6 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/guia.js"></script>
   <script src="js/core/tema.js" defer></script>
   <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
        durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
@@ -46,7 +47,7 @@
           <div id="vinculo-teens-list"><div class="empty-state"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i><p>Carregando...</p></div></div>
           <hr class="cui-sep">
           <p class="cui-vinculo-titulo">Adicionar adolescente pelo código de vínculo:</p>
-          <div class="vinculo-input-row">
+          <div class="vinculo-input-row" data-tour="cui-vinculo-codigo">
             <input type="text" id="inp-codigo-cuidador" maxlength="6" placeholder="CÓDIGO (6 dígitos)" aria-label="Código de vínculo">
             <button class="btn-primary" id="btn-conectar">Conectar</button>
           </div>

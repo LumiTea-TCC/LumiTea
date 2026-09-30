@@ -17,6 +17,7 @@
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
  <script src="js/core/secrets.js"></script>
  <script src="js/core/config.js"></script>
+ <script src="js/core/guia.js"></script>
  <script src="js/core/tema.js" defer></script>
  <script src="js/core/icons.js" defer></script>
  <script src="js/core/ui.js" defer></script>
@@ -243,6 +244,7 @@
       msgs.insertBefore(row, typing)
       if (tipo === 'user') mostrarChips(false)
       scrollToBottom()
+      return row
     }
 
     function escapeHtml(text) {
@@ -294,14 +296,32 @@
       showTyping()
       try {
         let resposta
+        let tourSugerido = null
         if (window.LumiIA && window.LumiIA.responder) {
           const perfil = { humorRecente: typeof humorAtual === 'number' ? humorAtual : null }
           const r = await window.LumiIA.responder(historicoChat, null, perfil)
           resposta = (r && r.texto) || proximaResposta()
+          tourSugerido = (r && r.tour) || null
         } else { resposta = proximaResposta() }
         hideTyping()
-        addMessage('lumi', resposta)
+        const linhaResposta = addMessage('lumi', resposta)
         historicoChat.push({ role: 'assistant', content: resposta })
+
+        if (tourSugerido && linhaResposta) {
+          const catalogo = (window.LUMITEA && window.LUMITEA.TOUR_CATALOGO_IA) || []
+          const info = catalogo.find(t => t.id === tourSugerido)
+          const bolha = linhaResposta.querySelector('.msg-bubble')
+          if (info && bolha) {
+            const btn = document.createElement('button')
+            btn.type = 'button'
+            btn.className = 'lt-guia-comecar'
+            btn.textContent = 'Começar tour: ' + info.descricao
+            btn.addEventListener('click', () => {
+              if (window.LUMITEA && window.LUMITEA.iniciarTour) window.LUMITEA.iniciarTour(tourSugerido)
+            })
+            bolha.insertAdjacentElement('afterend', btn)
+          }
+        }
 
         try {
           if (_userId && window.supabaseClient) {

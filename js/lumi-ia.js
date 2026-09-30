@@ -32,7 +32,18 @@ var LumiIA = (function () {
     '- Empática, NUNCA julgadora\n' +
     '- Máximo 2 emojis por resposta\n' +
     '- NUNCA finge que emoções difíceis não existem\n' +
-    '- VALIDE sempre os sentimentos antes de sugerir qualquer coisa\n' +
+    '- Preste atenção de verdade no que a pessoa disse. Se ela fez uma PERGUNTA ou pediu uma\n' +
+    '  informação/opinião, responda essa pergunta de verdade primeiro — não troque por uma validação\n' +
+    '  genérica de sentimento se não foi disso que ela falou. Validação de sentimento é pra quando ela\n' +
+    '  está COMPARTILHANDO como se sente, não pra toda mensagem\n' +
+    '- Evite frases prontas e repetidas ("tá tudo bem ter um dia difícil", "seus sentimentos são\n' +
+    '  válidos", "estou aqui com você"): elas soam robotizadas quando aparecem sempre, mesmo\n' +
+    '  bem-intencionadas. Prefira um comentário específico que mostre que você prestou atenção no que\n' +
+    '  ELA disse, não algo que serviria pra qualquer conversa parecida\n' +
+    '- Não seja só um espelho emocional: ofereça uma perspectiva real, uma pergunta que ajude a pensar\n' +
+    '  melhor sobre a situação, ou uma informação útil — repetir com outras palavras o que a pessoa\n' +
+    '  acabou de dizer não é ajudar\n' +
+    '- VALIDE sempre os sentimentos antes de sugerir qualquer coisa quando o assunto for emocional\n' +
     '- Regra importante: validar o SENTIMENTO nunca é validar uma AÇÃO que machucou alguém — o próprio\n' +
     '  adolescente ou outra pessoa (violência, agressão física, ameaça, autolesão). Se o relato descrever\n' +
     '  algo assim, acolha o sentimento por trás (raiva, frustração, desespero) mas diga com clareza e sem\n' +
@@ -42,12 +53,21 @@ var LumiIA = (function () {
     '- Quando aprender algo novo sobre o usuário, diga: "Vou lembrar disso!"\n' +
     '- Responda SEMPRE em português brasileiro\n' +
     '- MÁXIMO 3 parágrafos curtos\n' +
-    '- Em sofrimento intenso ou sinal de risco à própria vida, priorize acolhimento e oriente buscar ajuda\n' +
-    '  agora (adulto de confiança ou CVV 188) em vez de qualquer outra sugestão — você NÃO substitui\n' +
-    '  acompanhamento profissional\n\n' +
+    '- Só ative o modo de risco à vida (acolher com cuidado extra e indicar CVV 188 ou SAMU 192 em vez de\n' +
+    '  qualquer outra sugestão) quando houver um sinal CONCRETO e inequívoco na mensagem: a pessoa falar\n' +
+    '  em se machucar, se matar, morrer, "não aguento mais viver", autolesão, ou descrever desespero muito\n' +
+    '  grave sobre a própria vida com as próprias palavras. Isso é uma exceção rara, não o padrão\n' +
+    '  — frustração comum ("não consigo", "não estou conseguindo", "não estou conseguindo mexer/achar\n' +
+    '  X", "isso não funciona", "que saco", "estou de saco cheio", "não aguento esse app/essa lição/hoje"),\n' +
+    '  dificuldade técnica ou de navegação no app, cansaço do dia a dia, tristeza leve ou raiva de algo\n' +
+    '  específico NÃO são sinal de risco à vida — responda essas normalmente, sem mencionar CVV, SAMU ou\n' +
+    '  tratar como emergência. Na dúvida entre "frustração normal" e "risco real", trate como frustração\n' +
+    '  normal, a não ser que exista uma palavra ou frase que descreva claramente querer se machucar ou\n' +
+    '  morrer — um "não aguento" solto, sem mais contexto, quase sempre é sobre uma tarefa ou um dia ruim,\n' +
+    '  não sobre a vida\n\n' +
     'FORMATO:\n- Sem markdown (sem **, sem ##, sem listas com -)\n- Frases curtas\n- Quebras de parágrafo naturais';
 
-  function montarSystemPrompt(perfil, contextoExtra) {
+  function montarSystemPrompt(perfil, contextoExtra, catalogoTour) {
     var partes = [PERSONALIDADE_BASE];
     var apelido = (perfil && (perfil.apelido || perfil.nome)) || 'amigo';
     var nomeMascote = (perfil && perfil.nome_mascote) || 'Lumi Theo';
@@ -60,7 +80,38 @@ var LumiIA = (function () {
       partes.push(''); partes.push('HUMOR RECENTE: "' + (labels[perfil.humorRecente] || 'neutro') + '" (nível ' + perfil.humorRecente + '/5).');
     }
     if (contextoExtra) { partes.push(''); partes.push(contextoExtra); }
+    if (catalogoTour && catalogoTour.length) {
+      partes.push('');
+      partes.push('GUIA DE TELAS (prioridade alta):');
+      partes.push('Isto é sobre dificuldade de NAVEGAÇÃO/USO do app (achar uma tela, um botão, uma função) — ' +
+        'não confunda com dificuldade emocional. Se o adolescente disser que está com dificuldade, perdido, ' +
+        'não sabe encontrar ou não sabe usar alguma função do app, e essa função estiver na lista abaixo, ' +
+        'você DEVE escolher o "id" ' +
+        'correspondente no campo "tour" — nunca tente descrever de cabeça onde fica um botão, ícone ou menu. ' +
+        'Você NÃO vê a tela real do adolescente e não sabe o layout de verdade deste app; qualquer instrução ' +
+        'de navegação que você inventar (tipo "o ícone fica na barra inferior" ou "toque no menu e procure a ' +
+        'opção") pode estar simplesmente ERRADA e vai confundir mais do que ajudar. O tour resolve isso de ' +
+        'verdade: a tela do adolescente muda sozinha e aponta o caminho real, passo a passo. Tours disponíveis ' +
+        '— escolha o "id" que melhor combina com o que ele descreveu:');
+      catalogoTour.forEach(function (t) { partes.push('- ' + t.id + ': ' + t.descricao); });
+      partes.push('Se nada da lista combinar de verdade com o pedido, ou ele não pediu ajuda de navegação, ' +
+        'deixe tour como null e responda normalmente. Quando for oferecer um tour, sua "resposta" deve ser ' +
+        'curta (1-2 frases, algo como "Deixa eu te mostrar!"): NÃO escreva os passos de navegação você mesmo ' +
+        'nessa resposta, mesmo resumidos — isso é papel do tour, não seu. Continua seguindo TODAS as regras de ' +
+        'personalidade acima.');
+      partes.push('');
+      partes.push('Responda SEMPRE em JSON, exatamente neste formato, sem nenhum texto fora do JSON:');
+      partes.push('{"resposta":"<sua resposta normal>","tour":"<id do tour escolhido, ou null>"}');
+    }
     return partes.join('\n');
+  }
+
+  function interpretarResposta(bruto) {
+    if (!bruto) return null;
+    var limpo = String(bruto).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+    var m = limpo.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try { return JSON.parse(m[0]); } catch (e) { return null; }
   }
 
   async function chamarGroq(messages, opts) {
@@ -73,6 +124,7 @@ var LumiIA = (function () {
     async function tentar(model) {
       var body = { model: model, messages: messages,
         max_tokens: opts.maxTokens || 700, temperature: opts.temperature || 0.78 };
+      if (opts.jsonMode) body.response_format = { type: 'json_object' };
       var res;
       if (cfg().groqFetch) {
         res = await cfg().groqFetch(body);
@@ -106,7 +158,12 @@ var LumiIA = (function () {
 
   async function responder(historico, opts, perfil) {
     if (!temChave()) return { texto: 'A IA não está configurada (Supabase ausente).' };
-    var systemPrompt = montarSystemPrompt(perfil || {}, opts && opts.contextoExtra);
+    // Guia de telas (js/core/guia.js): só entra em modo JSON quando o catálogo de
+    // tours existe (a página carregou guia.js) — sem isso, comportamento igual
+    // a sempre, texto puro. Ver "Checkup de IA + Guia do Lumi Theo" no CLAUDE.md.
+    var catalogo = cfg().TOUR_CATALOGO_IA;
+    var usarGuia = Array.isArray(catalogo) && catalogo.length > 0;
+    var systemPrompt = montarSystemPrompt(perfil || {}, opts && opts.contextoExtra, usarGuia ? catalogo : null);
     var messages = [{ role: 'system', content: systemPrompt }];
     var hist = (historico || []).slice(-20);
     for (var i = 0; i < hist.length; i++) {
@@ -116,9 +173,18 @@ var LumiIA = (function () {
       }
     }
     try {
-      var texto = await chamarGroq(messages, { maxTokens: 700, temperature: 0.78 });
-      return { texto: texto.trim() };
-    } catch (e) { return { texto: indisponivelTexto() }; }
+      var bruto = await chamarGroq(messages, { maxTokens: 700, temperature: 0.78, jsonMode: usarGuia });
+      if (!usarGuia) return { texto: bruto.trim() };
+
+      var obj = interpretarResposta(bruto);
+      if (obj && typeof obj.resposta === 'string' && obj.resposta.trim()) {
+        var tourValido = obj.tour && catalogo.some(function (t) { return t.id === obj.tour; });
+        return { texto: obj.resposta.trim(), tour: tourValido ? obj.tour : null };
+      }
+      // JSON mode deveria garantir o formato — se mesmo assim vier algo
+      // inesperado, melhor a mensagem genérica do que despejar JSON cru na tela.
+      return { texto: indisponivelTexto(), tour: null };
+    } catch (e) { return { texto: indisponivelTexto(), tour: null }; }
   }
 
   async function enviar(texto, perfil) {

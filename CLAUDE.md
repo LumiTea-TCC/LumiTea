@@ -883,6 +883,115 @@ no Bash tool nem no PowerShell) — ao contrário do que a nota de 2026-08-05 di
 desta sessão foi substituído por conferência manual de chaves/parênteses + leitura cuidadosa. Reconferir
 antes de assumir Node disponível de novo.
 
+## 🧭 IA menos formulaica + Guia do Lumi Theo (tour guiado, 2026-08-19)
+Brenno testou a conversa principal e notou dois problemas: (1) a IA respondia com validação emocional
+genérica ("tá tudo bem ter um dia difícil") mesmo quando ele tinha feito uma PERGUNTA, não compartilhado
+um sentimento — sintoma de over-fitting na regra "valide sempre os sentimentos"; (2) ele queria que a IA
+tivesse autonomia de guiar o adolescente entre telas quando ele diz que está com dificuldade em usar
+alguma função.
+
+**1. `PERSONALIDADE_BASE` (`js/lumi-ia.js`) ganhou regras novas contra genericidade:** prestar atenção se
+a mensagem é uma pergunta (responder ela de verdade) vs. um relato emocional (aí sim validar sentimento
+primeiro); evitar frases prontas repetidas ("seus sentimentos são válidos" etc.); não ser só espelho
+emocional — oferecer perspectiva/pergunta/informação real. As regras de segurança já existentes (validar
+sentimento ≠ validar ação nociva, priorizar CVV 188 em risco) continuam intactas, só reordenadas pra não
+conflitar com a regra nova de "responda a pergunta, não só valide". Mesma lógica vale pra `js/apoio.js`
+(corrigido antes nesta sessão, ver seção "Checkup de IA").
+
+**2. Guia do Lumi Theo — tour guiado entre páginas, disparado pela conversa.**
+- **`js/core/guia.js`** (novo): um `CATALOGO` de tours (hoje 5: `diario`, `calendario`, `jogos`, `humor`,
+  `vinculo` — cada um com uma lista de `{pagina, elemento, texto}`). `window.LUMITEA.iniciarTour(id)`
+  guarda `{id, indice}` em `sessionStorage['lt-tour-ativo']` e navega pro primeiro passo. Carregado em
+  TODA página que participa de algum tour — no boot, se houver tour ativo pro passo da página atual, mostra
+  uma bolha flutuante do Lumi (texto do passo + "Próximo"/"Terminar tour") e destaca (contorno estático,
+  sem pulso/brilho — respeita a regra de motion do projeto) o elemento com `[data-tour="<id>"]`. Tour novo
+  = só adicionar entrada no `CATALOGO` + os atributos `data-tour` correspondentes no HTML; nenhuma mudança
+  de mecânica. `data-tour` hoje existe em: `home-autista.html` (`home-humor`, `home-vinculo`, `home-jogos`,
+  `home-calendario`, `home-diario` — os 3 últimos nos `.th-card` da grade de funcionalidades),
+  `diario.html` (`diario-nova`, o botão "Nova Entrada"), `calendario.html` (`calendario-form`, o card do
+  formulário), `games.html` (`jogos-grid`).
+- **A IA decide QUANDO oferecer um tour, mas nunca navega sozinha.** `js/lumi-ia.js`: `responder()` só
+  entra em modo JSON (`response_format:json_object`, o `groq-proxy` já repassava esse campo) quando
+  `window.LUMITEA.TOUR_CATALOGO_IA` existe (ou seja, a página carregou `guia.js`) — sem isso, comportamento
+  idêntico a sempre, texto puro (backward-compatible; hoje só `conversa.html` chama `responder()`).
+  `montarSystemPrompt` lista os tours disponíveis (só `id`+descrição curta, nunca os passos/seletores) e
+  pede `{"resposta":"...","tour":"<id ou null>"}`. `conversa.html` mostra a `resposta` normal e, se `tour`
+  vier preenchido e for um id válido do catálogo, injeta um botão **"Começar tour: <nome>"** embaixo da
+  fala — clicar nele chama `iniciarTour`. **Decisão de design: a navegação em si é sempre um clique do
+  adolescente, nunca automática.** A IA ter "autonomia" é decidir o QUÊ e QUANDO oferecer; pular de tela
+  sozinha, sem gesto nenhum do usuário, quebraria a previsibilidade que é princípio do app (⛔ Restrições
+  inegociáveis, item 2) — child TEA não gosta de sustos, mesmo bem-intencionados.
+- CSS novo em `css/enhance.css`: `.lt-guia-bolha` (mesma família visual de `.lt-dialog-*`/`.lt-toast`,
+  gated por calmo/reduced-motion na entrada) + `.lt-guia-destaque` (outline estático) +
+  `.lt-guia-comecar` (o botão em `conversa.html`).
+- Se `interpretarResposta()` não conseguir parsear o JSON mesmo em `json_object` mode (deveria ser raro —
+  é uma garantia do formato da própria API, não só instrução de prompt), `responder()` cai na mensagem
+  genérica de "não consegui conectar" em vez de arriscar mostrar JSON cru na tela do adolescente.
+
+**3. Bolha do tour não aparecia na prática (2026-09-02) — a IA respondia com um "tutorial" de texto
+inventado em vez de oferecer o tour de verdade.** Brenno testou: pediu ajuda pra achar o calendário, e a
+Lumi respondeu com instruções genéricas de navegação de celular ("o ícone fica na barra inferior ou no
+canto superior direito... toque nele; se aparecer um menu, escolha Calendário") — nada disso existe no
+app, era pura alucinação. A mecânica (JSON mode, `guia.js` carregado, `TOUR_CATALOGO_IA` presente) estava
+funcionando; o problema era o prompt não dar prioridade nenhuma ao tour sobre simplesmente responder com
+texto — a IA tinha liberdade de escrever os passos ela mesma (coisa que não sabe fazer direito, porque não
+vê a tela real) em vez de devolver o `id` do tour. **Corrigido em `js/lumi-ia.js` (`montarSystemPrompt`)**:
+a instrução agora é direta — se o pedido bater com um tour da lista, a IA **DEVE** preencher `tour` com o
+id, é explicitamente proibida de inventar instrução de navegação própria ("você não vê a tela real e pode
+estar simplesmente errada"), e a `resposta` nesse caso deve ser curta (1-2 frases tipo "Deixa eu te
+mostrar!"), sem tentar descrever os passos.
+
+**4. O mesmo Guia agora existe também pro lado do cuidador**, pedido explícito do Brenno ("quero q isso
+aconteça tbm em cuidador"). `js/core/guia.js`: as entradas do `CATALOGO` ganharam um campo opcional
+`publico` (`'cuidador'` nas novas; ausente = adolescente, comportamento antigo preservado) e dois catálogos
+de IA separados são expostos — `TOUR_CATALOGO_IA` (só tours do adolescente, como antes) e
+`TOUR_CATALOGO_CUI_IA` (só os do cuidador) — **de propósito não misturados**: a IA de um lado nunca deveria
+poder sugerir um tour que leva pra uma tela do outro lado. 4 tours novos, todos de 1 passo só (o cuidador já
+enxerga a sidebar da casca em toda página, então não precisa de um passo intermediário tipo "toque aqui no
+menu" como os tours do adolescente têm):
+  - `cui-alertas` → `alertas-cuidador.html`, destaca o card de alertas (`data-tour="cui-alertas-lista"`).
+  - `cui-calendario` → `calendario-cuidador.html`, destaca o formulário de novo evento
+    (`data-tour="cal-cuidador-form"`).
+  - `cui-vinculo` → `vinculos-cuidador.html`, destaca o campo de código (`data-tour="cui-vinculo-codigo"`).
+  - `cui-relatorios` → `relatorios-cuidador.html`, destaca o botão "Gerar relatório"
+    (`data-tour="cui-btn-gerar-relatorio"`).
+- `js/core/cuidador-shell.js`: cada botão da sidebar (a `MENU` central) ganhou `data-tour="cui-menu-<id>"`
+  de graça, no mesmo loop que já monta o menu — não usado por nenhum tour ainda (os 4 de hoje são de 1
+  passo só), mas deixa qualquer tour futuro de 2 passos (sidebar → conteúdo) pronto sem mexer na casca de
+  novo.
+- **`consultoria-cuidador.html`** (o chat do cuidador com o Lumi Theo) ganhou a mesma mecânica de
+  `conversa.html`, mas como cópia local (não reusa `js/lumi-ia.js`, que é 100% escrito pra falar COM um
+  adolescente e SOBRE ele — "SOBRE O ADOLESCENTE", personalidade de psicólogo pro teen; reaproveitar exigiria
+  desviar o módulo do que ele é). `montarSystemPromptCui()` e `interpretarRespostaCui()`, direto no
+  `<script>` da página, seguem a mesma receita (JSON mode quando `TOUR_CATALOGO_CUI_IA` existe, proibição de
+  inventar passos, botão "Começar tour" injetado depois da bolha da resposta). `renderMsg()` passou a
+  `return` o elemento da mensagem (antes não devolvia nada) pra dar onde encaixar o botão.
+- `.lt-guia-comecar` (`css/enhance.css`) ganhou `align-self:flex-start; width:fit-content` — sem isso, o
+  botão esticava pra ocupar a largura toda da bolha de chat (o pai é flex-column com `align-items` padrão
+  `stretch`); vale tanto pro botão em `conversa.html` quanto no do cuidador.
+
+**5. Calendário do cuidador redesenhado pra ficar visualmente igual ao do adolescente** (pedido explícito:
+"quero q o calendario do cuidador seja visualmente igual a do adolescente"). `calendario-cuidador.html` foi
+reescrita do zero reaproveitando a MESMA receita visual de `calendario.html` — mini calendário com
+pontinhos coloridos por evento, `.form-card` com os mesmos tokens/classes (`.fg`/`.fl`/`.fi`/`.fr`/
+`.colors`/`.clr`/`.btn-add`), `.agenda-header` com o mesmo gradiente azul, `.eventos-box`/`.ev-item` com a
+mesma estrutura (tarja colorida, título, hora, tag, descrição). O antigo design (grade de mês inteira tipo
+Google Agenda, cartões cor-de-areia) foi totalmente substituído — não é mais usado em lugar nenhum do
+projeto. O que muda é só a FUNÇÃO (o cuidador continua escolhendo pra qual adolescente é o evento num
+`<select>` no topo do formulário, e a lista de eventos mistura os de todos os adolescentes vinculados,
+com uma tag mostrando quem adicionou — "Você" em âmbar ou o nome do adolescente em roxo, no lugar da tag
+"Cuidador" que a versão do adolescente mostra pro lado dele). Excluir evento continua restrito aos que o
+próprio cuidador criou (`origem==='responsavel'`), mesma regra de antes. Campos que só faziam sentido do
+lado do adolescente (categoria, contexto pro Theo, lembrete, check-in pré/pós, preparar com roleplay) foram
+mantidos DE FORA — o pedido era paridade visual do calendário em si, não replicar funcionalidade que o
+cuidador nunca teve.
+- Verificado por balanceamento manual de chaves/parênteses (Node ainda indisponível nesta sessão — `node`
+  não resolve nem via Bash nem `C:\Program Files\nodejs\node.exe` via PowerShell, apesar da nota de
+  2026-08-05 dizendo que estava instalado; ver "⚠️ Node não está disponível nesta sessão" acima) em todos
+  os arquivos tocados + grep pra confirmar que nenhuma classe/id do design antigo do calendário do cuidador
+  (`.cal-box`, `.cal-grid`, `#cal-month-title`, `#eventos-do-dia`, `.sel-teen-box`, `.color-btns`) sobrava
+  em outro arquivo do projeto.
+
 ## 🌙 Modo escuro (2026-08-24)
 Pedido do usuário: um switch sol/lua (design próprio, fornecido pronto) nos "nav-links", ligando um modo
 escuro pro site inteiro. Ao investigar, **já existia infraestrutura pela metade**: `conta.html` tem um
@@ -1116,6 +1225,94 @@ temas). Copiada pra `img/fundo-conta-noite.png`.
   Edge Function e migração SQL ainda pendentes (ver Backlog).
 - Redesign de `login.html`/`cadastro.html` com foto de fundo + card de vidro, mascote flutuante removido
   (2026-09-30) — ver a seção "Redesign de Entrar/Criar conta — foto + card de vidro".
+- IA menos formulaica (responde pergunta em vez de só validar sentimento) + Guia do Lumi Theo, tour guiado
+  entre telas disparado pela conversa (2026-08-19) — ver seção "IA menos formulaica + Guia do Lumi Theo".
+
+## 🩺 Área do Psicólogo — PLANEJADO, código ainda não escrito (2026-09-02)
+Pedido do Brenno: uma área nova, dedicada a um tipo de conta "psicólogo", **visualmente totalmente
+diferente** do painel do cuidador (navy/âmbar, um adolescente por vez) e das telas do adolescente
+(redondo/caloroso) — mas paleta de cores e mascote urso continuam imutáveis, então a diferença tem que
+vir de layout/densidade/composição (tipo prontuário: tabelas, lista de pacientes, gráficos comparativos),
+nunca de cor nova. Foi discutido a fundo (3 rounds de perguntas + 3 agentes de pesquisa no código) e
+**aprovado como plano — mas nenhuma linha de código ou SQL foi escrita ainda.** Retomar exatamente daqui.
+
+**Decisões de produto já fechadas com o Brenno:**
+1. `psicologo` é um **tipo de conta novo**, separado do `terapeuta`/educador que já existe no cadastro
+   (esse continua do jeito que está — aliás, hoje é só cosmético: `cadastro.js:243-244` normaliza
+   qualquer tipo que não seja `neurodivergente` pra `'responsavel'` antes de mandar pro Supabase, então
+   não existe conta `terapeuta` de verdade em produção pelo formulário atual).
+2. Função central: **carteira/caseload de vários adolescentes** + **anotações clínicas próprias** +
+   **relatório profissional exportável (PDF)** + **leitura dos mesmos dados que o cuidador já vê**
+   (humor, alertas, jogos, calendário) — é aditivo sobre o que o cuidador tem, não substitui.
+3. Anotação clínica tem **DOIS campos preenchidos juntos na mesma entrada**: uma parte privada (só o
+   psicólogo vê) e um resumo separado que o cuidador pode ver — não é a nota inteira liberada por um
+   toggle.
+4. Vínculo com adolescente: **mesmo código de 6 dígitos** que já existe hoje (consentimento explícito do
+   próprio adolescente, mesma UX de sempre) — mas precisa de tabela NOVA de vínculo muitos-pra-muitos,
+   já que um adolescente pode ter cuidador E psicólogo ao mesmo tempo, sem conflito.
+5. Cadastro pede um dado profissional tipo **CRP**, sem validação automática por enquanto — só registro
+   de quem está por trás da conta.
+6. Psicólogo **não participa da Comunidade** nesta v1 (não é par nem do adolescente nem do cuidador ali;
+   a função `meu_publico()` que decide a RLS da Comunidade só distingue `cuidador`/`teen` hoje, e não
+   ganha um branch novo por enquanto — os gates de página redirecionam psicólogo pra fora).
+
+**Por que não dá pra reaproveitar o mecanismo do cuidador:** `neurodivergente.id_responsavel` é uma FK
+nullable **1-pra-1** direto na linha do adolescente (sem coluna de status — o vínculo é 100% inferido de
+`IS NULL` ou não), não uma tabela de vínculo. Reaproveitar isso pro psicólogo bloquearia um adolescente
+que já tem cuidador. Precisa de mecanismo próprio, em paralelo, nunca substituindo.
+
+**Desenho técnico aprovado (nada aplicado ainda):**
+- `db/PSICOLOGO_SCHEMA.sql` (arquivo novo, mesmo padrão de `MODERACAO_SCHEMA.sql` — subsistema próprio,
+  não emendado no `LUMITEA_SCHEMA.sql` gigante): `profiles.tipo` ganha `'psicologo'` no CHECK +
+  coluna `crp TEXT`; tabela `vinculos_psicologo` (muitos-pra-muitos, `UNIQUE(id_psicologo,
+  id_neurodivergente)`); RPCs `aceitar_vinculo_psicologo`/`encerrar_vinculo_psicologo` (SECURITY
+  DEFINER, sem a trava de exclusividade `id_responsavel IS NULL` que `aceitar_vinculo` usa); tabela
+  `anotacoes_clinicas` (`texto_privado`/`resumo_cuidador`, RLS travada só pro autor, **sem nenhuma
+  policy de leitura direta pro cuidador** — o resumo chega ao cuidador só via function nova SECURITY
+  DEFINER `resumos_clinicos_cuidador(p_teen_id)`, que devolve só o resumo, nunca o texto privado);
+  tabela `relatorios_psicologo` (separada da `relatorios` que o cuidador já usa — não misturar o
+  relatório profissional do psicólogo com o relatório de IA do cuidador). Mais: uma policy `FOR SELECT`
+  nova (leitura, nunca escrita) em cada uma das **13 tabelas** que hoje só respeitam
+  `id_responsavel = auth.uid()` (`profiles`, `humores`, `diario_entradas` — preservando o gate
+  `is_privado=false` —, `alertas`, `relatorios`, `eventos_calendario`, `conquistas_usuario`,
+  `sessoes_roleplay`, `dias_cuidado`, `sessoes_jogo`, `lembretes_evento`), no formato
+  `id_neurodivergente IN (SELECT id_neurodivergente FROM vinculos_psicologo WHERE id_psicologo =
+  auth.uid())` — sempre ADICIONAL à policy do cuidador, nunca substituindo. **Excluídas de propósito**
+  (mesma regra que já vale pro cuidador): `conversas` e `memoria_lumi` — firewall total, nem psicólogo
+  nem cuidador leem.
+- `js/core/psi-shell.js` (casca nova, não estender `cuidador-shell.js` — aquele assume UM adolescente
+  ativo por vez via `CUI.teenId`/localStorage, incompatível com uma visão de carteira/caseload). Sidebar
+  principal É a lista de pacientes (não um menu fixo de seções como o do cuidador). Tema clínico/denso
+  só com tokens já existentes (`--surface`, `--panel-3`, `--border-faint`, `--sp-*`) — sem token de
+  tabela pronto no projeto, compor localmente.
+- Páginas novas: `painel-psicologo.html` (carteira, landing pós-login), `paciente-psicologo.html?id=`
+  (ficha: dados de leitura + anotações + botão de relatório), `relatorios-psicologo.html` (export PDF,
+  reaproveitando o esqueleto de `baixarPDF` de `relatorios-cuidador.html` — `createElement`/
+  `appendChild` + `win.print()`, nunca `document.write`), `vinculos-psicologo.html`,
+  `conta-psicologo.html`.
+- `cadastro.html`/`cadastro.js`: opção nova no select + campo `#crp` com progressive disclosure (só
+  aparece se `psicologo` for escolhido); `js/login.js`: `ROTAS_TIPO.psicologo = 'painel-psicologo.html'`;
+  gates de `cuidador-shell.js` + as 3 páginas `data-cui-shell="nav"` + `comunidade.html`/
+  `comunidade-cuidador.html`/`home-autista.html`/`conta.html` precisam de um branch novo redirecionando
+  psicólogo pra fora dessas áreas.
+- **Achados que evitam reinventar/reviver coisa errada**: `observacoes_cuidador` já tem uma coluna
+  `visivel_terapeuta` e uma policy `obs_terapeuta_read` tentando (mal) resolver isso — usa
+  `id_responsavel`, só funcionaria se o "terapeuta" fosse a mesma pessoa vinculada como cuidador, o que
+  não faz sentido; **decisão: não reaproveitar, construir `anotacoes_clinicas` nova**. `relatorios_cuidador`
+  existe no schema com RLS própria mas está **confirmado órfão** (nenhum `.html`/`.js` do projeto usa —
+  o fluxo real usa `relatorios`, que aliás já tem uma coluna `visao_psicologica`, sinal de que um perfil
+  psicólogo já era antecipado mas nunca ganhou acesso de verdade); **decisão: não reviver, construir
+  `relatorios_psicologo` nova**. `suspender_vinculo` foi aplicada em produção via Management API mas
+  nunca voltou pro repo — sem corpo SQL local pra copiar; o padrão de autorização mais próximo com corpo
+  disponível é `liberar_bloqueio_comunidade` (`db/MODERACAO_SCHEMA.sql`).
+- Schema: `db/LUMITEA_SCHEMA.sql` é a fonte da verdade (mais recente); `db/SCHEMA_COMPLETO_V3.sql` é
+  snapshot mais antigo e às vezes diverge — qualquer SQL novo entra em `LUMITEA_SCHEMA.sql`/
+  `PSICOLOGO_SCHEMA.sql`, não no V3.
+
+**Bloqueado em**: nenhuma linha de SQL roda em produção sem confirmação explícita do Brenno + um PAT
+novo (o mesmo cuidado de sempre — ver "Deploy/admin da Supabase sem CLI"). Ordem recomendada: schema
+primeiro (verificado via Management API antes de aplicar, truque do PGRST204, lição do incidente do
+`nascimento`), depois cadastro/login/gates, depois a casca `psi-shell.js`, depois as páginas.
 
 ## 📋 Backlog (próximos passos, sem quebrar nada)
 1. Migrar os ~27 `alert/confirm` nativos restantes (conta, diário, calendário, conversa) para `LumiUI`.

@@ -19,6 +19,7 @@
   <script src="js/core/config.js"></script>
   <script src="js/core/tema.js" defer></script>
   <script src="js/core/analise-critica.js"></script>
+  <script src="js/core/guia.js"></script>
   <script src="js/core/icons.js" defer></script>
 </head>
 <body class="app-body">
@@ -119,7 +120,7 @@
         <p>Um espaço só seu para expressar sentimentos</p>
       </div>
 
-      <button class="ds-nova-btn" onclick="novaEntrada()"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Nova Entrada</button>
+      <button class="ds-nova-btn" data-tour="diario-nova" onclick="novaEntrada()"><i class="lt-i" data-lt-icon="edit" aria-hidden="true"></i> Nova Entrada</button>
 
       <div class="ds-lista" id="ds-lista">
         <div class="ds-vazio">
@@ -505,9 +506,11 @@ Regra importante: validar o SENTIMENTO nunca é validar uma AÇÃO que machucou 
 adolescente ou outra pessoa (violência, agressão física, ameaça, autolesão). Se o relato descrever algo
 assim, acolha o sentimento por trás (raiva, frustração, desespero) mas diga com clareza e sem julgar a
 pessoa que a ação em si não foi certa, oriente um passo de reparação (pedir desculpa, conversar com a
-pessoa) ou buscar um adulto de confiança — nunca elogie, comemore ou trate a ação como normal do dia. Em
-sinal de risco à própria vida, priorize acolhimento e oriente buscar ajuda agora (adulto de confiança ou
-CVV 188) em vez da dica prática comum.
+pessoa) ou buscar um adulto de confiança — nunca elogie, comemore ou trate a ação como normal do dia. Só
+priorize acolhimento + indicar ajuda agora (adulto de confiança ou CVV 188) em vez da dica prática comum
+quando houver sinal CONCRETO de risco à própria vida (falar em se machucar, se matar, morrer, autolesão)
+— isso é raro; frustração comum ou um dia difícil não é sinal de risco e recebe a reflexão normal, sem
+citar CVV.
 
 Seja calorosa, simples e sem jargões. Máximo 6-7 frases no total. Português brasileiro.`,
           [{ role: 'user', content: `Nome: ${_nomeUsuario}\nHumor: ${entrada.humor}\nTítulo: ${entrada.titulo}\n\n${entrada.texto}` }],

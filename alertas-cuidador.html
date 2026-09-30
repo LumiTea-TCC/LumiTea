@@ -21,6 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="js/core/secrets.js"></script>
   <script src="js/core/config.js"></script>
+  <script src="js/core/guia.js"></script>
   <script src="js/core/tema.js" defer></script>
   <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
        durante o parse e já usa CUI. Com defer, a casca só existiria depois. -->
@@ -39,7 +40,7 @@
   <div class="cui-layout">
     <div class="cui-main">
 
-      <div class="cui-tela ativa">
+      <div class="cui-tela ativa" data-tour="cui-alertas-lista">
         <div class="cui-tela-topo">
           <div class="cui-section-title cui-section-title--reto"><i class="lt-i" data-lt-icon="bell" aria-hidden="true"></i> Alertas</div>
           <button class="btn-secondary btn-sm" id="btn-marcar-lidos" hidden><i class="lt-i" data-lt-icon="check" aria-hidden="true"></i> Marcar todos como lidos</button>
