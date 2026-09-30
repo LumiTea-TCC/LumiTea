@@ -20,3 +20,6 @@ supabase/.branches/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Clone aninhado acidental (pasta LumiTea/ dentro do projeto) — nao versionar
+/LumiTea/
