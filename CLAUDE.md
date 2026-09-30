@@ -984,6 +984,73 @@ paralelo; só faltava o CSS e o switch em si.
   Antes de mexer, `grep` por `background:\s*(#fff|white|rgba(255,\s*255,\s*255)` em cada `.html` do
   cuidador pra achar os pontos, mesmo padrão usado aqui.
 
+## 🖼️ Redesign de Entrar/Criar conta — foto + card de vidro (2026-09-30)
+Pedido do usuário com duas imagens de referência (um mockup pronto e a foto do urso no gelo pra usar como
+fundo). As imagens vieram só como anexo visual na conversa (sem path); localizadas em
+`Downloads\1 (2).png`/`2 (2).png` pelo horário do arquivo. A foto foi copiada pra `img/fundo-conta-gelo.png`.
+Combinado com o usuário via `AskUserQuestion`: aplicar nas DUAS páginas (`login.html` e `cadastro.html`,
+essa com formulário de 3 etapas) e **remover o mascote flutuante** (`#bear-mascot`, `img/urso-estrelhinha.png`
+girando com o scroll) já que a própria foto de fundo tem um urso grande — a imagem em si continua existindo
+e sendo usada em outras páginas, só parou de ser referenciada aqui.
+- **`conta.css`** (única folha das duas páginas — `login.html`/`cadastro.html` não carregam `app.css`/
+  `lumitea.css`): `.bg-layer` deixou de desenhar os 3 blobs radiais e virou a foto (`position:fixed;
+  inset:0`, `background-size:cover`) atrás de tudo. Um `::before` nela escurece só o topo e o rodapé da
+  imagem (gradiente, não é decoração — é a defesa de contraste WCAG AA pro texto branco do nav/rodapé, que
+  agora ficam com `background:transparent` flutuando sobre a foto em vez da barra clara de antes). Um
+  `::after` é o véu de modo calmo/`prefers-reduced-motion` (branco a 50%) — mesmo papel que o gradiente
+  suavizado antigo tinha, só que sobre a foto em vez de sobre um gradiente azul.
+- **`.account-card`** virou vidro fosco: `background: rgba(255,255,255,.74)` + `backdrop-filter:
+  blur(22px) saturate(160%)`, com variante pra `html[data-tema="escuro"]` (`rgba(18,26,42,.76)`) e um
+  `@supports not (backdrop-filter)` caindo pra card opaco em navegador sem suporte. `overflow:hidden` foi
+  removido do card e da `.account-page` (existiam só pra recortar a faixa decorativa do topo e os círculos
+  do gradiente antigo, ambos removidos) — sem isso o balão decorativo do item abaixo ficaria cortado.
+- **Balão "Que bom te ver por aqui!"** (`.account-hint-bubble`, só em `login.html`, só ≥1180px — não cabe
+  ao lado do card em telas menores): é filho do `.account-card` posicionado `absolute` com `left:-196px`,
+  então acompanha a posição real do card na tela sem precisar calcular contra o viewport. Fonte nova
+  **Caveat** (Google Fonts, só adicionada no `<link>` de `login.html` — `cadastro.html` não usa e não
+  ganhou a fonte). `aria-hidden="true"`: não carrega informação além do que já está no título do card.
+- **Botão principal**: texto igual de sempre + seta `→` via `.btn-submit::after { content:'\2192' }`, **não**
+  como parte do texto/HTML do botão. Motivo: `login.js`/`cadastro.js` trocam `btnSubmit.textContent` várias
+  vezes (`'Entrando...'`, mensagens de erro, volta ao texto original) — um ícone dentro do texto seria
+  apagado nessas trocas; `::after` sobrevive porque não é um nó de texto. `:disabled` esconde a seta.
+  **Bug pego só no screenshot** (Chrome headless, sem Playwright/Node nesta sessão — ver nota de
+  disponibilidade abaixo): os botões "Continuar →" das etapas 1 e 2 do cadastro (`.btn-submit
+  .btn-next-step`) já tinham a seta escrita no próprio HTML — com o `::after` novo, virou "CONTINUAR → →"
+  duplicado. Corrigido removendo o "→" do texto desses dois botões (o `::after` do CSS já cobre).
+- Ícone do card (pessoa) virou círculo (`border-radius:50%`, era `18px`) pra bater com a referência.
+- Removido de `login.js`/`cadastro.js` o IIFE inteiro que posicionava/girava o `#bear-mascot` no scroll —
+  não bastava remover só o HTML, porque `document.getElementById('bear-mascot')` retornando `null` e o
+  código seguindo em frente (`bear.style.left = ...`) geraria `TypeError` a cada `scroll`/`resize`.
+- Verificado com **Chrome headless direto** (`chrome.exe --headless --screenshot`), não Playwright/jsdom:
+  nesta sessão não havia MCP do Playwright disponível nem Node (`node`/`npx` não resolveram — a
+  disponibilidade de Node muda de sessão pra sessão nesta máquina, reconferir sempre, ver seção Stack).
+  Testado: claro e escuro (`html[data-tema="escuro"]`, simulado escrevendo `lt-tema=escuro` no
+  `localStorage` via uma página auxiliar pequena rodando no mesmo `--user-data-dir` antes do screenshot,
+  já que headless não aceita setar `localStorage` por flag), desktop 1440px e mobile 390px, `login.html` e
+  `cadastro.html` (etapa 1). `prefers-reduced-motion`/modo calmo não foram exercitados visualmente (o véu
+  em CSS é simples o bastante pra confiar na leitura da regra) — modo calmo em si (`data-modo-calmo`)
+  também nunca ativa nessas duas páginas hoje, porque elas não carregam `js/core/config.js` (só
+  `icons.js`/`tema.js`); isso já era assim antes desta sessão (as regras antigas de modo calmo do
+  `.account-page` também eram inertes aqui), não é uma regressão introduzida agora.
+- **⚠️ Achado no screenshot mobile (390px), não corrigido — pré-existente, fora do escopo pedido:** o nav
+  (`"‹ Voltar ao início"` + logo + switch de tema) parece extrapolar a largura da viewport em telas bem
+  estreitas. Nenhuma propriedade de largura/espaçamento do nav foi tocada nesta sessão (só cor/fundo), e a
+  mesma estrutura/padding já existia antes — não é uma regressão desta mudança, mas vale investigar depois
+  (ver Backlog).
+
+**Segundo pedido no mesmo dia: foto diferente + menos desfoque só no modo escuro.** O usuário mandou uma
+terceira imagem (a mesma cena, só que à noite — lua cheia, estrelas) pedindo que ela substitua o fundo
+**somente** quando `html[data-tema="escuro"]` está ativo, e que o card fique menos desfocado/opaco nesse
+modo pra foto aparecer mais nítida atrás (release da versão anterior usava o mesmo blur pesado nos dois
+temas). Copiada pra `img/fundo-conta-noite.png`.
+- `html[data-tema="escuro"] .bg-layer { background-image: url('img/fundo-conta-noite.png'); }` — só troca
+  a imagem, sem repetir `background-size`/`position` (já herdados do `.bg-layer` base).
+- `html[data-tema="escuro"] .account-card` (que antes só mudava a cor) ganhou blur reduzido de 22px→8px e
+  opacidade de `.76`→`.55` (`rgba(15,22,38,.55)`). Modo claro **não mudou** — o pedido foi só pro escuro.
+- Conferido de novo com Chrome headless (mesmo truque de `--user-data-dir` + página auxiliar gravando
+  `lt-tema=escuro` no `localStorage`): contraste do texto claro sobre o card mais transparente continua
+  OK mesmo com a lua clara atrás — o card ainda escurece o suficiente por baixo.
+
 ## 🔐 Segurança (estado atual e regras)
 - **Chaves de IA/voz são gated por origem** (`js/core/config.js` + `js/core/secrets.js`): só carregam em DEV
   (localhost / `file://` / IP privado). Em domínio público ficam vazias → IA/voz passam pelos **proxies**.
@@ -1047,6 +1114,8 @@ paralelo; só faltava o CSS e o switch em si.
 - Checkup de IA + pipeline de alerta crítico + visão na Lousa + escalada de banimento na comunidade
   (2026-08-19) — ver a seção "Checkup de IA + Monitoramento e alerta crítico". Código pronto; deploy da
   Edge Function e migração SQL ainda pendentes (ver Backlog).
+- Redesign de `login.html`/`cadastro.html` com foto de fundo + card de vidro, mascote flutuante removido
+  (2026-09-30) — ver a seção "Redesign de Entrar/Criar conta — foto + card de vidro".
 
 ## 📋 Backlog (próximos passos, sem quebrar nada)
 1. Migrar os ~27 `alert/confirm` nativos restantes (conta, diário, calendário, conversa) para `LumiUI`.
@@ -1076,6 +1145,9 @@ paralelo; só faltava o CSS e o switch em si.
 8. **Modo escuro (2026-08-24):** converter as cores 100% em hex fixo de `calendario-cuidador.html` (e
    conferir as outras 13 páginas do painel) pra `var(--surface)`/`var(--text-*)`/etc., mesmo padrão já
    aplicado no `calendario.html` do teen. Ver seção "🌙 Modo escuro" pro grep que acha os pontos.
+9. **Nav de `login.html`/`cadastro.html` parece extrapolar a viewport em mobile bem estreito (~390px)**,
+   achado no redesign de 2026-09-30 mas não investigado a fundo (pré-existente, nenhuma propriedade de
+   largura foi tocada naquela sessão). Ver seção "Redesign de Entrar/Criar conta".
 
 ## Subagents/skills úteis
 `frontend-reviewer`, `accessibility-auditor`, `supabase-security-reviewer` (só rodar se o usuário pedir).

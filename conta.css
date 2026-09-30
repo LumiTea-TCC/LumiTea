@@ -107,8 +107,15 @@
   
   
   /* =============================================================
-     3. BACKGROUND — BLOBS DECORATIVOS
-     Mesmos blobs do index para manter identidade visual.
+     3. BACKGROUND — FOTO DO URSO NO GELO
+     Camada fixa cobrindo a tela inteira; nav e rodapé ficam
+     transparentes por cima dela (ver seções 4 e 14). O ::before
+     escurece sutilmente o topo e o rodapé da foto só o suficiente
+     pra garantir contraste do texto branco (WCAG AA) sem depender
+     de qual trecho da imagem cai atrás — não é decoração, é a
+     defesa de contraste. O ::after é o "véu" do modo calmo/
+     movimento reduzido: mesma ideia do gradiente suavizado que
+     existia aqui antes, só que agora sobre a foto.
      ============================================================= */
   .bg-layer {
     position: fixed;
@@ -116,18 +123,45 @@
     z-index: 0;
     pointer-events: none;
     overflow: hidden;
+    background: url('img/fundo-conta-gelo.png') center center / cover no-repeat;
+    /* A foto original sai meio "lavada" numa tela grande — um empurrão de
+       saturação/contraste pra ela não perder a cor. */
+    filter: saturate(1.4) contrast(1.08);
   }
-  
-  .blob {
+
+  /* Modo escuro: outra foto (noite, luar) em vez de escurecer a diurna.
+     Essa já é vívida por natureza — sem o filtro de saturação de cima. */
+  html[data-tema="escuro"] .bg-layer {
+    background-image: url('img/fundo-conta-noite.png');
+    filter: none;
+  }
+
+  .bg-layer::before {
+    content: '';
     position: absolute;
-    border-radius: 50%;
-    filter: blur(90px);
-    opacity: 0.15;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(6, 26, 48, 0.34) 0%,
+      rgba(6, 26, 48, 0) 22%,
+      rgba(6, 26, 48, 0) 76%,
+      rgba(6, 26, 48, 0.4) 100%
+    );
   }
-  
-  .blob-1 { width: 550px; height: 550px; background: var(--primary); top: -140px; left: -100px; }
-  .blob-2 { width: 380px; height: 380px; background: var(--accent);  bottom: 60px; right: -80px; }
-  .blob-3 { width: 260px; height: 260px; background: var(--accent2); top: 55%;    left: 50%; }
+
+  .bg-layer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0);
+  }
+
+  html[data-modo-calmo="true"] .bg-layer::after {
+    background: rgba(255, 255, 255, 0.5);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bg-layer::after { background: rgba(255, 255, 255, 0.5); }
+  }
   
   
   /* =============================================================
@@ -140,21 +174,24 @@
   }
   
   
+  /* Nav fica transparente sobre a foto — o contraste do texto branco vem
+     do .bg-layer::before (escurece só o topo), não de um fundo próprio.
+     Igual nas duas versões de tema: é a foto de fundo que manda aqui, não
+     a superfície --surface (mesmo raciocínio da sidebar navy do cuidador,
+     que também não muda no escuro — ver CLAUDE.md). */
   nav {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(242, 246, 251, 0.9);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    background: transparent;
+    border-bottom: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 56px;
+    padding: 20px 56px;
     gap: 16px;
   }
-  html[data-tema="escuro"] nav { background: rgba(18, 24, 38, 0.9); }
-  
+
   /* Logo */
   .logo {
     display: flex;
@@ -163,7 +200,8 @@
     font-family: 'Baloo 2', sans-serif;
     font-size: 1.55rem;
     font-weight: 800;
-    color: var(--primary-dark);
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(4, 20, 40, 0.4);
     text-decoration: none;
     flex-shrink: 0;
   }
@@ -190,14 +228,15 @@
     font-family: 'Nunito', sans-serif;
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--text-soft);
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 6px rgba(4, 20, 40, 0.35);
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 6px;
     transition: color 0.2s;
   }
-  .nav-back:hover { color: var(--primary); }
+  .nav-back:hover { color: #fff; }
   .nav-back svg {
     width: 16px;
     height: 16px;
@@ -220,51 +259,9 @@
     align-items: center;
     justify-content: center;
     padding: 48px 24px 64px;
-
-    /* Fundo azul — mesmo gradiente do card "Pronto para começar?" das homes
-       (ver .cta-section em app.css). A nav e o rodapé seguem claros. */
-    background: linear-gradient(135deg, var(--primary) 0%, #5a9fd4 100%);
-    overflow: hidden;          /* Recorta os círculos decorativos abaixo */
-  }
-
-  /* Círculos brancos translúcidos — mesmo detalhe do CTA das homes.
-     Puramente decorativos: sem conteúdo e sem captura de clique. */
-  .account-page::before,
-  .account-page::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  .account-page::before {
-    top: -130px; right: -110px;
-    width: 440px; height: 440px;
-    background: rgba(255, 255, 255, 0.07);
-  }
-
-  .account-page::after {
-    bottom: -100px; left: -90px;
-    width: 330px; height: 330px;
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  /* Modo calmo / movimento reduzido: azul bem mais suave e sem os círculos,
-     para baixar a carga sensorial (regra do CLAUDE.md). */
-  html[data-modo-calmo="true"] .account-page {
-    background: linear-gradient(135deg, var(--accent2) 0%, var(--primary-pale) 100%);
-  }
-  html[data-modo-calmo="true"] .account-page::before,
-  html[data-modo-calmo="true"] .account-page::after {
-    display: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .account-page {
-      background: linear-gradient(135deg, var(--accent2) 0%, var(--primary-pale) 100%);
-    }
-    .account-page::before,
-    .account-page::after { display: none; }
+    /* Sem fundo próprio: a foto do .bg-layer (fixa, atrás de tudo) aparece
+       por baixo. Modo calmo/movimento reduzido já é tratado no véu do
+       .bg-layer::after — nada a suavizar aqui. */
   }
 
   
@@ -272,11 +269,17 @@
      6. CARD DO FORMULÁRIO
      Caixa branca centralizada que contém todo o formulário.
      ============================================================= */
+  /* Card em "vidro fosco" sobre a foto — a mesma --surface de sempre, só que
+     translúcida + desfocada (backdrop-filter), pra deixar a foto respirar
+     por trás. Sem overflow:hidden: o balão decorativo (seção 6b) precisa
+     vazar pra fora do card. */
   .account-card {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
+    background: rgba(255, 255, 255, 0.74);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
     border-radius: var(--radius-lg);
-    box-shadow: 0 12px 56px var(--shadow);
+    box-shadow: 0 26px 70px rgba(8, 32, 58, 0.32);
     padding: 48px 52px;
     width: 100%;
     max-width: 480px;         /* Largura máxima do card */
@@ -284,20 +287,60 @@
     flex-direction: column;
     gap: 32px;
     position: relative;
-    z-index: 2;               /* Acima dos círculos decorativos da .account-page */
-    overflow: hidden;
+    z-index: 2;
   }
-  
-  /* Detalhe decorativo sutil no topo do card */
-  .account-card::before {
-    content: '';
+
+  /* No escuro o card fica menos opaco e bem menos desfocado — a foto
+     noturna (lua/estrelas) é o ponto forte ali e o pedido foi deixá-la
+     nítida por trás, em vez do vidro fosco pesado do modo claro. */
+  html[data-tema="escuro"] .account-card {
+    background: rgba(15, 22, 38, 0.55);
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Navegador sem suporte a backdrop-filter (raro): cai pra card opaco em
+     vez de translúcido demais/ilegível sobre a foto. */
+  @supports not (backdrop-filter: blur(1px)) {
+    .account-card { background: rgba(255, 255, 255, 0.96); }
+    html[data-tema="escuro"] .account-card { background: rgba(15, 22, 38, 0.94); }
+  }
+
+  /* =============================================================
+     6b. BALÃO "QUE BOM TE VER POR AQUI!"
+     Detalhe decorativo só no login, só em telas largas (não há
+     espaço sobrando ao lado do card em telas menores). aria-hidden
+     porque não carrega nenhuma informação além do que já está no
+     título do card.
+     ============================================================= */
+  .account-hint-bubble {
+    display: none;
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    top: 4%;
+    left: -196px;
+    width: 172px;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: #fff;
+    font-family: 'Caveat', cursive;
+    font-size: 1.55rem;
+    line-height: 1.15;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(4, 20, 40, 0.4);
+    pointer-events: none;
   }
-  
+  .account-hint-arrow {
+    width: 56px;
+    height: 56px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  @media (min-width: 1180px) {
+    .account-hint-bubble { display: flex; }
+  }
+
   
   /* =============================================================
      7. CABEÇALHO DO CARD
@@ -316,7 +359,7 @@
     width: 64px;
     height: 64px;
     background: var(--primary-pale);
-    border-radius: 18px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -549,13 +592,16 @@
      Botão principal do formulário + botão social (Google).
      ============================================================= */
   
-  /* Botão primário — envio do formulário */
+  /* Botão primário — envio do formulário. Gradiente + seta em ::after (não
+     texto do botão) de propósito: login.js/cadastro.js trocam o
+     textContent em vários pontos ("Entrando...", erro, etc.) — um ícone
+     dentro do texto seria apagado nessas trocas, o ::after sobrevive. */
   .btn-submit {
     width: 100%;
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
     border: none;
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     padding: 16px;
     font-family: 'Nunito', sans-serif;
     font-size: 0.95rem;
@@ -563,14 +609,24 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
-    box-shadow: 0 6px 24px rgba(74, 126, 181, 0.28);
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 10px 28px rgba(21, 101, 192, 0.35);
+    transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
     margin-top: 6px;
   }
+  .btn-submit::after {
+    content: '\2192';
+    font-size: 1.15em;
+    line-height: 1;
+  }
+  .btn-submit:disabled::after { display: none; }
   .btn-submit:hover {
-    background: var(--primary-dark);
+    filter: brightness(1.06);
     transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(47, 95, 142, 0.3);
+    box-shadow: 0 14px 32px rgba(21, 101, 192, 0.4);
   }
   .btn-submit:active { transform: translateY(0); }
   
@@ -706,11 +762,14 @@
      14. RODAPÉ DA PÁGINA (FOOTER)
      Mesmo padrão do index.html.
      ============================================================= */
+  /* Rodapé também transparente sobre a foto — mesmo raciocínio do nav
+     (seção 4): o contraste vem do .bg-layer::before, que já escurece a
+     faixa de baixo da imagem. */
   footer {
     position: relative;
     z-index: 5;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
+    border-top: none;
+    background: transparent;
     padding: 24px 56px;
     display: flex;
     align-items: center;
@@ -718,26 +777,28 @@
     flex-wrap: wrap;
     gap: 12px;
   }
-  
+
   .footer-links {
     display: flex;
     gap: 24px;
     flex-wrap: wrap;
     justify-content: center;
   }
-  
+
   .footer-links a {
     font-size: 0.78rem;
     font-weight: 700;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 1px 6px rgba(4, 20, 40, 0.35);
     text-decoration: none;
     transition: color 0.2s;
   }
-  .footer-links a:hover { color: var(--primary); }
-  
+  .footer-links a:hover { color: #fff; }
+
   .footer-copy {
     font-size: 0.76rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.78);
+    text-shadow: 0 1px 6px rgba(4, 20, 40, 0.35);
   }
   
   
@@ -785,56 +846,6 @@
   
   
   
-  /* =============================================================
-     18. URSO MASCOTE — SCROLL ANIMADO
-     Desktop: posicionado ao lado direito do card via JS.
-     Mobile:  fixo no canto inferior direito da tela, menor.
-     ============================================================= */
-  
-  /* --- Desktop: posicionado pelo JS --- */
-  .bear-mascot {
-    position: absolute;
-    width: 200px;
-    height: 200x;
-    z-index: 10;
-    pointer-events: none;
-    will-change: transform;
-    transform-origin: center center;
-  }
-  
-  .bear-mascot img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-  }
-  
-  /* --- Tablet / Mobile (≤ 900px): aparece fixo no canto inferior direito --- */
-  @media (max-width: 900px) {
-    .bear-mascot {
-      /* Ignora o posicionamento absoluto do JS e fica fixo na tela */
-      position: fixed !important;
-      left: auto !important;
-      top: auto !important;
-      bottom: 24px !important;
-      right: 16px !important;
-      width: 80px;
-      height: 80px;
-      z-index: var(--z-banner);
-      /* Sombra mais visível sobre o conteúdo */
-      filter: drop-shadow(0 4px 16px rgba(74, 126, 181, 0.35));
-    }
-  }
-  
-  /* --- Celular pequeno (≤ 480px): um pouco menor ainda --- */
-  @media (max-width: 480px) {
-    .bear-mascot {
-      width: 64px;
-      height: 64px;
-      bottom: 16px !important;
-      right: 12px !important;
-    }
-  }
   /* =============================================================
      MENSAGEM DE ERRO GERAL (gerada por JS)
      Aparece acima do botão de envio quando o servidor

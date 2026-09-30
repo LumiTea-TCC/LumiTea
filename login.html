@@ -23,7 +23,7 @@
  <!-- Estilos das páginas de conta -->
  <link rel="preconnect" href="https://fonts.googleapis.com">
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
- <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&family=Caveat:wght@600&display=swap" rel="stylesheet">
 
  <link rel="stylesheet" href="conta.css">
 
@@ -48,13 +48,9 @@
 
  <!-- ============================================================
  FUNDO DECORATIVO
- Mesmos blobs do index.html para manter identidade visual.
+ Foto fixa cobrindo a tela inteira (ver .bg-layer em conta.css).
  ============================================================ -->
- <div class="bg-layer">
- <div class="blob blob-1"></div>
- <div class="blob blob-2"></div>
- <div class="blob blob-3"></div>
- </div>
+ <div class="bg-layer" aria-hidden="true"></div>
 
 
  <!-- ============================================================
@@ -83,15 +79,20 @@
 
  <!-- ============================================================
  ÁREA PRINCIPAL
- Centraliza o card de login verticalmente na tela.
+ Centraliza o card de login verticalmente na tela, sobre a foto
+ de fundo (ver .bg-layer).
  ============================================================ -->
- <!-- Urso mascote que acompanha o scroll -->
- <div class="bear-mascot" id="bear-mascot">
- <img src="img/urso-estrelhinha.png" alt="Mascote urso">
- </div>
-
  <main class="account-page">
  <div class="account-card">
+
+ <!-- Balão decorativo, só em telas largas (ver .account-hint-bubble) -->
+ <div class="account-hint-bubble" aria-hidden="true">
+ <span>Que bom<br>te ver por aqui!</span>
+ <svg class="account-hint-arrow" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M6 6 C 10 32, 24 50, 52 54" />
+ <polyline points="40,48 52,54 47,40" />
+ </svg>
+ </div>
 
  <!-- ----------------------------------------------------------
  CABEÇALHO DO CARD
@@ -208,18 +209,9 @@
 
  <!-- ============================================================
  JAVASCRIPT — INTERAÇÕES DO FORMULÁRIO
- Mostrar/ocultar senha e validação básica dos campos.
+ Mostrar/ocultar senha, validação básica dos campos e
+ integração com o Supabase Auth.
  ============================================================ -->
-
- <!-- ============================================================
- JAVASCRIPT — URSO MASCOTE COM SCROLL
- Desktop (> 900px): posiciona ao lado do card e gira.
- Se o card for curto (sem scroll), urso fica centralizado
- com rotação contínua suave.
- Mobile (≤ 900px): fica fixo no canto via CSS; só gira.
- ============================================================ -->
-
- <!-- JS externo — formulário, mascote e integração com backend -->
  <script src="js/login.js"></script>
 
 </body>

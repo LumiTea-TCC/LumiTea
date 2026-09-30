@@ -130,18 +130,6 @@
     .btn-next-step {
       flex: 2;
     }
-
-    /* ===== URSO MASCOTE — SPIN CONTÍNUO ===== */
-    .bear-mascot {
-      animation: bearSpin 6s linear infinite;
-    }
-    @keyframes bearSpin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .bear-mascot { animation: none; }
-    }
 </style>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
@@ -151,11 +139,7 @@
 <body>
 
   <!-- Fundo decorativo -->
-  <div class="bg-layer" aria-hidden="true">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-  </div>
+  <div class="bg-layer" aria-hidden="true"></div>
 
   <!-- Navegação -->
   <nav>
@@ -173,15 +157,6 @@
       <span class="lt-tema-slot"></span>
     </div>
   </nav>
-
-  <!-- Urso mascote -->
-  <img
-    id="bear-mascot"
-    class="bear-mascot"
-    src="img/urso-estrelhinha.png"
-    alt="Mascote urso do LumiTEA girando"
-    aria-hidden="true"
-  />
 
   <!-- Página principal -->
   <main class="account-page">
@@ -271,7 +246,7 @@
 
           <div class="step-nav">
             <button type="button" class="btn-submit btn-next-step" id="btn-next-1">
-              Continuar →
+              Continuar
             </button>
           </div>
         </div>
@@ -323,7 +298,7 @@
 
           <div class="step-nav">
             <button type="button" class="btn-back-step" id="btn-back-2">← Voltar</button>
-            <button type="button" class="btn-submit btn-next-step" id="btn-next-2">Continuar →</button>
+            <button type="button" class="btn-submit btn-next-step" id="btn-next-2">Continuar</button>
           </div>
         </div>
 
