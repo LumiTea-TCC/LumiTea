@@ -166,16 +166,23 @@
   box-shadow: var(--focus-ring);
 }
 
-.slider {
+.ui-switch .slider {
   width: var(--switch-width);
   height: var(--switch-height);
   background: var(--switch-bg);
   border-radius: 999px;
   position: relative;
+  inset: auto;
   cursor: pointer;
 }
 
-.slider .circle {
+/* Isolamento: conta.html tem um `.slider` próprio (toggles de preferência,
+   position:absolute + ::before de bolinha branca). Sem isto o switch de tema
+   herdava essas regras e ia parar no canto da tela. */
+.ui-switch .slider::before { content: none; }
+.ui-switch input:checked + .slider { background: var(--switch-bg); }
+
+.ui-switch .slider .circle {
   top: calc(var(--circle-inset) * -1);
   left: 0;
   width: var(--circle-diameter);
@@ -193,7 +200,7 @@
   box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
 }
 
-.slider .circle::before {
+.ui-switch .slider .circle::before {
   content: "";
   position: absolute;
   width: 100%;

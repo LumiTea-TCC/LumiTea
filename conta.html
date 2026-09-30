@@ -469,7 +469,13 @@
     const sb = createClient(SB_URL, SB_KEY);
 
     var _uid = null, _perfil = null, _email = null;
-    var _fonteAtual = 'normal', _temaAtual = 'default';
+    var _fonteAtual = 'normal', _temaAtual = 'default', _temaLocal = null;
+    // O tema que já está valendo neste aparelho (config.js o aplicou cedo a partir
+    // do localStorage) manda: o valor do banco só entra se este aparelho nunca
+    // escolheu um — senão uma preferência antiga do banco "ligava" o modo escuro
+    // sozinha ao abrir a Conta.
+    try{ _temaLocal = localStorage.getItem('lt-tema'); }catch(e){}
+    if(_temaLocal) _temaAtual = _temaLocal;
 
     /* CONQUISTAS */
     var CONQUISTAS = [
@@ -754,7 +760,7 @@
         if(p){
           if(p.lembrete!==undefined)document.getElementById('pref-lembrete').checked=p.lembrete;
           if(p.fonte)_fonteAtual=p.fonte;
-          if(p.tema)_temaAtual=p.tema;
+          if(p.tema && !_temaLocal)_temaAtual=p.tema;
           document.getElementById('pref-modocalmo').checked = !!(p.reduzAnim || p.anim===false);
         }
       }catch(e){console.warn('[Prefs] Erro ao carregar:',e.message);}

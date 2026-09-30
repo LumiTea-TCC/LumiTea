@@ -225,9 +225,14 @@
   position: relative;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(150deg, var(--jg-cor-ink, var(--rosa-dark)) 0%, var(--jg-cor, var(--rosa)) 100%);
+  /* Degradê suave: os dois tons ficam próximos (o fim é uma mistura de 45% tinta
+     + 55% cor, não a cor cheia) — e o ponto mais claro ainda segura texto branco
+     com contraste AA. */
+  background: linear-gradient(150deg,
+    var(--jg-cor-ink, var(--rosa-dark)) 0%,
+    color-mix(in srgb, var(--jg-cor-ink, var(--rosa-dark)) 45%, var(--jg-cor, var(--rosa))) 100%);
   border: none;
-  box-shadow: 0 18px 38px rgba(20, 30, 60, .28), inset 0 1px 0 rgba(255, 255, 255, .2);
+  box-shadow: 0 14px 30px rgba(20, 30, 60, .18), inset 0 1px 0 rgba(255, 255, 255, .2);
 }
 .jg-card--especial::before {
   content: '';
@@ -239,9 +244,19 @@
   pointer-events: none;
 }
 .jg-card--especial:hover { border-color: transparent; }
-.jg-card--especial .jg-card-icone { background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .3); color: #fff; }
-.jg-card--especial h2 { color: #fff; }
-.jg-card--especial p { color: rgba(255, 255, 255, .86); }
+/* Seletor duplicado (.jg-card.jg-card--especial) de propósito: as regras genéricas
+   .jg-card h2 / .jg-card p / .jg-card-icone vêm DEPOIS no arquivo com o mesmo peso
+   e deixavam título e texto escuros sobre o fundo colorido (ilegível). */
+.jg-card.jg-card--especial .jg-card-icone { background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .3); color: #fff; }
+.jg-card.jg-card--especial h2 { color: #fff; }
+.jg-card.jg-card--especial p { color: rgba(255, 255, 255, .92); }
+/* No escuro os tokens --jg-cor* ficam claros; o card continua colorido, mas
+   escurecido, pra manter o texto branco legível. */
+html[data-tema="escuro"] .jg-card--especial {
+  background: linear-gradient(150deg,
+    color-mix(in srgb, var(--jg-cor) 38%, #0f1626) 0%,
+    color-mix(in srgb, var(--jg-cor) 52%, #0f1626) 100%);
+}
 
 /* Card de progresso — resumo do próprio jogador, sem tema de cor */
 .jg-card--progresso { background: var(--bg-2); border: 1.5px dashed var(--border); }
