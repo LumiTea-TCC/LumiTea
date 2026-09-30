@@ -12,6 +12,7 @@
  neurodivergente: 'home-autista.html',
  responsavel: 'home-cuidador.html',
  terapeuta: 'home-cuidador.html',
+ psicologo: 'home-psicologo.html',
  };
  
  /* =============================================================
@@ -73,9 +74,24 @@
  const tipo = document.getElementById('tipo').value;
  if (!validarCampo('nascimento', 'nascimento-error', nascimentoInvalido())) ok = false;
  if (!validarCampo('tipo', 'tipo-error', !tipo)) ok = false;
+ if (tipo === 'psicologo') {
+ const crp = document.getElementById('crp').value.trim();
+ if (!validarCampo('crp', 'crp-error', !crp)) ok = false;
+ }
  }
  return ok;
  }
+
+ /* Campo de CRP só existe pra quem escolhe "psicólogo(a)" — mostra/esconde
+    junto com a troca do select, em vez de deixar um campo vazio e confuso
+    pros outros tipos de conta. */
+ const tipoSelect = document.getElementById('tipo');
+ const grupoCrp = document.getElementById('grupo-crp');
+ tipoSelect.addEventListener('change', () => {
+ const ehPsicologo = tipoSelect.value === 'psicologo';
+ grupoCrp.hidden = !ehPsicologo;
+ if (!ehPsicologo) validarCampo('crp', 'crp-error', false);
+ });
 
  function irParaEtapa(etapa) {
  /* Painéis */
@@ -211,6 +227,7 @@
  const celular = soDigitos(document.getElementById('celular').value);
  const nascimento = document.getElementById('nascimento').value;
  const tipo = document.getElementById('tipo').value;
+ const crp = document.getElementById('crp').value.trim();
  const senha = senhaInput.value;
  const confirma = confirmarInput.value;
  const termos = document.getElementById('termos');
@@ -224,6 +241,7 @@
  if (!validarCampo('celular', 'celular-error', celular.length < 10 || celular.length > 13)) valido = false;
  if (!validarCampo('nascimento', 'nascimento-error', nascimentoInvalido())) valido = false;
  if (!validarCampo('tipo', 'tipo-error', !tipo)) valido = false;
+ if (tipo === 'psicologo' && !validarCampo('crp', 'crp-error', !crp)) valido = false;
  if (!validarCampo('senha', 'senha-error', senha.length < 6)) valido = false;
  if (!validarCampo('confirmar-senha','confirmar-senha-error', senha !== confirma || !confirma)) valido = false;
  
@@ -240,8 +258,12 @@
  btnSubmit.textContent = 'Criando conta...';
  
  try {
- /* Normaliza: só 'neurodivergente' ou 'responsavel' são aceitos pelo banco */
- const tipoNormalizado = tipo === 'neurodivergente' ? 'neurodivergente' : 'responsavel';
+ /* Normaliza: 'neurodivergente' e 'psicologo' passam direto; qualquer
+    outra opção (inclusive 'terapeuta', hoje decorativa) vira 'responsavel',
+    que é o tipo real do painel do cuidador. */
+ const tipoNormalizado = tipo === 'neurodivergente' ? 'neurodivergente'
+   : tipo === 'psicologo' ? 'psicologo'
+   : 'responsavel';
 
  /* 0. Checa se o celular já está em uso (evita conta duplicada).
  Se a função ainda não existir no banco, ignora e segue. */
@@ -267,7 +289,10 @@
  tipo: tipoNormalizado,
  nascimento,
  telefone: celular,
- perfil: tipoNormalizado === 'neurodivergente' ? 'Adolescente' : 'Responsável',
+ crp: tipoNormalizado === 'psicologo' ? crp : undefined,
+ perfil: tipoNormalizado === 'neurodivergente' ? 'Adolescente'
+   : tipoNormalizado === 'psicologo' ? 'Psicólogo(a)'
+   : 'Responsável',
  },
  },
  });

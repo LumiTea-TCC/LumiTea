@@ -12,6 +12,7 @@ const ROTAS_TIPO = {
   neurodivergente: 'home-autista.html',
   responsavel:     'home-cuidador.html',
   terapeuta:       'home-cuidador.html',  /* compatibilidade */
+  psicologo:       'home-psicologo.html',
   crianca:         'home-autista.html',   /* compatibilidade com registros antigos */
 };
 
@@ -63,6 +64,41 @@ function mostrarErroGeral(msg) {
 function ocultarErroGeral() {
   const el = document.getElementById('erro-geral');
   if (el) el.style.display = 'none';
+}
+
+/* E-mail ainda não confirmado: em vez do erro genérico, oferece reenviar a
+   confirmação sem precisar voltar pro cadastro. */
+function mostrarErroConfirmacaoPendente(email) {
+  ocultarErroGeral();
+  let el = document.getElementById('erro-geral');
+  if (!el) {
+    el = document.createElement('p');
+    el.id        = 'erro-geral';
+    el.className = 'erro-geral-msg';
+    btnSubmit.parentNode.insertBefore(el, btnSubmit);
+  }
+  el.textContent   = '';
+  el.style.display = 'block';
+  el.append('Você ainda não confirmou seu e-mail. Confira sua caixa de entrada (e o spam) ou ');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'field-link';
+  btn.textContent = 'reenviar o e-mail de confirmação';
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const textoOriginal = btn.textContent;
+    btn.textContent = 'Reenviando...';
+    try {
+      const { error } = await supabaseClient.auth.resend({ type: 'signup', email });
+      el.textContent = '';
+      el.append(error ? 'Não foi possível reenviar agora. Tente de novo em instantes.' : 'E-mail reenviado! Confira sua caixa de entrada.');
+    } catch (e) {
+      el.textContent = 'Não foi possível reenviar agora. Tente de novo em instantes.';
+    }
+  });
+  el.append('.');
+  el.append(document.createElement('br'));
+  el.append(btn);
 }
 
 /* =============================================================
@@ -117,7 +153,16 @@ form.addEventListener('submit', async (e) => {
     });
 
     if (error) {
-      mostrarErroGeral('Celular/e-mail ou senha incorretos.');
+      /* GoTrue devolve essa mensagem específica quando a conta existe e a
+         senha está certa, mas o e-mail ainda não foi confirmado — mostrar
+         "senha incorreta" nesse caso confundiria quem já fez tudo certo. */
+      const semConfirmar = (error.message || '').toLowerCase().indexOf('email not confirmed') !== -1
+        || error.code === 'email_not_confirmed';
+      if (semConfirmar) {
+        mostrarErroConfirmacaoPendente(email);
+      } else {
+        mostrarErroGeral('Celular/e-mail ou senha incorretos.');
+      }
       btnSubmit.disabled    = false;
       btnSubmit.textContent = 'Entrar na minha conta';
       return;

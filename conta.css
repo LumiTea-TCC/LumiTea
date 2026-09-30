@@ -7,6 +7,11 @@
    ============================================================= */
 
 
+/* [hidden] precisa vencer .field-group (que já declara display:flex) — sem
+   isso o atributo `hidden` sozinho não esconde nada aqui, mesmo bug já visto
+   em app.css (ver CLAUDE.md, "[hidden] tem que vencer quem declara display"). */
+[hidden] { display: none !important; }
+
 /* =============================================================
    1. VARIÁVEIS GLOBAIS
    Mesmas variáveis do lumitea.css para manter consistência
@@ -376,8 +381,13 @@
     color: var(--primary);
     text-decoration: none;
     transition: color 0.2s;
+    /* sem efeito num <a>; existe pra quando .field-link é usado num <button>
+       (ex.: "reenviar e-mail de confirmação" em login.js), pra não herdar o
+       visual padrão de botão do navegador */
+    background: none; border: none; padding: 0; font-family: inherit; cursor: pointer;
   }
   .field-link:hover { color: var(--primary-dark); text-decoration: underline; }
+  .field-link:disabled { opacity: .6; cursor: not-allowed; }
   
   /* Wrapper do input com ícone interno */
   .input-wrap {

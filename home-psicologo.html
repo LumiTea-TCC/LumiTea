@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumiTEA — Painel do Psicólogo</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lumitea.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/enhance.css"><!--lt-enhance-->
+  <script src="js/core/icons.js" defer></script>
+  <script src="js/core/reveal.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/core/secrets.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/tema.js" defer></script>
+  <!-- SEM defer de propósito: o bloco de script no fim do body desta página roda
+       durante o parse e já usa PSI. Com defer, a casca só existiria depois. -->
+  <script src="js/core/psicologo-shell.js"></script>
+</head>
+<body class="app-body lt-pro cui-page" data-psi-pagina="pacientes">
+
+  <div class="bg-layer">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Topo mobile, gaveta e sidebar vêm da casca:
+       js/core/psicologo-shell.js (o menu vive num arquivo só). -->
+  <div class="cui-layout">
+    <div class="cui-main">
+
+      <div class="cui-tela ativa">
+        <div class="cui-tela-topo">
+          <div class="cui-section-title"><i class="lt-i" data-lt-icon="users" aria-hidden="true"></i> Pacientes</div>
+        </div>
+
+        <div id="psi-banner-pendente" class="psi-banner-pendente" hidden>
+          <i class="lt-i" data-lt-icon="alert-circle" aria-hidden="true"></i>
+          <div>
+            <div class="psi-banner-pendente-tit">Cadastro em análise</div>
+            <div class="psi-banner-pendente-txt">Recebemos o número do seu CRP e estamos conferindo. Você poderá vincular pacientes assim que a verificação for concluída.</div>
+          </div>
+        </div>
+
+        <section class="psi-secao" aria-labelledby="t-vincular">
+          <h3 id="t-vincular"><i class="lt-i" data-lt-icon="link" aria-hidden="true"></i> Vincular paciente</h3>
+          <p class="cui-hint">Peça ao adolescente (ou ao cuidador dele) o código de vínculo de 6 dígitos que já aparece na conta dele — o mesmo usado para conectar um cuidador.</p>
+          <div class="vinculo-input-row">
+            <input type="text" id="inp-codigo-psicologo" maxlength="6" placeholder="CÓDIGO (6 dígitos)" aria-label="Código de vínculo">
+            <button class="btn-primary" id="btn-conectar">Conectar</button>
+          </div>
+          <div class="err-msg" id="err-vinculo-psicologo">Código inválido. Verifique com o adolescente.</div>
+        </section>
+
+        <div id="psi-grid" class="psi-grid">
+          <div class="empty-state"><i class="lt-i" data-lt-icon="users" aria-hidden="true"></i><p>Carregando...</p></div>
+        </div>
+
+      </div>
+
+    </div><!-- /cui-main -->
+  </div><!-- /cui-layout -->
+
+  <script>
+    function renderPacientes(pacientes) {
+      var grid = document.getElementById('psi-grid');
+      if (!grid) return;
+
+      if (!pacientes.length) {
+        grid.innerHTML = PSI.vazio('users', 'Nenhum paciente vinculado ainda. Use o código de vínculo acima para conectar o primeiro.');
+        return;
+      }
+
+      grid.innerHTML = '';
+      pacientes.forEach(function (pac) {
+        var nome = (pac.nome + ' ' + (pac.sobrenome || '')).trim();
+        var idadeTxt = pac.idade === null ? '' : ' · ' + pac.idade + ' anos';
+
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'psi-card';
+        card.innerHTML =
+          '<div class="psi-card-topo">' +
+            '<div class="psi-card-av">' + PSI.ic('user') + '</div>' +
+            '<div>' +
+              '<div class="psi-card-nome">' + PSI.esc(nome) + '</div>' +
+              '<div class="psi-card-meta">Nível ' + PSI.esc(pac.nivel) + idadeTxt + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="psi-card-chips" id="psi-chips-' + pac.id + '"></div>';
+        card.addEventListener('click', function () {
+          window.location.href = 'paciente-psicologo.html?id=' + encodeURIComponent(pac.id);
+        });
+        grid.appendChild(card);
+
+        carregarResumoPaciente(pac.id);
+      });
+    }
+
+    /* Chip de último humor + selo de alerta de crise não lido. Uma consulta
+       curta por card (patamar de pacientes de um psicólogo é pequeno o
+       bastante pra isso não pesar; ver js/core/psicologo-shell.js pro
+       carregamento em lote da lista principal). */
+    async function carregarResumoPaciente(teenId) {
+      var box = document.getElementById('psi-chips-' + teenId);
+      if (!box || !PSI.sb) return;
+      try {
+        var hres = await PSI.sb.from('humores').select('nivel, timestamp')
+          .eq('id_neurodivergente', teenId).order('timestamp', { ascending: false }).limit(1);
+        var ares = await PSI.sb.from('alertas').select('tipo, lido')
+          .eq('id_neurodivergente', teenId).eq('tipo', 'crise').eq('lido', false).limit(1);
+
+        var chips = '';
+        var humor = hres.data && hres.data[0];
+        if (humor) chips += PSI.humorChip(humor.nivel);
+        if ((ares.data || []).length) {
+          chips += '<span class="psi-badge-alerta">' + PSI.ic('alert-triangle') + ' Alerta não lido</span>';
+        }
+        box.innerHTML = chips;
+      } catch (e) { console.warn('[home-psicologo] resumo do paciente:', e.message); }
+    }
+
+    async function aceitarVinculoPsicologo() {
+      var inp = document.getElementById('inp-codigo-psicologo');
+      var err = document.getElementById('err-vinculo-psicologo');
+      var codigo = (inp.value || '').trim().toUpperCase();
+      if (!codigo || codigo.length < 4) { err.classList.add('on'); return; }
+      err.classList.remove('on');
+
+      var r = await PSI.sb.rpc('aceitar_vinculo_psicologo', { p_codigo: codigo });
+      if (r.error || r.data !== 'ok') {
+        console.error('[home-psicologo] aceitar_vinculo_psicologo não retornou ok — data:', r.data, 'error:', r.error);
+        var msg = r.data === 'codigo_invalido' ? 'Código inválido.'
+          : r.data === 'ja_vinculado' ? 'Este paciente já está vinculado à sua conta.'
+          : r.data === 'tipo_invalido' ? 'Sua conta não tem permissão para vincular pacientes.'
+          : r.data === 'nao_verificado' ? 'Seu cadastro ainda está em análise. Você poderá vincular pacientes assim que a verificação for concluída.'
+          : r.error ? ('Erro ao vincular: ' + (r.error.message || r.error.code || 'desconhecido')) : 'Erro ao vincular. Tente novamente.';
+        err.textContent = msg; err.classList.add('on');
+        return;
+      }
+
+      inp.value = '';
+      await PSI.recarregarPacientes();
+    }
+
+    /* Enquanto `verificado` não vira true (aprovação manual do CRP, ver
+       db/PSICOLOGO_SCHEMA.sql), a caixa de vincular fica visível mas
+       desabilitada — o RPC também recusa (`nao_verificado`), então isso é
+       só uma explicação antecipada, não a única trava. */
+    function ajustarBotaoConectar() {
+      var pendente = !!(PSI.perfil && PSI.perfil.verificado === false);
+      var banner = document.getElementById('psi-banner-pendente');
+      var inp = document.getElementById('inp-codigo-psicologo');
+      var btn = document.getElementById('btn-conectar');
+      if (banner) banner.hidden = !pendente;
+      if (inp) inp.disabled = pendente;
+      if (btn) btn.disabled = pendente;
+    }
+
+    PSI.aoTrocarLista(renderPacientes);
+    PSI.aoTrocarLista(ajustarBotaoConectar);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var inp = document.getElementById('inp-codigo-psicologo');
+      inp.addEventListener('input', function () { inp.value = inp.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6); });
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') aceitarVinculoPsicologo(); });
+      document.getElementById('btn-conectar').addEventListener('click', aceitarVinculoPsicologo);
+    });
+  </script>
+</body>
+</html>
